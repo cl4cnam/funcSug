@@ -1,0 +1,86 @@
+{
+	function Context(scope, parent) {
+		this.scope = scope
+		this.parent = parent
+	}
+	
+	Context.prototype.get = function(label) {
+		if (label in this.scope) {
+			return this.scope[label]
+		} else if (this.parent !== null) {
+			return this.parent.get(label)
+		}
+	}
+
+	function Expression(type, content, text) {
+		this.context = new Context(new Map(), null)
+		this.type = type
+		this.content = content
+		this.text = text
+		this.location = location()
+	}
+}
+
+start
+	= program
+
+program
+	= __ expr:expression __ { return new Expression('program', expr, expr.text) }
+
+expression
+	= "(" __ startExpr:expression expr:WSexpression* __ ")" { return new Expression('expression', [startExpr].concat(expr), '('+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+')' ) }
+	/ "[" __ startExpr:expression expr:WSexpression* __ "]" { return new Expression('expression', [startExpr].concat(expr), '['+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+']' ) }
+	/ "{" __ startExpr:expression expr:WSexpression* __ "}" { return new Expression('expression', [startExpr].concat(expr), '{'+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+'}' ) }
+	/ number / string / name
+	/ expression0 / expression1 / expression2 / expression3
+
+WSexpression
+	= spaces expr:expression { return expr; }
+
+expression0
+	= "!" n:name { return new Expression('expression', [n], '!'+n.text) }
+
+expression1
+	= "." n:name spaces e1:expression { return new Expression('expression', [n, e1], '.'+n.text+' '+e1.text) }
+
+expression2
+	= ":" n:name spaces e1:expression spaces e2:expression { return new Expression('expression', [n, e1, e2], ':'+n.text+' '+e1.text+' '+e2.text) }
+
+expression3
+	= "%" n:name spaces e1:expression spaces e2:expression spaces e3:expression { return new Expression('expression', [n, e1, e2, e3], '%'+n.text+' '+e1.text+' '+e2.text+' '+e3.text) }
+
+name
+	= simpleName
+	/ oper
+
+oper
+	= oper:[-=+*] { return new Expression('oper', oper, oper) }
+
+simpleName
+	= n:[A-Za-z_]+ { return new Expression('identifier', n.join(""), n.join("")) }
+
+__
+	= (comment / singleSpace / newline)*
+
+spaces
+	= (comment / singleSpace / newline)+
+
+comment
+	= "#" [^\n\r]* newline
+
+singleSpace
+	= [ \t]
+
+whiteSpace
+	= [ \t\n\r]+
+
+newline
+	= [\n\r]
+
+number
+	= digits:[0-9]+ { return new Expression('number', parseInt(digits.join(""), 10), digits.join("")) }
+
+string
+	= '"' content:[^"]+ '"' { return new Expression('string', content.join(""), '"'+content.join("")+'"' ) }
+	/ "'" content:[^']+ "'" { return new Expression('string', content.join(""), "'"+content.join("")+"'" ) }
+	/ '`' content:[^`]+ '`' { return new Expression('string', content.join(""), '`'+content.join("")+'`' ) }
