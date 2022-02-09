@@ -112,7 +112,7 @@ const gDict_instructions = {
 				l_vari.currBip = true
 				for (const val of l_secondargResult) {
 					// delete values in direct line
-					for (const otherVal of l_vari.curr) {
+					for (const otherVal of [...l_vari.curr]) {
 						if ( isStraightLink(pFrame, otherVal.frame) ) {
 							const l_otherValIndex = l_vari.curr.indexOf(otherVal)
 							l_vari.curr.splice(l_otherValIndex, 1)
@@ -160,8 +160,6 @@ const gDict_instructions = {
 					const l_argResult = extractFromReturnedValues(pFrame.returned_values, i)
 					pFrame.toReturn_values.push(...l_argResult)
 				}
-				//~ const l_argResult = extractFromReturnedValues(pFrame.returned_values, i)
-				//~ pFrame.toReturn_values.push(...l_argResult)
 			}
 		}
 	},
@@ -175,7 +173,6 @@ function Instruction(ps_codeWord, pn_nbArg, pf_postExec, pf_exec) {
 	
 	if (pf_postExec) {
 		this.exec = function(pFrame, p_content) {
-			//~ const l_content = pFrame.code.content
 			if (pFrame.instrPointer==1) {
 				pFrame.plug = {precedingFramesOrPlugs:[]}
 				for (let i=1;i<=p_content.length-1;i++) {
@@ -398,41 +395,25 @@ function parentize(code) {
 	}
 }
 
-//~ o = peg.parse(`
-//~ {seq
-	//~ :set n_aRandomNumber :randomNumber 1 31
-	//~ .print "Essayez un nombre : "
-	//~ :set s_essai !getFromUser
-	//~ :set n_essai .stringToInt s_essai
-//~ }
-//~ `)
-//~ o = peg.parse(`
-//~ {print 'ert'}
-//~ `)
-
-//~ const o = peg.parse(`
-//~ {seq
-	//~ .var 'ert'
-	//~ .print '======> OK'
-	//~ .var 45
-	//~ .get 77
-	//~ :set 'ert' 555
-	//~ :set 'ert' 777
-	//~ #(seq .print '-------#1' .print '-------#2' .print '-------#3')
-	//~ .print '======> END'
-//~ }
-//~ `)
-
 //~ const o = peg.parse(`
 //~ {seq
 	//~ .print '======> START'
-	//~ .var 'ert'
-	//~ .var 45
-	//~ :set 'ert' 555
-	//~ :set 'ert' 777
-	//~ .print '======> 77a'
-	//~ .print .get 'ert'
-	//~ .print '======> 77b'
+	//~ .var ert
+	//~ .var aze
+	//~ :set ert 5
+	//~ :set aze 7
+	//~ {par
+		//~ .print 'qsdf'
+		//~ .print 'wxcv'
+		//~ .bip aze
+		//~ :set ert 8
+		//~ :set ert 4
+	//~ }
+	//~ {if (par true false)
+		//~ .print 'un'
+		//~ .print 'deux'
+	//~ }
+	//~ .print :+ .get ert .get aze
 	//~ #(seq .print '-------#1' .print '-------#2' .print '-------#3')
 	//~ .print '======> END'
 //~ }
@@ -441,22 +422,10 @@ function parentize(code) {
 const o = peg.parse(`
 {seq
 	.print '======> START'
-	.var ert
-	.var aze
-	:set ert 5
-	:set aze 7
-	{par
-		.print 'qsdf'
-		.print 'wxcv'
-		.bip aze
-		:set ert 8
-		:set ert 4
-	}
-	{if (par true false)
-		.print 'un'
-		.print 'deux'
-	}
-	.print :+ .get ert .get aze
+	.var a .var b
+	{par :set a 20 :set a 30}
+	{par :set b 4 :set b 5}
+	.print :+ .get a .get b
 	#(seq .print '-------#1' .print '-------#2' .print '-------#3')
 	.print '======> END'
 }
