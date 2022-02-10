@@ -3,6 +3,14 @@
 const leafFrameList = []
 const scopeSet = new Set()
 
+function $$$__BugChecking(pb_bugCondition, ps_message, pn_line) {
+	if (pb_bugCondition) throw 'Bug: ' + ps_message + ' **at** line ' + pn_line
+}
+
+function $__ErrorChecking(pFrame, pb_errorCondition, ps_message) {
+	if (pb_errorCondition) throw 'Error (prog): ' + ps_message + expressionToString(pFrame.code)
+}
+
 function locationToString(loc) {
 	return 'source ' + loc.source + ', line ' + loc.start.line + ' column ' + loc.start.column + ' to line ' + loc.end.line + ' column ' + loc.end.column
 }
@@ -14,12 +22,12 @@ function expressionToString(expr) {
 function extractFromReturnedValues(returnedValues, initialIndex) {
 	const lArray_fastestToSlowest = returnedValues.map( elt=>elt.idx )
 	const l_index = lArray_fastestToSlowest.indexOf(initialIndex)
-	if (l_index===-1) throw 'Bug: initialIndex not found'
+	;;     $$$__BugChecking(l_index===-1, 'initialIndex not found', new Error().lineNumber)
 	return returnedValues[l_index].val
 }
 
 function isPrecedingFrame(frame1, frame2) {
-	if (frame1===undefined) throw 'Bug: (isPrecedingFrame) frame1 is undefined'
+	;;     $$$__BugChecking(frame1===undefined, '(isPrecedingFrame) frame1 is undefined', new Error().lineNumber)
 	if (frame2===undefined) return false
 	return frame1===frame2
 		|| frame2.precedingFramesOrPlugs===frame1
@@ -27,12 +35,12 @@ function isPrecedingFrame(frame1, frame2) {
 }
 
 function isStraightLink(frame1, frame2) {
-	if (frame1===undefined || frame2===undefined) throw 'Bug: scope frame is undefined'
+	;;     $$$__BugChecking(frame1===undefined || frame2===undefined, 'scope frame is undefined', new Error().lineNumber)
 	return isPrecedingFrame(frame1, frame2) || isPrecedingFrame(frame2, frame1)
 }
 
 function getVarScope(context, label) {
-	if ( context === undefined ) throw 'Bug: context === undefined'
+	;;     $$$__BugChecking(context===undefined, 'context===undefined', new Error().lineNumber)
 	if ( context.scope.has(label) ) return context.scope
 	if ( context.parent ) return getVarScope(context.parent, label)
 }
@@ -68,7 +76,7 @@ const gDict_instructions = {
 				// get variable
 				//-------------
 				const l_scope = getVarScope(pFrame.code.context, label)
-				if (l_scope===undefined) throw 'Error (prog): undefined variable' + expressionToString(pFrame.code)
+				;;     $__ErrorChecking(pFrame, l_scope===undefined, 'undefined variable')
 				const l_vari = l_scope.get(label)
 				// get value
 				//----------
@@ -94,7 +102,7 @@ const gDict_instructions = {
 			const l_firstargResult = extractFromReturnedValues(pFrame.returned_values, 0)
 			for (const label of l_firstargResult) {
 				const l_scope = getVarScope(pFrame.code.context, label)
-				if (l_scope===undefined) throw 'Error (prog): undefined variable' + expressionToString(pFrame.code)
+				;;     $__ErrorChecking(pFrame, l_scope===undefined, 'undefined variable')
 				const l_vari = l_scope.get(label)
 				l_vari.currBip = true
 			}
@@ -107,7 +115,7 @@ const gDict_instructions = {
 			const l_secondargResult = extractFromReturnedValues(pFrame.returned_values, 1)
 			for (const label of l_firstargResult) {
 				const l_scope = getVarScope(pFrame.code.context, label)
-				if (l_scope===undefined) throw 'Error (prog): undefined variable' + expressionToString(pFrame.code)
+				;;     $__ErrorChecking(pFrame, l_scope===undefined, 'undefined variable')
 				const l_vari = l_scope.get(label)
 				l_vari.currBip = true
 				for (const val of l_secondargResult) {
@@ -137,7 +145,7 @@ const gDict_instructions = {
 		nbArg: (n=> (n>=1) ),
 		exec: function(pFrame, p_content) {
 			if (pFrame.instrPointer===1) pFrame.plug = {precedingFramesOrPlugs:[]}
-			if (p_content[pFrame.instrPointer]===undefined) throw 'Bug: p_content[pFrame.instrPointer]===undefined'
+			;;     $$$__BugChecking(p_content[pFrame.instrPointer]===undefined, 'p_content[pFrame.instrPointer]===undefined', new Error().lineNumber)
 			pFrame.lastChild = pFrame.addChildToLeaflist(p_content[pFrame.instrPointer])
 		}
 	},
@@ -146,7 +154,7 @@ const gDict_instructions = {
 		exec: function(pFrame, p_content) {
 			if (pFrame.instrPointer==1) {
 				pFrame.plug = {precedingFramesOrPlugs:[]}
-				if (p_content[1]===undefined) throw 'Bug: p_content[1]===undefined'
+				;;     $$$__BugChecking(p_content[1]===undefined, 'p_content[1]===undefined', new Error().lineNumber)
 				pFrame.addChildToLeaflist(p_content[1])
 			} else if (pFrame.instrPointer==2) {
 				const l_firstargResult = extractFromReturnedValues(pFrame.returned_values, 0)
@@ -176,7 +184,7 @@ function Instruction(ps_codeWord, pn_nbArg, pf_postExec, pf_exec) {
 			if (pFrame.instrPointer==1) {
 				pFrame.plug = {precedingFramesOrPlugs:[]}
 				for (let i=1;i<=p_content.length-1;i++) {
-					if (p_content[i]===undefined) throw 'Bug: p_content[i]===undefined'
+					;;     $$$__BugChecking(p_content[i]===undefined, 'p_content[i]===undefined', new Error().lineNumber)
 					pFrame.addChildToLeaflist(p_content[i])
 				}
 			} else {
@@ -242,7 +250,7 @@ Frame.prototype.addChildToLeaflist = function(expr) {
 		// insert
 		const l_precedingChild = this.childrenList[this.childrenList.length-2]
 		const ln_precedingChildIndex = leafFrameList.indexOf(l_precedingChild)
-		if (ln_precedingChildIndex === -1) throw 'Bug: frame not found'
+		;;     $$$__BugChecking(ln_precedingChildIndex === -1, 'frame not found', new Error().lineNumber)
 		leafFrameList.splice(ln_precedingChildIndex+1, 0, childFrame)
 	} else {
 		// replace
@@ -259,9 +267,8 @@ Frame.prototype.removeChildFromLeaflist = function() {
 
 	// remove or, maybe, replace by parent     from leafFrameList
 	//-----------------------------------------------------------
-	if (this.parent && this.parent.childrenList.length == 0) {
-		throw 'Error (bug): childrenList of parent is empty'
-	} else if (this.parent && this.parent.childrenList.length == 1) {
+	;;     $$$__BugChecking(this.parent && this.parent.childrenList.length == 0, 'childrenList of parent is empty', new Error().lineNumber)
+	if (this.parent && this.parent.childrenList.length == 1) {
 		// replace
 		//~ console.log('replace leaf')
 		leafFrameList.splice(ln_leafChildFrameI, 1, this.parent)
@@ -273,7 +280,7 @@ Frame.prototype.removeChildFromLeaflist = function() {
 	
 	if (this.parent) {
 		const ln_childrenFrameI = this.parent.childrenList.indexOf(this)
-		if (ln_childrenFrameI === -1) throw 'Bug: child frame not found'
+		;;     $$$__BugChecking(ln_childrenFrameI === -1, 'child frame not found', new Error().lineNumber)
 		
 		// transfer return values
 		//-----------------------
@@ -295,23 +302,21 @@ Frame.prototype.exec1instant = function() {
 	
 		// errors
 		//==========
-		if (! l_content instanceof Array) throw 'Bug: expression not array'
-		if (l_content.length === 0) throw 'Bug: exec empty array'
-		if (l_content[0].content === undefined) throw 'Bug: exec undefined instr'
-		if (! ['identifier', 'oper'].includes(l_content[0].type)) throw 'Error (prog): cannot execute' + expressionToString(l_content[0])
+		;;     $$$__BugChecking(! (l_content instanceof Array), 'expression not array', new Error().lineNumber)
+		;;     $$$__BugChecking(l_content.length === 0, 'exec empty array', new Error().lineNumber)
+		;;     $$$__BugChecking(l_content[0].content === undefined, 'exec undefined instr', new Error().lineNumber)
+		
+		;;$__ErrorChecking(this, ! ['identifier', 'oper'].includes(l_content[0].type), 'cannot execute')
 		
 		// get Instruction
 		//======================
 		const lInstruction = gDict_Instruct[l_content[0].content]
-		if (lInstruction === undefined) throw 'Error (prog): undefined instruction' + expressionToString(this.code)
+		;;$__ErrorChecking(this, lInstruction===undefined, 'undefined instruction')
 		
 		// verif number of arg
 		//====================
-		if ( typeof lInstruction.nbArg === 'number' ) {
-			if (l_content.length !== lInstruction.nbArg+1) throw 'Error (prog): wrong number of arguments' + expressionToString(this.code)
-		} else {
-			if (! lInstruction.nbArg(l_content.length-1)) throw 'Error (prog): invalid number of arguments' + expressionToString(this.code)
-		}
+		;;$__ErrorChecking(this, typeof lInstruction.nbArg === 'number' && l_content.length !== lInstruction.nbArg+1, 'wrong number of arguments')
+		;;$__ErrorChecking(this, typeof lInstruction.nbArg !== 'number' && ! lInstruction.nbArg(l_content.length-1), 'invalid number of arguments')
 		
 		// finished ?
 		//===============
@@ -358,7 +363,7 @@ Frame.prototype.exec1instant = function() {
 function exec(code) {
 	const mainFrame = new Frame(code, null)
 	leafFrameList.push(mainFrame)
-	console.log(mainFrame)
+	//~ console.log(mainFrame)
 	while (  leafFrameList.some( elt=>elt.awake )  ) {
 		// exec 1 instant
 		//===============
@@ -395,42 +400,8 @@ function parentize(code) {
 	}
 }
 
-//~ const o = peg.parse(`
-//~ {seq
-	//~ .print '======> START'
-	//~ .var ert
-	//~ .var aze
-	//~ :set ert 5
-	//~ :set aze 7
-	//~ {par
-		//~ .print 'qsdf'
-		//~ .print 'wxcv'
-		//~ .bip aze
-		//~ :set ert 8
-		//~ :set ert 4
-	//~ }
-	//~ {if (par true false)
-		//~ .print 'un'
-		//~ .print 'deux'
-	//~ }
-	//~ .print :+ .get ert .get aze
-	//~ #(seq .print '-------#1' .print '-------#2' .print '-------#3')
-	//~ .print '======> END'
-//~ }
-//~ `)
-
-const o = peg.parse(`
-{seq
-	.print '======> START'
-	.var a .var b
-	{par :set a 20 :set a 30}
-	{par :set b 4 :set b 5}
-	.print :+ .get a .get b
-	#(seq .print '-------#1' .print '-------#2' .print '-------#3')
-	.print '======> END'
+function execProg(progText) {
+	const progr = peg.parse(progText)
+	parentize(progr)
+	exec(progr.content)
 }
-`)
-
-parentize(o)
-console.log(o)
-exec(o.content)
