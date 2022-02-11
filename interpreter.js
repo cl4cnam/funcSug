@@ -8,7 +8,7 @@ function $$$__BugChecking(pb_bugCondition, ps_message, pn_line) {
 }
 
 function $__ErrorChecking(pFrame, pb_errorCondition, ps_message) {
-	if (pb_errorCondition) throw 'Error (prog): ' + ps_message + expressionToString(pFrame.code)
+	if (pb_errorCondition) throw 'Error (prog): ' + ps_message + ' --IN--' + expressionToString(pFrame.code)
 }
 
 function locationToString(loc) {
@@ -16,7 +16,7 @@ function locationToString(loc) {
 }
 
 function expressionToString(expr) {
-	return ' "... ' + expr.text + ' ..." --at--> ' + locationToString(expr.location)
+	return ' "... ' + expr.text + ' ..." --AT--> ' + locationToString(expr.location)
 }
 
 function extractFromReturnedValues(returnedValues, initialIndex) {
@@ -53,6 +53,22 @@ function getVarScope(context, label) {
 //===================================================================================================
 
 const gDict_instructions = {
+	ext: { // ext <inputExpression> <jsStringToExecute> <outputExpression>
+		nbArg:3,
+		exec: function(pFrame, p_content) {
+			const l_outputLabel = p_content[3].content
+			const l_scope = getVarScope(pFrame.code.context, l_outputLabel)
+			;;     $__ErrorChecking(pFrame, l_scope===undefined, 'undefined output variable')
+			const l_outputVari = l_scope.get(l_outputLabel)
+			l_scope.set( l_outputVari, {prec:[], curr:[], precBip:false, currBip:false} )
+			const promi = new Promise(eval('(resolve, reject) => {' + p_content[2].content + '}'))
+			promi.then(res => {
+				l_outputVari.currBip = true
+				l_outputVari.curr.push({frame:pFrame, val:res})
+			})
+			pFrame.terminated = true
+		}
+	},
 	print: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
@@ -96,7 +112,7 @@ const gDict_instructions = {
 			}
 		}
 	},
-	bip: {
+	bip: { // generate(evt)
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			const l_firstargResult = extractFromReturnedValues(pFrame.returned_values, 0)
@@ -108,7 +124,7 @@ const gDict_instructions = {
 			}
 		}
 	},
-	set: {
+	set: { // generate(evt, value)
 		nbArg:2,
 		postExec: function(pFrame, p_content) {
 			const l_firstargResult = extractFromReturnedValues(pFrame.returned_values, 0)
@@ -144,30 +160,36 @@ const gDict_instructions = {
 	seq: {
 		nbArg: (n=> (n>=1) ),
 		exec: function(pFrame, p_content) {
-			if (pFrame.instrPointer===1) pFrame.plug = {precedingFramesOrPlugs:[]}
 			;;     $$$__BugChecking(p_content[pFrame.instrPointer]===undefined, 'p_content[pFrame.instrPointer]===undefined', new Error().lineNumber)
 			pFrame.lastChild = pFrame.addChildToLeaflist(p_content[pFrame.instrPointer])
+			if (pFrame.instrPointer===(p_content.length-1)) {
+				pFrame.terminated = true
+			}
 		}
 	},
-	if: {
-		nbArg: 3,
+	if: { // 'if' <condition> 'then' <expression> 'else' <expression>
+		nbArg: (n=> (n==3 || n==5) ),
 		exec: function(pFrame, p_content) {
 			if (pFrame.instrPointer==1) {
-				pFrame.plug = {precedingFramesOrPlugs:[]}
 				;;     $$$__BugChecking(p_content[1]===undefined, 'p_content[1]===undefined', new Error().lineNumber)
+				;;     $$$__BugChecking(p_content[2]===undefined, 'p_content[2]===undefined', new Error().lineNumber)
+				;;     $$$__BugChecking(p_content.length==6 && p_content[4]===undefined, 'p_content[4]===undefined', new Error().lineNumber)
+				;;     $__ErrorChecking(pFrame, p_content[2].content != 'then', 'then missing')
+				;;     $__ErrorChecking(pFrame, p_content.length==6 && p_content[4].content != 'else', 'else missing')
 				pFrame.addChildToLeaflist(p_content[1])
 			} else if (pFrame.instrPointer==2) {
 				const l_firstargResult = extractFromReturnedValues(pFrame.returned_values, 0)
 				pFrame.returned_values = []
 				const lb_thereIsTrue = l_firstargResult.some(x=>x)
 				const lb_thereIsFalse = l_firstargResult.some(x=>!x)
-				if (lb_thereIsTrue) pFrame.addChildToLeaflist(p_content[2])
-				if (lb_thereIsFalse) pFrame.addChildToLeaflist(p_content[3])
+				if (lb_thereIsTrue) pFrame.addChildToLeaflist(p_content[3])
+				if (lb_thereIsFalse) pFrame.addChildToLeaflist(p_content[5])
 			} else {
 				for (let i=0; i<pFrame.returned_values.length; i++) {
 					const l_argResult = extractFromReturnedValues(pFrame.returned_values, i)
 					pFrame.toReturn_values.push(...l_argResult)
 				}
+				pFrame.terminated = true
 			}
 		}
 	},
@@ -182,13 +204,13 @@ function Instruction(ps_codeWord, pn_nbArg, pf_postExec, pf_exec) {
 	if (pf_postExec) {
 		this.exec = function(pFrame, p_content) {
 			if (pFrame.instrPointer==1) {
-				pFrame.plug = {precedingFramesOrPlugs:[]}
 				for (let i=1;i<=p_content.length-1;i++) {
 					;;     $$$__BugChecking(p_content[i]===undefined, 'p_content[i]===undefined', new Error().lineNumber)
 					pFrame.addChildToLeaflist(p_content[i])
 				}
 			} else {
 				this.postExec(pFrame, p_content)
+				pFrame.terminated = true
 			}
 		}
 	}
@@ -320,21 +342,14 @@ Frame.prototype.exec1instant = function() {
 		
 		// finished ?
 		//===============
-		let lb_finished
-		if (l_content[0].content === 'seq') {
-			lb_finished = (this.instrPointer >= l_content.length)
-		} else if (l_content[0].content === 'if') {
-			lb_finished = (this.instrPointer > 3)
-		} else if ( lInstruction.postExec ) {
-			lb_finished = (this.instrPointer > 2)
-		} else {
-			//~ console.log('autre finished')
-			lb_finished = true // finished
-		}
+		const lb_finished = this.terminated
 		
 		// exec instructions
 		//===============
-		if (! lb_finished) lInstruction.exec(this, l_content)
+		if (! lb_finished) {
+			if (this.instrPointer===1) this.plug = {precedingFramesOrPlugs:[]}
+			lInstruction.exec(this, l_content)
+		}
 		
 		// increment instrPointer
 		//=======================
