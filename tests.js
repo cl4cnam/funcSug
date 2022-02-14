@@ -73,12 +73,24 @@ const lesTests = [
 	}
 `, result: `
 `,},
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		%ext dummy 'resolve(45)' a
+		.print .await a
+	}
+`, result: `
+	45
+`,},
 
 
 ]
 
 
 
+
+
+async function main() {
 
 
 
@@ -100,6 +112,7 @@ const lesTests = [
 			oldLog(progTest.result.replaceAll('\n\t','\n').trim())
 			throw err
 		}
+		await new Promise(resolve=>{setTimeout(()=>{resolve(1)},0)})
 		if (res.trim()===progTest.result.replaceAll('\n\t','\n').trim()) {
 			oldLog('test ' + (parseInt(progTestIndex)+1) + ' line ' + progTest.line + ' : OK')
 		} else {
@@ -108,7 +121,17 @@ const lesTests = [
 			oldLog(progTest.result.replaceAll('\n\t','\n').trim())
 			break
 		}
+		await new Promise(resolve=>{setTimeout(()=>{resolve(1)},0)})
 	}
 	
 	console.log = oldLog
 }
+
+
+
+
+}
+
+
+main()
+
