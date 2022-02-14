@@ -2,6 +2,8 @@
 
 const leafFrameList = []
 const scopeSet = new Set()
+const localLog = console.log
+let mainFrame
 
 function $$$__BugChecking(pb_bugCondition, ps_message, pn_line) {
 	if (pb_bugCondition) throw 'Bug: ' + ps_message + ' **at** line ' + pn_line
@@ -61,12 +63,29 @@ const gDict_instructions = {
 			;;     $__ErrorChecking(pFrame, l_scope===undefined, 'undefined output variable')
 			const l_outputVari = l_scope.get(l_outputLabel)
 			l_scope.set( l_outputVari, {prec:[], curr:[], precBip:false, currBip:false} )
-			const promi = new Promise(eval('(resolve, reject) => {' + p_content[2].content + '}'))
+			const promi = new Promise(eval('resolve => {' + p_content[2].content + '}'))
 			promi.then(res => {
 				l_outputVari.currBip = true
+				l_outputVari.precBip = true
 				l_outputVari.curr.push({frame:pFrame, val:res})
+				l_outputVari.prec.push(res)
+				run()
 			})
 			pFrame.terminated = true
+		}
+	},
+	await: {
+		nbArg:1,
+		exec: function(pFrame, p_content) {
+			const l_label = p_content[1].content
+			const l_scope = getVarScope(pFrame.code.context, l_label)
+			const l_vari = l_scope.get(l_label)
+			if (l_vari.precBip) {
+				pFrame.toReturn_values.push(...l_vari.prec)
+				pFrame.terminated = true
+			} else {
+				pFrame.awake = false
+			}
 		}
 	},
 	print: {
@@ -375,10 +394,10 @@ Frame.prototype.exec1instant = function() {
 //===================================================================================================
 //===================================================================================================
 
-function exec(code) {
-	const mainFrame = new Frame(code, null)
-	leafFrameList.push(mainFrame)
-	//~ console.log(mainFrame)
+function run() {
+	for (const leaf of leafFrameList) {
+		leaf.awake = true
+	}
 	while (  leafFrameList.some( elt=>elt.awake )  ) {
 		// exec 1 instant
 		//===============
@@ -401,6 +420,13 @@ function exec(code) {
 			}
 		}
 	}
+}
+
+function exec(code) {
+	mainFrame = new Frame(code, null)
+	leafFrameList.push(mainFrame)
+	//~ console.log(mainFrame)
+	run()
 }
 
 function parentize(code) {
