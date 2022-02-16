@@ -47,6 +47,30 @@ function getVarScope(context, label) {
 	if ( context.parent ) return getVarScope(context.parent, label)
 }
 
+function Variable() {
+	this.precBip = false
+	this.currBip = false
+	this.prec = []
+	this.curr = []
+}
+
+Variable.prototype.getval = function() {
+	return this.prec
+}
+
+Variable.prototype.setval = function(pFrame, val) {
+	this.currBip = true
+	// delete values in direct line
+	for (const otherVal of [...this.curr]) {
+		if ( isStraightLink(pFrame, otherVal.frame) ) {
+			const l_otherValIndex = this.curr.indexOf(otherVal)
+			this.curr.splice(l_otherValIndex, 1)
+		}
+	}
+	// add new val
+	this.curr.push({frame:pFrame, val:val})
+}
+
 //===================================================================================================
 //
 // Desc instruction
@@ -79,9 +103,10 @@ const gDict_instructions = {
 		exec: function(pFrame, p_content) {
 			const l_label = p_content[1].content
 			const l_scope = getVarScope(pFrame.code.context, l_label)
+			;;     $__ErrorChecking(pFrame, l_scope===undefined, 'undefined awaited variable')
 			const l_vari = l_scope.get(l_label)
 			if (l_vari.precBip) {
-				pFrame.toReturn_values.push(...l_vari.prec)
+				pFrame.toReturn_values = [...l_vari.getval()]
 				pFrame.terminated = true
 			} else {
 				pFrame.awake = false
@@ -94,12 +119,18 @@ const gDict_instructions = {
 			for (const val of pFrame.returned_values[0].val) console.log(val)
 		}
 	},
+	Scope: {
+		nbArg:0,
+		postExec: function(pFrame, p_content) {
+			pFrame.toReturn_values = [new Map()]
+		}
+	},
 	var: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			const l_scope = p_content[0].context.parent.parent.scope
-			for (const vari of pFrame.returned_values[0].val) {
-				l_scope.set( vari, {prec:[], curr:[], precBip:false, currBip:false} )
+			for (const label of pFrame.returned_values[0].val) {
+				l_scope.set( label, new Variable() )
 			}
 			scopeSet.add(l_scope)
 		}
@@ -115,22 +146,13 @@ const gDict_instructions = {
 				const l_vari = l_scope.get(label)
 				// get value
 				//----------
-				pFrame.toReturn_values.push(...l_vari.prec)
+				pFrame.toReturn_values.push(...l_vari.getval())
 			}
 		}
 	},
-	'+': {
-		nbArg:2,
-		postExec: function(pFrame, p_content) {
-			const l_firstargResult = extractFromReturnedValues(pFrame.returned_values, 0)
-			const l_secondargResult = extractFromReturnedValues(pFrame.returned_values, 1)
-			for (const arg1 of l_firstargResult) {
-				for (const arg2 of l_secondargResult) {
-					pFrame.toReturn_values.push(arg1 + arg2)
-				}
-			}
-		}
-	},
+	'+': { operExec: (x, y) => x + y},
+	'-': { operExec: (x, y) => x - y},
+	'*': { operExec: (x, y) => x * y},
 	bip: { // generate(evt)
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
@@ -152,17 +174,8 @@ const gDict_instructions = {
 				const l_scope = getVarScope(pFrame.code.context, label)
 				;;     $__ErrorChecking(pFrame, l_scope===undefined, 'undefined variable')
 				const l_vari = l_scope.get(label)
-				l_vari.currBip = true
 				for (const val of l_secondargResult) {
-					// delete values in direct line
-					for (const otherVal of [...l_vari.curr]) {
-						if ( isStraightLink(pFrame, otherVal.frame) ) {
-							const l_otherValIndex = l_vari.curr.indexOf(otherVal)
-							l_vari.curr.splice(l_otherValIndex, 1)
-						}
-					}
-					// add new val
-					l_vari.curr.push({frame:pFrame, val:val})
+					l_vari.setval(pFrame, val)
 				}
 			}
 		}
@@ -214,13 +227,27 @@ const gDict_instructions = {
 	},
 }
 
-function Instruction(ps_codeWord, pn_nbArg, pf_postExec, pf_exec) {
+function Instruction(ps_codeWord, pn_nbArg, pf_operExec, pf_postExec, pf_exec) {
 	this.codeWord = ps_codeWord
 	this.nbArg = pn_nbArg
+	this.operExec = pf_operExec
 	this.postExec = pf_postExec
 	this.exec = pf_exec
 	
-	if (pf_postExec) {
+	if (this.operExec) {
+		this.nbArg = 2
+		this.postExec = function(pFrame, p_content) {
+			const l_firstargResult = extractFromReturnedValues(pFrame.returned_values, 0)
+			const l_secondargResult = extractFromReturnedValues(pFrame.returned_values, 1)
+			for (const arg1 of l_firstargResult) {
+				for (const arg2 of l_secondargResult) {
+					pFrame.toReturn_values.push(this.operExec(arg1, arg2))
+				}
+			}
+		}
+	}
+	
+	if (this.postExec) {
 		this.exec = function(pFrame, p_content) {
 			if (pFrame.instrPointer==1) {
 				for (let i=1;i<=p_content.length-1;i++) {
@@ -237,7 +264,13 @@ function Instruction(ps_codeWord, pn_nbArg, pf_postExec, pf_exec) {
 
 const gDict_Instruct = {}
 for (const codeWord in gDict_instructions) {
-	gDict_Instruct[codeWord] = new Instruction(codeWord, gDict_instructions[codeWord].nbArg, gDict_instructions[codeWord].postExec, gDict_instructions[codeWord].exec)
+	gDict_Instruct[codeWord] = new Instruction(
+		codeWord,
+		gDict_instructions[codeWord].nbArg,
+		gDict_instructions[codeWord].operExec,
+		gDict_instructions[codeWord].postExec,
+		gDict_instructions[codeWord].exec
+	)
 }
 
 //===================================================================================================
