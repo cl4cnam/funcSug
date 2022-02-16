@@ -13,7 +13,7 @@ const lesTests = [
 		.var a .var b
 		{par :set a 20 :set a 30}
 		{par :set b 4 :set b 5}
-		.print :+ .get a .get b
+		.print :- .get a .get b
 		.print '======> END'
 	}
 `, result: `
@@ -22,10 +22,10 @@ const lesTests = [
 	2
 	true1
 	======> MID
-	24
+	16
+	15
+	26
 	25
-	34
-	35
 	======> END
 `,},
 {line: new Error().lineNumber, code:`
@@ -81,6 +81,13 @@ const lesTests = [
 	}
 `, result: `
 	45
+`,},
+{line: new Error().lineNumber, code:`
+	{seq
+		.var boite
+		:set boite !Scope
+	}
+`, result: `
 `,},
 
 
