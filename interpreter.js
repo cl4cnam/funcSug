@@ -5,6 +5,16 @@ const scopeSet = new Set()
 const localLog = console.log
 let mainFrame
 
+function cartesianProduct(...p_arrays) { // inspired by https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
+	return p_arrays.reduce(
+		(previousResult, currentArray) => previousResult.flatMap(
+			previousResultElt => currentArray.map(
+				currentArrayElt => [previousResultElt, currentArrayElt].flat()
+			)
+		)
+	)
+}
+
 function $$$__BugChecking(pb_bugCondition, ps_message, pn_line) {
 	if (pb_bugCondition) throw 'Bug: ' + ps_message + ' **at** line ' + pn_line
 }
@@ -82,20 +92,64 @@ const gDict_instructions = {
 	ext: { // ext <inputExpression> <jsStringToExecute> <outputExpression>
 		nbArg:3,
 		exec: function(pFrame, p_content) {
-			const l_outputLabel = p_content[3].content
-			const l_scope = getVarScope(pFrame.code.context, l_outputLabel)
-			;;     $__ErrorChecking(pFrame, l_scope===undefined, 'undefined output variable')
-			const l_outputVari = l_scope.get(l_outputLabel)
-			l_scope.set( l_outputVari, {prec:[], curr:[], precBip:false, currBip:false} )
-			const promi = new Promise(eval('resolve => {' + p_content[2].content + '}'))
-			promi.then(res => {
-				l_outputVari.currBip = true
-				l_outputVari.precBip = true
-				l_outputVari.curr.push({frame:pFrame, val:res})
-				l_outputVari.prec.push(res)
-				run()
-			})
-			pFrame.terminated = true
+			const l_inputExpression = p_content[1]
+			const l_inputContent = l_inputExpression.content
+			
+			if (pFrame.instrPointer==1) {
+				// input
+				//========
+				;;     $__ErrorChecking(pFrame, l_inputExpression.type!=='expression', 'inputExpression not an expression')
+				for (let i=0;i<l_inputContent.length;i++) {
+					;;     $$$__BugChecking(l_inputContent[i]===undefined, 'l_inputContent[i]===undefined', new Error().lineNumber)
+					pFrame.addChildToLeaflist(l_inputContent[i])
+				}
+			} else {
+				// get input
+				//==========
+				const l_argsResults = []
+				for (let i=0;i<l_inputContent.length;i++) {
+					l_argsResults[i] = extractFromReturnedValues(pFrame.returned_values, i)
+				}
+				const l_theCombinations = cartesianProduct(...l_argsResults)
+				
+				// output
+				//========
+				const l_outputLabel = p_content[3].content
+				const l_scope = getVarScope(pFrame.code.context, l_outputLabel)
+				;;     $__ErrorChecking(pFrame, l_scope===undefined, 'undefined output variable')
+				const l_outputVari = l_scope.get(l_outputLabel)
+				l_scope.set( l_outputVari, {prec:[], curr:[], precBip:false, currBip:false} )
+				
+				// replace in jsStringToExecute
+				//=============================
+				let ls_jsStringToExecute = p_content[2].content
+				ls_jsStringToExecute = `
+					"use strict"
+					const output=arguments[0]
+					const error=arguments[1]
+					const args=[...arguments]
+					args.shift(); args.shift()
+				` + ls_jsStringToExecute
+				
+				// exec
+				//======
+				let promises = []
+				for (const args of l_theCombinations) {
+					promises.push( new Promise(   (resolve,reject) => {       (new Function(ls_jsStringToExecute))(resolve,reject,...args)    }   ) )
+					promises[promises.length-1].then(res => {
+						l_outputVari.curr.push({frame:pFrame, val:res})
+						l_outputVari.prec.push(res)
+						run()
+					})
+				}
+				Promise.all(promises).then(res => {
+					l_outputVari.currBip = true
+					l_outputVari.precBip = true
+					run()
+				})
+				pFrame.terminated = true
+			}
+			
 		}
 	},
 	await: {
@@ -153,6 +207,14 @@ const gDict_instructions = {
 	'+': { operExec: (x, y) => x + y},
 	'-': { operExec: (x, y) => x - y},
 	'*': { operExec: (x, y) => x * y},
+	'/': { operExec: (x, y) => x * y},
+	'<': { operExec: (x, y) => x < y},
+	'<=': { operExec: (x, y) => x <= y},
+	'>': { operExec: (x, y) => x > y},
+	'>=': { operExec: (x, y) => x >= y},
+	'=': { operExec: (x, y) => x === y},
+	'/=': { operExec: (x, y) => x !== y},
+	'mod': { operExec: (x, y) => x % y},
 	bip: { // generate(evt)
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
@@ -380,7 +442,7 @@ Frame.prototype.exec1instant = function() {
 		;;     $$$__BugChecking(l_content.length === 0, 'exec empty array', new Error().lineNumber)
 		;;     $$$__BugChecking(l_content[0].content === undefined, 'exec undefined instr', new Error().lineNumber)
 		
-		;;$__ErrorChecking(this, ! ['identifier', 'oper'].includes(l_content[0].type), 'cannot execute')
+		;;$__ErrorChecking(this, ! ['identifier'].includes(l_content[0].type), 'cannot execute')
 		
 		// get Instruction
 		//======================
