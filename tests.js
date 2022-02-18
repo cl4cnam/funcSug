@@ -9,11 +9,13 @@ const lesTests = [
 		.print 'true'
 		.print :+ 'true' 1
 		.print :+ :+ 'tru' 'e' 1
+		.print :* 5 4
+		.print :< 5 4
 		.print '======> MID'
 		.var a .var b
 		{par :set a 20 :set a 30}
 		{par :set b 4 :set b 5}
-		.print :- .get a .get b
+		.print :- $a $b
 		.print '======> END'
 	}
 `, result: `
@@ -21,6 +23,8 @@ const lesTests = [
 	true
 	2
 	true1
+	20
+	false
 	======> MID
 	16
 	15
@@ -60,7 +64,7 @@ const lesTests = [
 {line: new Error().lineNumber, code:`
 	{seq
 		.var a
-		%ext dummy 'console.log("coucou")' a
+		%ext (rt yyu) 'console.log("coucou")' a
 	}
 `, result: `
 	coucou
@@ -68,15 +72,15 @@ const lesTests = [
 {line: new Error().lineNumber, code:`
 	{seq
 		.var a
-		%ext dummy 'resolve(45)' a
-		.print .get a
+		%ext (rt yyu) 'output(45)' a
+		.print $a
 	}
 `, result: `
 `,},
 {line: new Error().lineNumber, code:`
 	{seq
 		.var a
-		%ext dummy 'resolve(45)' a
+		%ext (rt yyu) 'output(45)' a
 		.print .await a
 	}
 `, result: `
@@ -112,9 +116,9 @@ async function main() {
 		const progTest = lesTests[progTestIndex]
 		res = ''
 		try {
-			execProg(progTest.code)
+			if (progTest.code!=='') execProg(progTest.code)
 		} catch (err) {
-			oldLog('test ' + (parseInt(progTestIndex)+1) + ' line ' + progTest.line + ' : -------- SYNTAX ERROR --------')
+			oldLog('test ' + (parseInt(progTestIndex)+1) + ' line ' + progTest.line + ' : -------- SYNTAX ERROR OR BUG--------')
 			oldLog(progTest.code)
 			oldLog(progTest.result.replaceAll('\n\t','\n').trim())
 			throw err
