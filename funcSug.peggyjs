@@ -32,7 +32,7 @@ expression
 	/ "[" __ startExpr:expression expr:WSexpression* __ "]" { return new Expression('expression', [startExpr].concat(expr), '['+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+']' ) }
 	/ "{" __ startExpr:expression expr:WSexpression* __ "}" { return new Expression('expression', [startExpr].concat(expr), '{'+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+'}' ) }
 	/ number / string / name
-	/ expression0 / expression1 / expression2 / expression3
+	/ expression0 / expression1 / expression2 / expression3 / expression4
 
 WSexpression
 	= spaces expr:expression { return expr; }
@@ -49,15 +49,14 @@ expression2
 expression3
 	= "%" n:name spaces e1:expression spaces e2:expression spaces e3:expression { return new Expression('expression', [n, e1, e2, e3], '%'+n.text+' '+e1.text+' '+e2.text+' '+e3.text) }
 
+expression4
+	= "$" expr:expression { return new Expression('expression', [new Expression('identifier', 'get', 'get'), expr], '$'+expr.text) }
+
 name
 	= simpleName
-	/ oper
-
-oper
-	= oper:[-=+*] { return new Expression('oper', oper, oper) }
 
 simpleName
-	= n:[A-Za-z_]+ { return new Expression('identifier', n.join(""), n.join("")) }
+	= n:[A-Za-z_=+*/<>-]+ { return new Expression('identifier', n.join(""), n.join("")) }
 
 __
 	= (comment / singleSpace / newline)*
