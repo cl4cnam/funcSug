@@ -3,13 +3,15 @@
 const lesTests = [
 
 
+
 {line: new Error().lineNumber, code:`
 	{seq
 		.print '======> START'
 		.print 'true'
 		.print :+ 'true' 1
+		.print :- :+ 4 5 1
 		.print :+ :+ 'tru' 'e' 1
-		.print :* 5 4
+		.print :+ '5*4=' :* 5 4
 		.print :< 5 4
 		.print '======> MID'
 		.var a .var b
@@ -22,8 +24,9 @@ const lesTests = [
 	======> START
 	true
 	2
+	8
 	true1
-	20
+	5*4=20
 	false
 	======> MID
 	16
@@ -32,6 +35,23 @@ const lesTests = [
 	25
 	======> END
 `,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.print '======> START'
+		.print :and true false
+		.print :or true false
+		.print .not true
+		.print '======> END'
+	}
+`, result: `
+	======> START
+	false
+	true
+	false
+	======> END
+`,},
+
 {line: new Error().lineNumber, code:`
 	{if (par true false)
 	then
@@ -43,6 +63,7 @@ const lesTests = [
 	un
 	deux
 `,},
+
 {line: new Error().lineNumber, code:`
 	{if true
 	then
@@ -51,6 +72,7 @@ const lesTests = [
 `, result: `
 	un
 `,},
+
 {line: new Error().lineNumber, code:`
 	{if true
 	then
@@ -61,6 +83,7 @@ const lesTests = [
 `, result: `
 	un
 `,},
+
 {line: new Error().lineNumber, code:`
 	{seq
 		.var a
@@ -69,6 +92,7 @@ const lesTests = [
 `, result: `
 	coucou
 `,},
+
 {line: new Error().lineNumber, code:`
 	{seq
 		.var a
@@ -77,6 +101,7 @@ const lesTests = [
 	}
 `, result: `
 `,},
+
 {line: new Error().lineNumber, code:`
 	{seq
 		.var a
@@ -86,6 +111,7 @@ const lesTests = [
 `, result: `
 	45
 `,},
+
 {line: new Error().lineNumber, code:`
 	{seq
 		.var boite
@@ -93,6 +119,25 @@ const lesTests = [
 	}
 `, result: `
 `,},
+
+{line: new Error().lineNumber, code:`
+	.print {seq
+		99 4 56 309
+	}
+`, result: `
+309
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var plus
+		:set plus :lambda (x y) :+ $x $y
+		.print (call $plus 5 8)
+	}
+`, result: `
+13
+`,},
+
 
 
 ]
