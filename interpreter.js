@@ -47,14 +47,14 @@ function isPrecedingFrame(frame1, frame2) {
 }
 
 function isStraightLink(frame1, frame2) {
-	;;     $$$__BugChecking(frame1===undefined || frame2===undefined, 'scope frame is undefined', new Error().lineNumber)
+	;;     $$$__BugChecking(frame1===undefined || frame2===undefined, 'definition frame is undefined', new Error().lineNumber)
 	return isPrecedingFrame(frame1, frame2) || isPrecedingFrame(frame2, frame1)
 }
 
-function getVarScope(context, label) {
-	;;     $$$__BugChecking(context===undefined, 'context===undefined', new Error().lineNumber)
-	if ( context.scope.has(label) ) return context.scope
-	if ( context.parent ) return getVarScope(context.parent, label)
+function getVarScope(pFrame, label) {
+	;;     $$$__BugChecking(pFrame===undefined, 'pFrame===undefined', new Error().lineNumber)
+	if ( pFrame.scope!==undefined && pFrame.scope.has(label) ) return pFrame.scope
+	if ( pFrame.parent ) return getVarScope(pFrame.parent, label)
 }
 
 function Variable() {
@@ -89,6 +89,53 @@ Variable.prototype.setval = function(pFrame, val) {
 //===================================================================================================
 
 const gDict_instructions = {
+	lambda: { // lambda <paramExpression> <expressionToExecute>
+		nbArg:2,
+		exec: function(pFrame, p_content) {
+			;;$__ErrorChecking(pFrame, p_content[1].type !== 'expression', 'parameters not a list')
+			;;$__ErrorChecking(pFrame, p_content[2].type !== 'expression', 'body not an expression')
+			;;$__ErrorChecking(pFrame, p_content[1].content.some(elt=>(elt.type !== 'identifier')), 'some parameter is not an identifier')
+			pFrame.toReturn_values.push({type: 'lambda', frame:pFrame, param:p_content[1], body:p_content[2]})
+			pFrame.terminated = true
+		}
+	},
+	call: { // call <function> <param> ... <param>
+		nbArg: (n=> (n>=1) ),
+		exec: function(pFrame, p_content) {
+			if (pFrame.instrPointer==1) {
+				for (let i=1;i<=p_content.length-1;i++) {
+					;;     $$$__BugChecking(p_content[i]===undefined, 'p_content[i]===undefined', new Error().lineNumber)
+					pFrame.addChildToLeaflist(p_content[i])
+				}
+			} else if (pFrame.instrPointer==2) {
+				const l_firstargResult = extractFromReturnedValues(pFrame.returned_values, 0)
+				;;$__ErrorChecking(pFrame, l_firstargResult.length!==1, 'multiple lambdas')
+				;;$__ErrorChecking(pFrame, l_firstargResult.some(elt=>(elt.type!=='lambda')), 'not lambda')
+				;;$__ErrorChecking(pFrame, l_firstargResult.some(elt=>   (   elt.param.content.length !== p_content.length-2   )   ), 'arguments number differs from parameters number')
+				
+				// get args
+				//==========
+				const l_argsResults = []
+				for (let i=1;i<p_content.length-1;i++) {
+					l_argsResults[i-1] = extractFromReturnedValues(pFrame.returned_values, i)
+				}
+				pFrame.returned_values = []
+				const l_theCombinations = cartesianProduct(...l_argsResults)
+				
+				// exec
+				//==========
+				for (const comb of l_theCombinations) {
+					pFrame.addChildToLeaflist(l_firstargResult[0].body, l_firstargResult[0].param.content, comb)
+				}
+			} else {
+				for (let i=0; i<pFrame.returned_values.length; i++) {
+					const l_argResult = extractFromReturnedValues(pFrame.returned_values, i)
+					pFrame.toReturn_values.push(...l_argResult)
+				}
+				pFrame.terminated = true
+			}
+		}
+	},
 	ext: { // ext <inputExpression> <jsStringToExecute> <outputExpression>
 		nbArg:3,
 		exec: function(pFrame, p_content) {
@@ -115,7 +162,7 @@ const gDict_instructions = {
 				// output
 				//========
 				const l_outputLabel = p_content[3].content
-				const l_scope = getVarScope(pFrame.code.context, l_outputLabel)
+				const l_scope = getVarScope(pFrame, l_outputLabel)
 				;;     $__ErrorChecking(pFrame, l_scope===undefined, 'undefined output variable')
 				const l_outputVari = l_scope.get(l_outputLabel)
 				l_scope.set( l_outputVari, {prec:[], curr:[], precBip:false, currBip:false} )
@@ -147,16 +194,16 @@ const gDict_instructions = {
 					l_outputVari.precBip = true
 					run()
 				})
+				pFrame.toReturn_values = []
 				pFrame.terminated = true
 			}
-			
 		}
 	},
 	await: {
 		nbArg:1,
 		exec: function(pFrame, p_content) {
 			const l_label = p_content[1].content
-			const l_scope = getVarScope(pFrame.code.context, l_label)
+			const l_scope = getVarScope(pFrame, l_label)
 			;;     $__ErrorChecking(pFrame, l_scope===undefined, 'undefined awaited variable')
 			const l_vari = l_scope.get(l_label)
 			if (l_vari.precBip) {
@@ -171,6 +218,7 @@ const gDict_instructions = {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			for (const val of pFrame.returned_values[0].val) console.log(val)
+			pFrame.toReturn_values = []
 		}
 	},
 	Scope: {
@@ -182,11 +230,13 @@ const gDict_instructions = {
 	var: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
-			const l_scope = p_content[0].context.parent.parent.scope
+			if (pFrame.parent.scope===undefined) pFrame.parent.scope = new Map()
+			const l_scope = pFrame.parent.scope
 			for (const label of pFrame.returned_values[0].val) {
 				l_scope.set( label, new Variable() )
 			}
 			scopeSet.add(l_scope)
+			pFrame.toReturn_values = []
 		}
 	},
 	get: {
@@ -195,8 +245,8 @@ const gDict_instructions = {
 			for (const label of pFrame.returned_values[0].val) {
 				// get variable
 				//-------------
-				const l_scope = getVarScope(pFrame.code.context, label)
-				;;     $__ErrorChecking(pFrame, l_scope===undefined, 'undefined variable')
+				const l_scope = getVarScope(pFrame, label)
+				;;     $__ErrorChecking(pFrame, l_scope===undefined, 'get undefined variable')
 				const l_vari = l_scope.get(label)
 				// get value
 				//----------
@@ -215,16 +265,28 @@ const gDict_instructions = {
 	'=': { operExec: (x, y) => x === y},
 	'/=': { operExec: (x, y) => x !== y},
 	'mod': { operExec: (x, y) => x % y},
+	'and': { operExec: (x, y) => x && y},
+	'or': { operExec: (x, y) => x || y},
+	not: {
+		nbArg:1,
+		postExec: function(pFrame, p_content) {
+			const l_firstargResult = extractFromReturnedValues(pFrame.returned_values, 0)
+			for (const arg1 of l_firstargResult) {
+				pFrame.toReturn_values.push(! arg1)
+			}
+		}
+	},
 	bip: { // generate(evt)
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			const l_firstargResult = extractFromReturnedValues(pFrame.returned_values, 0)
 			for (const label of l_firstargResult) {
-				const l_scope = getVarScope(pFrame.code.context, label)
-				;;     $__ErrorChecking(pFrame, l_scope===undefined, 'undefined variable')
+				const l_scope = getVarScope(pFrame, label)
+				;;     $__ErrorChecking(pFrame, l_scope===undefined, 'bip undefined variable')
 				const l_vari = l_scope.get(label)
 				l_vari.currBip = true
 			}
+			pFrame.toReturn_values = []
 		}
 	},
 	set: { // generate(evt, value)
@@ -233,13 +295,14 @@ const gDict_instructions = {
 			const l_firstargResult = extractFromReturnedValues(pFrame.returned_values, 0)
 			const l_secondargResult = extractFromReturnedValues(pFrame.returned_values, 1)
 			for (const label of l_firstargResult) {
-				const l_scope = getVarScope(pFrame.code.context, label)
-				;;     $__ErrorChecking(pFrame, l_scope===undefined, 'undefined variable')
+				const l_scope = getVarScope(pFrame, label)
+				;;     $__ErrorChecking(pFrame, l_scope===undefined, 'set undefined variable')
 				const l_vari = l_scope.get(label)
 				for (const val of l_secondargResult) {
 					l_vari.setval(pFrame, val)
 				}
 			}
+			pFrame.toReturn_values = []
 		}
 	},
 	par: {
@@ -254,12 +317,16 @@ const gDict_instructions = {
 	seq: {
 		nbArg: (n=> (n>=1) ),
 		exec: function(pFrame, p_content) {
-			;;     $$$__BugChecking(p_content[pFrame.instrPointer]===undefined, 'p_content[pFrame.instrPointer]===undefined', new Error().lineNumber)
-			pFrame.lastChild = pFrame.addChildToLeaflist(p_content[pFrame.instrPointer])
-			if (pFrame.instrPointer===(p_content.length-1)) {
+			if (pFrame.instrPointer<p_content.length) {
+				;;     $$$__BugChecking(p_content[pFrame.instrPointer]===undefined, 'p_content[pFrame.instrPointer]===undefined', new Error().lineNumber)
+				pFrame.lastChild = pFrame.addChildToLeaflist(p_content[pFrame.instrPointer])
+				pFrame.returned_values = []
+			} else {
+				const l_argResult = extractFromReturnedValues(pFrame.returned_values, 0)
+				pFrame.toReturn_values.push(...l_argResult)
 				pFrame.terminated = true
 			}
-		}
+		},
 	},
 	if: { // 'if' <condition> 'then' <expression> 'else' <expression>
 		nbArg: (n=> (n==3 || n==5) ),
@@ -331,7 +398,7 @@ for (const codeWord in gDict_instructions) {
 		gDict_instructions[codeWord].nbArg,
 		gDict_instructions[codeWord].operExec,
 		gDict_instructions[codeWord].postExec,
-		gDict_instructions[codeWord].exec
+		gDict_instructions[codeWord].exec,
 	)
 }
 
@@ -366,8 +433,23 @@ Frame.prototype.toString = function() {
 	}
 }
 
-Frame.prototype.addChildToLeaflist = function(expr) {
+Frame.prototype.addChildToLeaflist = function(expr, param, args) {
 	const childFrame = new Frame(expr, this)
+	
+	// param
+	//========
+	if (param!==undefined) {
+		this.scope = new Map()
+		const l_scope = this.scope
+		scopeSet.add(l_scope)
+		for (const labelIndex in param) {
+			const label = param[labelIndex].content
+			l_scope.set( label, new Variable() )
+			const l_vari = l_scope.get(label)
+			l_vari.currBip = true
+			l_vari.curr.push({frame:this, val:args[labelIndex]})
+		}
+	}
 	
 	// precedingFramesOrPlugs
 	//========================
