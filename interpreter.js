@@ -4,6 +4,7 @@ const leafFrameList = []
 const scopeSet = new Set()
 const localLog = console.log
 let mainFrame
+let f_location
 
 function cartesianProduct(...p_arrays) { // inspired by https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
 	return p_arrays.reduce(
@@ -24,7 +25,13 @@ function $__ErrorChecking(pFrame, pb_errorCondition, ps_message) {
 }
 
 function locationToString(loc) {
-	return 'source ' + loc.source + ', line ' + loc.start.line + ' column ' + loc.start.column + ' to line ' + loc.end.line + ' column ' + loc.end.column
+	const oldStartLine = loc.start.line
+	const oldEndLine = loc.end.line
+	const startSource = (f_location) ? f_location(loc.start.line).source : loc.source
+	const startLine = (f_location) ? f_location(loc.start.line).line : loc.start.line
+	const endSource = (f_location) ? f_location(loc.end.line).source : loc.source
+	const endLine = (f_location) ? f_location(loc.end.line).line : loc.end.line
+	return 'source ' + startSource + ', line ' + startLine + ' column ' + loc.start.column + ' to source ' + endSource + ', line ' + endLine + ' column ' + loc.end.column
 }
 
 function expressionToString(expr) {
@@ -103,21 +110,29 @@ const gDict_instructions = {
 		nbArg: (n=> (n>=1) ),
 		exec: function(pFrame, p_content) {
 			if (pFrame.instrPointer==1) {
-				for (let i=1;i<=p_content.length-1;i++) {
-					;;     $$$__BugChecking(p_content[i]===undefined, 'p_content[i]===undefined', new Error().lineNumber)
-					pFrame.addChildToLeaflist(p_content[i])
-				}
+				//~ ;;     $$$__BugChecking(p_content[1]===undefined, 'p_content[1]===undefined', new Error().lineNumber)
+				pFrame.addChildToLeaflist(p_content[1])
 			} else if (pFrame.instrPointer==2) {
-				const l_firstargResult = extractFromReturnedValues(pFrame.returned_values, 0)
-				;;$__ErrorChecking(pFrame, l_firstargResult.length!==1, 'multiple lambdas')
-				;;$__ErrorChecking(pFrame, l_firstargResult.some(elt=>(elt.type!=='lambda')), 'not lambda')
-				;;$__ErrorChecking(pFrame, l_firstargResult.some(elt=>   (   elt.param.content.length !== p_content.length-2   )   ), 'arguments number differs from parameters number')
+				pFrame.lambda = extractFromReturnedValues(pFrame.returned_values, 0)
+				;;$__ErrorChecking(pFrame, pFrame.lambda.length!==1, 'multiple lambdas')
+				;;$__ErrorChecking(pFrame, pFrame.lambda.some(elt=>(elt.type!=='lambda')), 'not lambda')
+				;;$__ErrorChecking(pFrame, pFrame.lambda.some(elt=>   (   elt.param.content.length !== p_content.length-2   )   ), 'arguments number differs from parameters number')
+				pFrame.returned_values = []
+				const l_params = pFrame.lambda[0].param.content
+				for (let i=2;i<=p_content.length-1;i++) {
+					;;     $$$__BugChecking(p_content[i]===undefined, 'p_content[i]===undefined', new Error().lineNumber)
+					if(l_params[i-2][0] !== '_') pFrame.addChildToLeaflist(p_content[i])
+				}
+			} else if (pFrame.instrPointer==3) {
 				
 				// get args
 				//==========
+				const l_params = pFrame.lambda[0].param.content
 				const l_argsResults = []
+				let cpt = 0
 				for (let i=1;i<p_content.length-1;i++) {
-					l_argsResults[i-1] = extractFromReturnedValues(pFrame.returned_values, i)
+					l_argsResults[i-1] = (l_params[i-1].content[0] !== '_') ? extractFromReturnedValues(pFrame.returned_values, cpt) : [p_content[i+1]]
+					cpt += 1
 				}
 				pFrame.returned_values = []
 				const l_theCombinations = cartesianProduct(...l_argsResults)
@@ -125,7 +140,7 @@ const gDict_instructions = {
 				// exec
 				//==========
 				for (const comb of l_theCombinations) {
-					pFrame.addChildToLeaflist(l_firstargResult[0].body, l_firstargResult[0].param.content, comb)
+					pFrame.addChildToLeaflist(pFrame.lambda[0].body, pFrame.lambda[0].param.content, comb)
 				}
 			} else {
 				for (let i=0; i<pFrame.returned_values.length; i++) {
@@ -243,6 +258,7 @@ const gDict_instructions = {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			for (const label of pFrame.returned_values[0].val) {
+				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable')
 				// get variable
 				//-------------
 				const l_scope = getVarScope(pFrame, label)
@@ -251,6 +267,34 @@ const gDict_instructions = {
 				// get value
 				//----------
 				pFrame.toReturn_values.push(...l_vari.getval())
+			}
+		}
+	},
+	evalget: {
+		nbArg:1,
+		exec: function(pFrame, p_content) {
+			if (pFrame.instrPointer==1) {
+				;;     $__ErrorChecking(pFrame, typeof p_content[1].content !== 'string' || p_content[1].content[0]!=='_' , 'evalget non underscore variable')
+				// get variable
+				//-------------
+				const l_scope = getVarScope(pFrame, p_content[1].content)
+				;;     $__ErrorChecking(pFrame, l_scope===undefined, 'get undefined variable')
+				const l_vari = l_scope.get(p_content[1].content)
+				// get value
+				//----------
+				const l_values = l_vari.getval()
+				for (let i=0;i<l_values.length;i++) {
+					;;     $$$__BugChecking(l_values[i]===undefined, 'l_values[i]===undefined', new Error().lineNumber)
+					pFrame.addChildToLeaflist(l_values[i])
+				}
+			} else {
+				// get value
+				//----------
+				for (let i=0; i<pFrame.returned_values.length; i++) {
+					const l_argResult = extractFromReturnedValues(pFrame.returned_values, i)
+					pFrame.toReturn_values.push(...l_argResult)
+				}
+				pFrame.terminated = true
 			}
 		}
 	},
@@ -606,20 +650,8 @@ function exec(code) {
 	run()
 }
 
-function parentize(code) {
-	if (code.content instanceof Array) {
-		for (let child of code.content) {
-			child.context.parent = code.context
-			parentize(child)
-		}
-	} else if (code.content !== undefined && code.content.context !== undefined) {
-		code.content.context.parent = code.context
-		parentize(code.content)
-	}
-}
-
-function execProg(progText) {
+function execProg(progText, pf_location) {
+	f_location = pf_location
 	const progr = peg.parse(progText)
-	parentize(progr)
 	exec(progr.content)
 }
