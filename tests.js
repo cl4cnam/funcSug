@@ -130,9 +130,8 @@ const lesTests = [
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var plus
-		:set plus :lambda (x y) :+ $x $y
-		.print (call $plus 5 8)
+		%deffunc plus (_x y) :+ $_x $y
+		.print (&plus 5 8)
 	}
 `, result: `
 13
