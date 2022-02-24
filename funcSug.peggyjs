@@ -1,24 +1,13 @@
 {
-	function Context(scope, parent) {
-		this.scope = scope
-		this.parent = parent
-	}
-	
-	Context.prototype.get = function(label) {
-		if (label in this.scope) {
-			return this.scope[label]
-		} else if (this.parent !== null) {
-			return this.parent.get(label)
-		}
-	}
-
 	function Expression(type, content, text) {
-		this.context = new Context(new Map(), null)
 		this.type = type
 		this.content = content
 		this.text = text
 		this.location = location()
 	}
+	input = input.replaceAll(/&([A-Za-z_]+)/g, 'call $$$1')
+	input = input.replaceAll(/%deffunc ([A-Za-z_]+) /g, '.var $1 :set $1 :lambda ')
+	input = input.replaceAll('$_', '.evalget _')
 }
 
 start
