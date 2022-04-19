@@ -1,0 +1,37 @@
+p {
+	margin: 30px;
+}
+
+p.self {
+	border-color: #e0b000;
+	background-color: #ffffc0;
+	margin-right: 10px;
+	margin-left: auto;
+}
+
+p.other {
+	border-color: #00c000;
+	background-color: #c0ffc0;
+	margin-left: 10px;
+	margin-right: auto;
+}
+
+p.display {
+	border-style: solid;
+	border-width: 1px;
+	border-radius: 10px;
+	padding: 15px;
+	width: 45%;
+}
+
+p.entry {
+	border-style: solid;
+	border-width: 2px;
+	background-color: #ffff80;
+	border-radius: 10px;
+	padding: 20px;
+	width: 45%;
+/*
+	outline: none;
+*/
+}
