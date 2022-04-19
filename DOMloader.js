@@ -5,7 +5,8 @@ const scriptPromises = Array.from(theScripts).map(scriptElt=>fetch(scriptElt.src
 Promise.all(scriptPromises).then((values)=>{
 	const valPromises =    values.map(  val  =>  (val.text())  )
 	Promise.all(valPromises).then((texts)=>{
-		const l_infoTexts = texts.map((text,idx)=>({
+		const l_texts = texts.filter(elt => ! elt.startsWith('<!doctype'))
+		const l_infoTexts = l_texts.map((text,idx)=>({
 			source: values[idx].url.split(/\//).pop(),
 			len: text.split(/\r\n|\r|\n/).length
 		}))
@@ -26,7 +27,11 @@ Promise.all(scriptPromises).then((values)=>{
 				line: pn_lineNumber
 			}
 		}
-		const completeText = '{seq \n' + texts.join('\n') + '\n }'
+		//~ const completeText = '{seq \n' + texts.join('\n') + '\n }'
+		const completeText = '{seq \n' + l_texts.join('\n') + '\n }'
 		execProg(completeText, f_getLocation)
 	})
 })
+//~ Promise.allSettled(scriptPromises).then((values)=>{
+	//~ console.log(values)
+//~ })
