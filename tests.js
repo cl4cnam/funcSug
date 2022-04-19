@@ -54,7 +54,6 @@ const lesTests = [
 
 {line: new Error().lineNumber, code:`
 	{if (par true false)
-	then
 		.print 'un'
 	else
 		.print 'deux'
@@ -66,7 +65,6 @@ const lesTests = [
 
 {line: new Error().lineNumber, code:`
 	{if true
-	then
 		.print 'un'
 	}
 `, result: `
@@ -74,8 +72,14 @@ const lesTests = [
 `,},
 
 {line: new Error().lineNumber, code:`
+	{if false
+		.print 'un'
+	}
+`, result: `
+`,},
+
+{line: new Error().lineNumber, code:`
 	{if true
-	then
 		.print 'un'
 	else
 		.print 'deux'
@@ -106,7 +110,7 @@ const lesTests = [
 	{seq
 		.var a
 		%ext (rt yyu) 'output(45)' a
-		.print .await a
+		.print :await a bip
 	}
 `, result: `
 	45
@@ -130,13 +134,30 @@ const lesTests = [
 
 {line: new Error().lineNumber, code:`
 	{seq
-		%deffunc plus (_x y) :+ $_x $y
+		%deffunc plus (_x p_y) :+ $_x $p_y
 		.print (&plus 5 8)
 	}
 `, result: `
 13
 `,},
 
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		:set a 0
+		{while :< $a 3
+			{seq
+				.print $a
+				:set a :+ $a 1
+				$a
+			}
+		}
+	}
+`, result: `
+0
+1
+2
+`,},
 
 
 ]
