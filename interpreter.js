@@ -2,10 +2,17 @@
 
 const leafFrameList = []
 const scopeSet = new Set()
+
+const exprlabelMap = new Map()
+const inheritedexprlabelMap = new Map()
+let toBreak_List = []
+
 const localLog = console.log
 let mainFrame
 let f_location
 let g_superInstantNumber = 0
+let g_instantNumber = 0
+let g_stepPending = false
 
 function cartesianProduct(...p_arrays) { // inspired by https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
 	if (p_arrays.length==0) return [[]]
@@ -86,15 +93,11 @@ function unlinkFrames(frame1, frame2) {
 	frame1.followingFramesOrPlugs.splice(l_index2, 1)
 }
 
-//~ function unlinkFramePrec(frame) {
-	//~ frame.precedingFramesOrPlugs = []
-//~ }
-
 function isPrecedingFrame(frame1, frame2) {
 	;;     $$$__BugChecking(frame1===undefined, '(isPrecedingFrame) frame1 is undefined', new Error().lineNumber)
 	if (frame2===undefined) return false
-	if (frame1.superInstantNumber < frame2.superInstantNumber) return true
-	if (frame1.superInstantNumber > frame2.superInstantNumber) return false
+	if (frame1.instantNumber < frame2.instantNumber) return true
+	if (frame1.instantNumber > frame2.instantNumber) return false
 	return frame1===frame2
 		|| frame2.precedingFramesOrPlugs===frame1
 		|| frame2.precedingFramesOrPlugs && frame2.precedingFramesOrPlugs.some(elt=>isPrecedingFrame(frame1, elt))
@@ -106,6 +109,18 @@ function isPrecedingFrame(frame1, frame2) {
 //
 //===================================================================================================
 //===================================================================================================
+
+function makeNewDetachedScope(pFrame) {
+	const l_scope = new Map()
+	l_scope.frame = pFrame
+	scopeSet.add(l_scope)
+	return l_scope
+}
+
+function makeNewAttachedScope(pFrame) {
+	pFrame.scope = makeNewDetachedScope(pFrame)
+	pFrame.scope.attached = true
+}
 
 function getVarScope(pFrame, label) {
 	;;     $$$__BugChecking(pFrame===undefined, 'pFrame===undefined', new Error().lineNumber)
@@ -142,6 +157,11 @@ Variable.prototype.setval = function(pFrame, val) {
 	this.curr.push({frame:pFrame, val:val})
 }
 
+function makeNewVariable(pFrame, p_label) {
+	if (pFrame.scope===undefined) makeNewAttachedScope(pFrame)
+	pFrame.scope.set( p_label, new Variable(pFrame.scope, p_label) )
+}
+
 //===================================================================================================
 //
 // Desc instruction
@@ -164,7 +184,7 @@ const gDict_instructions = {
 		nbArg: (n=> (n>=1) ),
 		exec: function(pFrame, p_content) {
 			if (pFrame.instrPointer==1) {
-				//~ ;;     $$$__BugChecking(p_content[1]===undefined, 'p_content[1]===undefined', new Error().lineNumber)
+				;;     $$$__BugChecking(p_content[1]===undefined, 'p_content[1]===undefined', new Error().lineNumber)
 				pFrame.addChildToLeaflist(p_content[1])
 			} else if (pFrame.instrPointer==2) {
 				pFrame.lambda = extractFromReturnedValues(pFrame.returned_values, 0)
@@ -194,7 +214,6 @@ const gDict_instructions = {
 				// exec
 				//==========
 				for (const comb of l_theCombinations) {
-					//~ pFrame.addChildToLeaflist(pFrame.lambda[0].body, pFrame.lambda[0].param.content, comb, p_content[1])
 					pFrame.addChildToLeaflist(pFrame.lambda[0].body, pFrame.lambda[0].param.content, comb, pFrame.lambda[0])
 				}
 			} else {
@@ -308,26 +327,33 @@ const gDict_instructions = {
 	Scope: {
 		nbArg:0,
 		postExec: function(pFrame, p_content) {
-			const lMap_newScope = new Map()
-			lMap_newScope.frame = pFrame
+			const lMap_newScope = makeNewDetachedScope(pFrame)
 			pFrame.toReturn_values = [lMap_newScope]
 		}
 	},
 	var: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
-			if (pFrame.parent.scope===undefined) {
-				pFrame.parent.scope = new Map()
-				pFrame.parent.scope.frame = pFrame.parent
-			}
-			const l_scope = pFrame.parent.scope
 			for (const label of pFrame.returned_values[0].val) {
-				l_scope.set( label, new Variable(l_scope, label) )
+				makeNewVariable(pFrame.parent, label)
 			}
-			scopeSet.add(l_scope)
 			pFrame.toReturn_values = []
 		}
 	},
+	//~ insideVar: { // insideVar <scope> <label> : no : get <label> ... <label> and set <label> ... <label> <exression>
+		//~ nbArg:2,
+		//~ postExec: function(pFrame, p_content) {
+			//~ // if (pFrame.parent.scope===undefined) makeNewAttachedScope(pFrame.parent)
+			//~ // const l_scope = pFrame.parent.scope
+			//~ const l_firstargResult = extractFromReturnedValues(pFrame.returned_values, 0)
+			//~ const l_secondargResult = extractFromReturnedValues(pFrame.returned_values, 1)
+			//~ for (const label of pFrame.returned_values[0].val) {
+				//~ // l_scope.set( label, new Variable(l_scope, label) )
+				//~ makeNewVariable(pFrame.parent, label)
+			//~ }
+			//~ pFrame.toReturn_values = []
+		//~ }
+	//~ },
 	get: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
@@ -372,10 +398,10 @@ const gDict_instructions = {
 			}
 		}
 	},
-	'+': { operExec: (x, y) => x + y},
+	'+': { cumulExec: (x, y) => x + y},
 	'-': { operExec: (x, y) => x - y},
-	'*': { operExec: (x, y) => x * y},
-	'/': { operExec: (x, y) => x * y},
+	'*': { cumulExec: (x, y) => x * y},
+	'/': { operExec: (x, y) => x / y},
 	'<': { operExec: (x, y) => x < y},
 	'<=': { operExec: (x, y) => x <= y},
 	'>': { operExec: (x, y) => x > y},
@@ -483,6 +509,7 @@ const gDict_instructions = {
 				if (pFrame.instrPointer > 1) {
 					lastResult = extractFromReturnedValues(pFrame.returned_values, 0)
 					pFrame.returned_values = []
+					g_stepPending = true
 				}
 				pFrame.lastChild = pFrame.addChildToLeaflist(p_content[1])
 			} else {
@@ -499,14 +526,23 @@ const gDict_instructions = {
 			}
 		}
 	},
+	break: {
+		nbArg:1,
+		exec: function(pFrame, p_content) {
+			;;     $$$__BugChecking(p_content[1]===undefined, 'p_content[1]===undefined', new Error().lineNumber)
+			;;     $__ErrorChecking(pFrame, typeof p_content[1].content !== 'string', 'first arg must be a string')
+			toBreak_List.push(p_content[1].content)
+			pFrame.toReturn_values = []
+			pFrame.terminated = true
+		}
+	},
 }
 
-//~ if (typeof binaryOperators !== 'undefined') console.log('binaryOperators')
-
-function Instruction(ps_codeWord, pn_nbArg, pf_operExec, pf_postExec, pf_exec) {
+function Instruction(ps_codeWord, pn_nbArg, pf_operExec, pf_cumulExec, pf_postExec, pf_exec) {
 	this.codeWord = ps_codeWord
 	this.nbArg = pn_nbArg
 	this.operExec = pf_operExec
+	this.cumulExec = pf_cumulExec
 	this.postExec = pf_postExec
 	this.exec = pf_exec
 	
@@ -519,6 +555,30 @@ function Instruction(ps_codeWord, pn_nbArg, pf_operExec, pf_postExec, pf_exec) {
 				for (const arg2 of l_secondargResult) {
 					pFrame.toReturn_values.push(this.operExec(arg1, arg2))
 				}
+			}
+		}
+	}
+	
+	if (this.cumulExec) {
+		this.nbArg = (n=> (n>=2) )
+		this.postExec = function(pFrame, p_content) {
+			// get args
+			//==========
+			const l_argsResults = []
+			//~ let cpt = 0
+			for (let i=0;i<p_content.length-1;i++) {
+				l_argsResults[i] = extractFromReturnedValues(pFrame.returned_values, i)
+				//~ cpt += 1
+			}
+			//~ pFrame.returned_values = []
+			const l_theCombinations = cartesianProduct(...l_argsResults)
+			for (const comb of l_theCombinations) {
+				//~ pFrame.addChildToLeaflist(pFrame.lambda[0].body, pFrame.lambda[0].param.content, comb, pFrame.lambda[0])
+				pFrame.toReturn_values.push(
+					comb.reduce(
+						(previousValue, currentValue) => this.cumulExec(previousValue, currentValue)
+					)
+				)
 			}
 		}
 	}
@@ -544,6 +604,7 @@ for (const codeWord in gDict_instructions) {
 		codeWord,
 		gDict_instructions[codeWord].nbArg,
 		gDict_instructions[codeWord].operExec,
+		gDict_instructions[codeWord].cumulExec,
 		gDict_instructions[codeWord].postExec,
 		gDict_instructions[codeWord].exec,
 	)
@@ -561,6 +622,7 @@ const Frame = function(code, parent) {
 	this.code = code
 	this.parent = parent
 	this.superInstantNumber = g_superInstantNumber
+	this.instantNumber = g_instantNumber
 	this.plug = {}
 	this.instrPointer = 1
 	this.childrenList = []
@@ -570,7 +632,24 @@ const Frame = function(code, parent) {
 		this.initialChildIndex = parent.childrenList.length
 		parent.childrenList.push(this)
 	}
+	if (this.parent && this.parent.inheritedExprLabel) this.inheritedExprLabel = this.parent.inheritedExprLabel
+	
 	linkFrames(this, this.plug)
+	
+	// if it has an exprLabel, register it
+	//====================================
+	//~ localLog(code)
+	if (code.exprLabel) {
+		this.exprLabel = code.exprLabel
+		this.inheritedExprLabel = code.exprLabel
+		if (! exprlabelMap.has(code.exprLabel)) exprlabelMap.set(code.exprLabel, [])
+		const lList_frame = exprlabelMap.get(code.exprLabel)
+		lList_frame.push(this)
+	} else if (this.inheritedExprLabel) {
+		if (! inheritedexprlabelMap.has(this.inheritedExprLabel)) inheritedexprlabelMap.set(this.inheritedExprLabel, [])
+		const lList_frame = inheritedexprlabelMap.get(this.inheritedExprLabel)
+		lList_frame.push(this)
+	}
 }
 
 Frame.prototype.toString = function() {
@@ -591,17 +670,12 @@ Frame.prototype.addChildToLeaflist = function(expr, param, args, fct) {
 	if (param=='skipLinking') {
 		childFrame.skipLinking = true
 	} else if (param!==undefined) {
-		this.scope = new Map()
-		this.scope.frame = this
-		const l_scope = this.scope
-		scopeSet.add(l_scope)
+		//~ if (this.scope===undefined) makeNewAttachedScope(this)
 		for (const labelIndex in param) {
 			const label = param[labelIndex].content
-			//~ localLog(fct)
-			//~ localLog(locationToString(fct.location))
-			//~ ;;$__ErrorChecking(this, ! label.startsWith('p_'), "parameters in function " + fct + " must begin with 'p_'")
 			;;$__ErrorChecking(fct.frame, ! label.startsWith('p_') && label[0] != '_', "parameters must begin with 'p_' or '_'")
-			l_scope.set( label, new Variable(l_scope, label) )
+			makeNewVariable(this, label)
+			const l_scope = this.scope
 			const l_vari = l_scope.get(label)
 			l_vari.currBip = true
 			l_vari.currBeep = true
@@ -646,6 +720,7 @@ Frame.prototype.removeChildFromLeaflist = function() {
 
 	// remove or, maybe, replace by parent     from leafFrameList
 	//-----------------------------------------------------------
+	//~ localLog(this)
 	;;     $$$__BugChecking(this.parent && this.parent.childrenList.length == 0, 'childrenList of parent is empty', new Error().lineNumber)
 	if (this.parent && this.parent.childrenList.length == 1) {
 		// replace
@@ -689,6 +764,15 @@ Frame.prototype.exec1instant = function() {
 	if (this.code.type === 'expression') {
 		//~ console.log('est expression', this.toString() )
 		const l_content = this.code.content
+		
+		// put next to last element into the first place if '['
+		//======================================================
+		if (l_content.length >= 3 && this.code.text[0] === '[') {
+			const l_lastToNext = l_content[l_content.length-2]
+			l_content.splice(l_content.length-2, 1)
+			l_content.unshift(l_lastToNext)
+			this.code.text = this.code.text.replace('[', '(')
+		}
 	
 		// errors
 		//==========
@@ -744,10 +828,11 @@ Frame.prototype.exec1instant = function() {
 
 function run() {
 	g_superInstantNumber += 1 
+	g_instantNumber += 1
 	for (const leaf of leafFrameList) {
 		leaf.awake = true
 	}
-	while (  leafFrameList.some( elt=>elt.awake )  ) {
+	while (  leafFrameList.some( elt=>elt.awake ) ) {
 		// exec 1 instant
 		//===============
 		//~ console.log('exec1instant', { ...leafFrameList.map(fr=>fr.toString()) } )
@@ -769,7 +854,33 @@ function run() {
 				l_scope.get(l_var).currBip = false
 			}
 		}
+		
+		// treat toBreak_List
+		//====================
+		for (const l_exprLabel of toBreak_List) {
+			const lList_inherited = inheritedexprlabelMap.get(l_exprLabel)
+			const lList_direct = exprlabelMap.get(l_exprLabel)
+			for (const leafIndex in leafFrameList) {
+				const l_leaf = leafFrameList[leafIndex]
+				if (lList_inherited.includes(l_leaf)) {
+					leafFrameList.splice(leafIndex, 1)
+				}
+			}
+			for (const newLeaf of lList_direct) {
+					leafFrameList.push(newLeaf)
+					if ( newLeaf.parent.childrenList.indexOf(newLeaf) === -1 ) {
+						newLeaf.parent.childrenList.push(newLeaf)
+					}
+					newLeaf.terminated = true
+			}
+		}
+		toBreak_List = []
+		
+		if (g_stepPending) g_instantNumber += 1
+		g_stepPending = false
 	}
+	//~ localLog('g_superInstantNumber', g_superInstantNumber)
+	//~ localLog('g_instantNumber', g_instantNumber)
 }
 
 function exec(code) {
