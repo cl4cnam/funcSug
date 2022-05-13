@@ -4,15 +4,16 @@
 .var clickButton
 .var edit
 .print (&pluss 3 4 9)
-#(&inputText edit)
+#(&inputNewHumanText edit)
 #.print (&awaitHumanText)
-(&getClick theButton clickButton)
+(&getClick '#theButton' clickButton)
 .print '.....> MID'
 :await clickButton beep
 .print '.....> MID2'
-#.print .await edit
+#.print :await edit beep
 .print :randomIntBetween 0 31
-(&displayMessage 'Hello!')
-#(&awaitClickBeep theButton)
+#(&displayNewMessageIn 'Hello!' 'body')
+(&displayNewMessage 'Hello!')
+#(&awaitClickBeep '#theButton')
 .print (&awaitHumanText)
 .print '.....> END'
