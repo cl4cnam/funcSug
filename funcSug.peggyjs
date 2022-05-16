@@ -1,13 +1,15 @@
 {
-	function Expression(type, content, text) {
+	function Expression(type, content, text, exprLabel) {
 		this.type = type
 		this.content = content
 		this.text = text
+		this.exprLabel = exprLabel
 		this.location = location()
 	}
 	input = input.replaceAll(/&([A-Za-z_]+)/g, 'call $$$1')
 	input = input.replaceAll(/%deffunc ([A-Za-z_]+) /g, '.var $1 :set $1 :lambda ')
 	input = input.replaceAll('$_', '.evalget _')
+	input = input.replaceAll('<-', ' set ')
 }
 
 start
@@ -19,7 +21,7 @@ program
 expression
 	= "(" __ startExpr:expression expr:WSexpression* __ ")" { return new Expression('expression', [startExpr].concat(expr), '('+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+')' ) }
 	/ "[" __ startExpr:expression expr:WSexpression* __ "]" { return new Expression('expression', [startExpr].concat(expr), '['+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+']' ) }
-	/ "{" __ startExpr:expression expr:WSexpression* __ "}" { return new Expression('expression', [startExpr].concat(expr), '{'+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+'}' ) }
+	/ "{" __ startExpr:expression exprLabel:exprLabel? expr:WSexpression* __ "}" { return new Expression('expression', [startExpr].concat(expr), '{'+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+'}', exprLabel ) }
 	/ number / string / name
 	/ expression0 / expression1 / expression2 / expression3 / expression4 / expressionEmpty
 
@@ -43,6 +45,9 @@ expression4
 
 expressionEmpty
 	= "(" spac:__ ")" { return new Expression('expression', [], '('+spac.join("")+')') }
+
+exprLabel
+	= spaces "@" n:[A-Za-z_]+ { return n.join("") }
 
 name
 	= simpleName
@@ -69,7 +74,7 @@ newline
 	= [\n\r]
 
 number
-	= digits:[0-9]+ { return new Expression('number', parseInt(digits.join(""), 10), digits.join("")) }
+	= digits:("-"?[0-9]+) { return new Expression('number', parseInt((digits[0] || '') + digits[1].join(""), 10), (digits[0] || '') + digits[1].join("")) }
 
 string
 	= '"' content:[^"]* '"' { return new Expression('string', content.join(""), '"'+content.join("")+'"' ) }

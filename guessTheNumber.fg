@@ -1,0 +1,90 @@
+#====================================================
+#
+# gameCourse
+#
+#====================================================
+#====================================================
+
+%deffunc gameCourse (p_minNumber p_maxNumber) {seq
+	.var numberToGuess
+	.var tryNumber
+	.var numberOfSteps
+	[ numberToGuess <- :randomIntBetween $p_minNumber $p_maxNumber ]
+	[ tryNumber <- 'not_defined' ]
+	[ numberOfSteps <- 0 ]
+	.print $numberToGuess
+
+	(&displayNewMessageIn (+ 'Guess my number (between ' $p_minNumber ' and ' $p_maxNumber ')!') '#gameBoard')
+	{while [ $tryNumber /= $numberToGuess ] {seq
+		# Try
+		#=====
+		[ tryNumber <- (&awaitNewHumanTextIn '#gameBoard') ]
+		[ numberOfSteps <- [$numberOfSteps + 1] ]
+		
+		# Answer
+		#========
+		{ if [$tryNumber < $numberToGuess] (&displayNewMessageIn 'Too low! Try again!' '#gameBoard') }
+		{ if [$tryNumber > $numberToGuess] (&displayNewMessageIn 'Too high! Try again!' '#gameBoard') }
+		{ if [$tryNumber = $numberToGuess] (&displayNewMessageIn ['Well Done! Number of steps: ' + $numberOfSteps] '#gameBoard') }
+	}}
+	[ 30 - $numberOfSteps ]
+}
+
+#====================================================
+#
+# main program
+#
+#====================================================
+#====================================================
+
+.var numGameCourse
+[numGameCourse <- 0]
+.var score
+[score <- 0]
+
+# update number of game
+#======================
+%deffunc updateNumGame () {seq
+	[ numGameCourse <- [$numGameCourse + 1] ]
+	(&displayNewMessageIn (+ 'Game Course #' $numGameCourse) '#gameBoard/title')
+}
+
+# updateScore
+#======================
+%deffunc updateScore (p_diffScore) {seq
+	[ score <- [$score + $p_diffScore] ]
+	(&displayMessageIn $score '#score')
+}
+
+# main
+#======================
+{par
+	# Game
+	{while true {seq @theGameCourse
+		(&updateNumGame)
+		(&updateScore (&gameCourse 0 255))
+	}}
+	
+	# Interrupt
+	{while true {seq
+		(&awaitClickBeep '#giveUp')
+		(&updateScore -10)
+		.break theGameCourse
+	}}
+}
+
+#{while true
+#	{par @theGameCourse
+#		{seq
+#			[ numGameCourse <- [$numGameCourse + 1] ]
+#			(&displayNewMessageIn (+ 'Game Course #' $numGameCourse) '#gameBoard/title')
+#			(&gameCourse 0 255)
+#			.break theGameCourse
+#		}
+#		{seq
+#			(&awaitClickBeep '#giveUp')
+#			.print 'interrupted'
+#			.break theGameCourse
+#		}
+#	}
+#}

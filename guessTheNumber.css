@@ -1,0 +1,32 @@
+#head {
+	background-color: #f0f0f0;
+	padding: 10px;
+	text-align: left;
+	margin-left: auto;
+}
+
+#gameBoard {
+	flex: auto;
+	overflow-y: scroll;
+}
+
+#foot {
+	padding: 10px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#foot button {
+	font-size: 1.5em;
+}
+
+body, html {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+}

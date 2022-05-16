@@ -7,6 +7,8 @@ const lesTests = [
 {line: new Error().lineNumber, code:`
 	{seq
 		.print '======> START'
+		.print 456
+		.print -789
 		.print 'true'
 		.print :+ 'true' 1
 		.print :- :+ 4 5 1
@@ -22,6 +24,8 @@ const lesTests = [
 	}
 `, result: `
 	======> START
+	456
+	-789
 	true
 	2
 	8
@@ -117,7 +121,7 @@ const lesTests = [
 `,},
 
 {line: new Error().lineNumber, code:`
-	{seq
+	{seq @qwerty
 		.var boite
 		:set boite !Scope
 	}
@@ -142,13 +146,14 @@ const lesTests = [
 `,},
 
 {line: new Error().lineNumber, code:`
-	{seq
+	{seq @azer
 		.var a
 		:set a 0
-		{while :< $a 3
-			{seq
+		#{while :< $a 1000
+		{while [$a < 3]
+			{seq @qwertz
 				.print $a
-				:set a :+ $a 1
+				[a <- [$a + 1] ]
 				$a
 			}
 		}
@@ -157,6 +162,43 @@ const lesTests = [
 0
 1
 2
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq @azerty
+		.var a
+		:set a 0
+		#.break azerty
+		{while [$a < 3]
+			{seq @qwertz
+				.print $a
+				[a <- [$a + 1] ]
+				$a
+			}
+		}
+	}
+`, result: `
+0
+1
+2
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		:set a 0
+		{while @theLoop [$a < 3]
+			{seq
+				.print $a
+				.break theLoop
+				[a <- [$a + 1] ]
+				$a
+			}
+		}
+		.var b
+	}
+`, result: `
+0
 `,},
 
 

@@ -12,9 +12,11 @@ Promise.all(scriptPromises).then((values)=>{
 		}))
 		const f_getLocation = function(pn_lineNumber, p_infoTexts=l_infoTexts) {
 			let linesTotal = 1
+			let lastInfo = undefined
 			for (const info of p_infoTexts) {
 				const prevLinesTotal = linesTotal
 				linesTotal += info.len
+				lastInfo = info
 				if (pn_lineNumber<=linesTotal) {
 					return {
 						source: info.source,
@@ -23,11 +25,10 @@ Promise.all(scriptPromises).then((values)=>{
 				} 
 			}
 			return {
-				source: '?', 
-				line: pn_lineNumber
+				source: (lastInfo===undefined) ? '?' : '!!beyond ' + lastInfo.source + ' in end of added code "{seq ... }"!!',
+				line: pn_lineNumber - linesTotal
 			}
 		}
-		//~ const completeText = '{seq \n' + texts.join('\n') + '\n }'
 		const completeText = '{seq \n' + l_texts.join('\n') + '\n }'
 		execProg(completeText, f_getLocation)
 	})
