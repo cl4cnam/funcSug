@@ -18,4 +18,7 @@ To avoid too many parentheses, there are a few shortcuts:<br>
 - ```:functionName arg1 arg2``` is a shortcut for ```(functionName arg1 arg2)```
 - ```%functionName arg1 arg2 arg3``` is a shortcut for ```(functionName arg1 arg2 arg3)```
 
+A syntax variant:
+```[arg1 functionName arg2]``` is ```(functionName arg1 arg2)```
+
 In progress.
