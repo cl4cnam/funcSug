@@ -6,7 +6,7 @@ This is a new programming language (in progress) loosely based on https://github
 
 Now, interactiveTest.html and guessTheNumber.html require a http server (for example, "php -S 127.0.0.1:8000" and go to http://127.0.0.1:8000/interactiveTest.html and http://127.0.0.1:8000/guessTheNumber.html).
 
-This language has no syntax highlighting, but if you choose that of zephir (or nsis, powershell, ruby) it can be pleasant.
+This language has no syntax highlighting, but if you choose that of zephir (or nsis, powershell, ruby), it can be pleasant.
 
 The file ```parser.js``` has been generated online from the file ```funcSug.peggyjs``` on the site https://peggyjs.org/online.html with "parser variable" set to "peg".
 
