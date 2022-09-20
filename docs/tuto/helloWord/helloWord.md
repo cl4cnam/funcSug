@@ -12,6 +12,10 @@ at the end of the body write :
   <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/DOMloader.js"></script>
 ```
 
+The program will  be in helloWord.fg
+
+See the included file for exemple.
+
 
 ----------
 (fr)
@@ -29,3 +33,7 @@ Dans helloWord.html, on ajoute les lignes de code ci-dessous à la fin du <body>
   <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/interpreter.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/DOMloader.js"></script>
 ```
+
+Le programme se situera dans helloWord.fg
+
+Voir le fichier joint pour exemple.
