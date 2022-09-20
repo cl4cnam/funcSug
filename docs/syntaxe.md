@@ -1,3 +1,8 @@
+### Ecrire des commentaires :
+```
+# Hello ! I'm a comment
+```
+
 ### Afficher à la console :
 ```
 .print helloWord

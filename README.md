@@ -14,15 +14,14 @@ The file ```parser.js``` has been generated online from the file ```funcSug.pegg
 
 In your ```myProgram.html``` in the end of the body element, include the lines:
 ```
-		<script src="libStd.fg" type="application/funcsug"></script>
-		<script src="libDOM.fg" type="application/funcsug"></script>
-		<script src="myProgram.fg" type="application/funcsug"></script>
-		<script src="parser.js"></script>
-		<script src="interpreter.js"></script>
-		<script src="DOMloader.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/libStd.fg" type="application/funcsug"></script>
+  <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/libDOM.fg" type="application/funcsug"></script>
+  <script src="myProgram.fg" type="application/funcsug"></script>
+  <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/parser.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/interpreter.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/DOMloader.js"></script>
 ```
 Write your code in the file ```myProgram.fg```.
-Put the files ```libStd.fg```, ```libDOM.fg```, ```myProgram.fg```, ```parser.js```, ```interpreter.js```, ```DOMloader.js``` in your directory.
 (For now, ```libStd.fg``` is useless)
 
 ### Syntax elements

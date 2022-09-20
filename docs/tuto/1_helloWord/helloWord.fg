@@ -1,2 +1,5 @@
+# display on the console
 .print helloWord
+
+# display on the screen
 (&displayNewMessage "Hello Word!")
