@@ -1,6 +1,7 @@
 # **funcSug**
 
 This is a new programming language (in progress) loosely based on https://github.com/LordManta/SugarCubesJS of Jean-Ferdy Susini.
+To get a taste of the language see https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg and test it on https://cl4cnam.github.io/Guess_the_number/guessTheNumber.html
 
 ### Note
 
@@ -42,6 +43,7 @@ A syntax variant:
 ```[arg1 functionName arg2]``` is ```(functionName arg1 arg2)```
 
 In any expression, you can insert ``` @label ``` just after the function name to label the expression (This is useful for the ```break``` instruction).
+This 'label' must be a declared variable.
 
 ### A few instructions/expressions (loose description)
 
@@ -66,6 +68,8 @@ In any expression, you can insert ``` @label ``` just after the function name to
 ```{seq expression1 ... expressionN}``` executes the expressions in sequence and returns the value of the last.
 
 ```{par expression1 ... expressionN}``` executes the expressions in parallel.
+
+```{mix expression1 ... expressionN}``` executes the expressions in parallel but variable values does not split.
 
 ```.break label``` interrupts the execution of the expression labelled by ```label```.
 
