@@ -7,6 +7,166 @@ const lesTests = [
 {line: new Error().lineNumber, code:`
 	{seq
 		.print '======> START'
+	}
+`, result: `
+	======> START
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.print .value '======> START'
+	}
+`, result: `
+	======> START
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.print 34
+		.print 56
+	}
+`, result: `
+34
+56
+`,},
+
+{line: new Error().lineNumber, code:`
+	{par
+		.print 34
+		.print 56
+	}
+`, result: `
+34
+56
+`,},
+
+{line: new Error().lineNumber, code:`
+	{mix
+		.print 34
+		.print 56
+	}
+`, result: `
+34
+56
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		{seq
+			.print 1
+			.print 2
+		}
+		{seq
+			.print 3
+			.print 4
+		}
+	}
+`, result: `
+1
+2
+3
+4
+`,},
+
+{line: new Error().lineNumber, code:`
+	{par
+		{seq
+			.print 1
+			.print 2
+		}
+		{seq
+			.print 3
+			.print 4
+		}
+	}
+`, result: `
+1
+3
+2
+4
+`,},
+
+{line: new Error().lineNumber, code:`
+	{mix
+		{seq
+			.print 1
+			.print 2
+		}
+		{seq
+			.print 3
+			.print 4
+		}
+	}
+`, result: `
+1
+3
+2
+4
+`,},
+
+{line: new Error().lineNumber, code:`
+	.print {seq 1 2}
+`, result: `
+2
+`,},
+
+{line: new Error().lineNumber, code:`
+	.print {par 1 2}
+`, result: `
+1
+2
+`,},
+
+{line: new Error().lineNumber, code:`
+	.print {mix 1 2}
+`, result: `
+1
+2
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		{seq
+			:set a 1
+			:set a 2
+		}
+		.print $a
+	}
+`, result: `
+2
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		{par
+			:set a 1
+			:set a 2
+		}
+		.print $a
+	}
+`, result: `
+1
+2
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		{mix
+			:set a 1
+			:set a 2
+		}
+		.print $a
+	}
+`, result: `
+2
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.print '======> START'
 		.print 456
 		.print -789
 		.print 'true'
@@ -15,6 +175,7 @@ const lesTests = [
 		.print :+ :+ 'tru' 'e' 1
 		.print :+ '5*4=' :* 5 4
 		.print :< 5 4
+		.print [1 > 0]
 		.print '======> MID'
 		.var a .var b
 		{par :set a 20 :set a 30}
@@ -32,6 +193,7 @@ const lesTests = [
 	true1
 	5*4=20
 	false
+	true
 	======> MID
 	16
 	15
@@ -121,9 +283,12 @@ const lesTests = [
 `,},
 
 {line: new Error().lineNumber, code:`
-	{seq @qwerty
-		.var boite
-		:set boite !Scope
+	{seq
+		.var qwerty
+		{seq @qwerty
+			.var boite
+			:set boite !Namespace
+		}
 	}
 `, result: `
 `,},
@@ -146,34 +311,19 @@ const lesTests = [
 `,},
 
 {line: new Error().lineNumber, code:`
-	{seq @azer
-		.var a
-		:set a 0
-		#{while :< $a 1000
-		{while [$a < 3]
-			{seq @qwertz
-				.print $a
-				[a <- [$a + 1] ]
-				$a
-			}
-		}
-	}
-`, result: `
-0
-1
-2
-`,},
-
-{line: new Error().lineNumber, code:`
-	{seq @azerty
-		.var a
-		:set a 0
-		#.break azerty
-		{while [$a < 3]
-			{seq @qwertz
-				.print $a
-				[a <- [$a + 1] ]
-				$a
+	{seq
+		.var azer
+		.var qwertz
+		{seq @azer
+			.var a
+			:set a 0
+			#{while :< $a 1000
+			{while [$a < 3]
+				{seq @qwertz
+					.print $a
+					[a <- [$a + 1] ]
+					$a
+				}
 			}
 		}
 	}
@@ -185,6 +335,30 @@ const lesTests = [
 
 {line: new Error().lineNumber, code:`
 	{seq
+		.var azerty
+		.var qwertz
+		{seq @azerty
+			.var a
+			:set a 0
+			#.break azerty
+			{while [$a < 3]
+				{seq @qwertz
+					.print $a
+					[a <- [$a + 1] ]
+					$a
+				}
+			}
+		}
+	}
+`, result: `
+0
+1
+2
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var theLoop
 		.var a
 		:set a 0
 		{while @theLoop [$a < 3]
@@ -199,6 +373,27 @@ const lesTests = [
 	}
 `, result: `
 0
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var theSeq
+		.var a
+		:set a 0
+		{while :< $a 3
+			{seq @theSeq
+				.print $a
+				[a <- [$a + 1] ]
+				.break theSeq
+				.print $a
+			}
+		}
+		.var b
+	}
+`, result: `
+0
+1
+2
 `,},
 
 
