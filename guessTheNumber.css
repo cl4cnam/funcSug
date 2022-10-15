@@ -1,8 +1,12 @@
-#head {
+header {
+	background-color: #f8fcfc;
+	display: flex;
+	justify-content: space-between;
+}
+
+header p {
 	background-color: #f0f0f0;
 	padding: 10px;
-	text-align: left;
-	margin-left: auto;
 }
 
 #gameBoard {
@@ -11,9 +15,10 @@
 }
 
 #foot {
+	background-color: #f8fcfc;
 	padding: 10px;
-	margin-left: auto;
-	margin-right: auto;
+	display: flex;
+	justify-content: center;
 }
 
 #foot button {
