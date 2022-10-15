@@ -6,14 +6,14 @@
 .print (&pluss 3 4 9)
 #(&inputNewHumanText edit)
 #.print (&awaitHumanText)
-(&getClick '#theButton' clickButton)
+:getClick '#theButton' clickButton
 .print '.....> MID'
 :await clickButton beep
 .print '.....> MID2'
 #.print :await edit beep
 .print :randomIntBetween 0 31
 #(&displayNewMessageIn 'Hello!' 'body')
-(&displayNewMessage 'Hello!')
+.displayNewMessage 'Hello!'
 #(&awaitClickBeep '#theButton')
 .print (&awaitHumanText)
 .print '.....> END'
