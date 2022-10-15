@@ -108,6 +108,24 @@
 		:await evtSugA beep
 	}
 
+%deffunc awaitNewHumanNumberIn (p_idAnchor)
+#        ---------------------
+	{seq
+		.var tryText <- 'notANumber'
+		.var whileA
+		{while @whileA true {seq
+			:set tryText (&awaitNewHumanTextIn $p_idAnchor)
+			{if :and .not [$tryText < 0] .not [$tryText >= 0]
+				(&displayNewMessageIn 'This is not a number!' :+ $p_idAnchor '/error')
+			else
+				{seq .print 'alt 2 avt'
+				.break whileA
+				.print 'alt 2 après'}
+			}
+		}}
+		$tryText
+	}
+
 %deffunc awaitHumanText ()
 #        --------------
 	{seq
@@ -115,3 +133,24 @@
 		(&inputNewHumanText evtSugA)
 		:await evtSugA beep
 	}
+
+#====================================
+# Time functions
+#====================================
+
+%deffunc waitMilliseconds (p_nMilliseconds)
+#        -----------
+	{seq
+		.var waitEnd
+		{ext ($p_nMilliseconds) `
+			setTimeout(
+				O=>output(args[0]),
+				args[0]
+			)
+		` waitEnd}
+		:await waitEnd beep
+	}
+
+%deffunc waitSeconds (p_nSeconds)
+#        -----------
+	(&waitMilliseconds :* 1000 $p_nSeconds)

@@ -6,28 +6,28 @@
 #====================================================
 
 %deffunc gameCourse (p_minNumber p_maxNumber) {seq
-	.var numberToGuess
-	.var tryNumber
-	.var numberOfSteps
-	[ numberToGuess <- :randomIntBetween $p_minNumber $p_maxNumber ]
-	[ tryNumber <- 'not_defined' ]
-	[ numberOfSteps <- 0 ]
-	.print $numberToGuess
-
-	(&displayNewMessageIn (+ 'Guess my number (between ' $p_minNumber ' and ' $p_maxNumber ')!') '#gameBoard')
+	.var numberToGuess <- :randomIntBetween $p_minNumber $p_maxNumber
+	.var tryNumber <- 'not_defined'
+	.var numberOfSteps <- 0
+	
+	.print :+ 'Answer: ' $numberToGuess # to cheat
+	
+	:displayNewMessageIn (+ 'Guess my number (between ' $p_minNumber ' and ' $p_maxNumber ')!') '#gameBoard'
 	{while [ $tryNumber /= $numberToGuess ] {seq
 		# Try
 		#=====
-		[ tryNumber <- (&awaitNewHumanTextIn '#gameBoard') ]
-		[ numberOfSteps <- [$numberOfSteps + 1] ]
+		tryNumber <-- .awaitNewHumanNumberIn '#gameBoard'
+		numberOfSteps <-- [+ 1]
 		
 		# Answer
 		#========
-		{ if [$tryNumber < $numberToGuess] (&displayNewMessageIn 'Too low! Try again!' '#gameBoard') }
-		{ if [$tryNumber > $numberToGuess] (&displayNewMessageIn 'Too high! Try again!' '#gameBoard') }
-		{ if [$tryNumber = $numberToGuess] (&displayNewMessageIn ['Well Done! Number of steps: ' + $numberOfSteps] '#gameBoard') }
+		{ if [$tryNumber < $numberToGuess] :displayNewMessageIn 'Too low! Try again!' '#gameBoard' }
+		{ if [$tryNumber > $numberToGuess] :displayNewMessageIn 'Too high! Try again!' '#gameBoard' }
+		{ if [$tryNumber = $numberToGuess] :displayNewMessageIn ['Well Done! Number of steps: ' + $numberOfSteps] '#gameBoard' }
 	}}
-	[ 30 - $numberOfSteps ]
+	# Return
+	#=======
+	$numberOfSteps
 }
 
 #====================================================
@@ -37,54 +37,61 @@
 #====================================================
 #====================================================
 
-.var numGameCourse
-[numGameCourse <- 0]
-.var score
-[score <- 0]
-
-# update number of game
-#======================
-%deffunc updateNumGame () {seq
-	[ numGameCourse <- [$numGameCourse + 1] ]
-	(&displayNewMessageIn (+ 'Game Course #' $numGameCourse) '#gameBoard/title')
-}
-
-# updateScore
-#======================
-%deffunc updateScore (p_diffScore) {seq
-	[ score <- [$score + $p_diffScore] ]
-	(&displayMessageIn $score '#score')
-}
+.var numGameCourse <- 0
+.var score <- 0
+.var level <- 1
+.var limitNumber <- 2
+.var theGameCourse
 
 # main
 #======================
-{par
+{mix
 	# Game
+	#--------
 	{while true {seq @theGameCourse
-		(&updateNumGame)
-		(&updateScore (&gameCourse 0 255))
+		.var gameCourseNumberOfSteps
+		
+		# Game course
+		numGameCourse <-- [+ 1]
+		.waitSeconds 1
+		gameCourseNumberOfSteps <-- :gameCourse 1 [$limitNumber - 1]
+		.waitSeconds 3
+		
+		# update infos
+		.var diffScore <- [[3 * $level] - $gameCourseNumberOfSteps]
+		score <-- [+ $diffScore]
+		{ if [$gameCourseNumberOfSteps <= $level] {seq
+			level <-- [+ 1]
+			limitNumber <-- [* 2]
+		}}
 	}}
 	
 	# Interrupt
+	#----------
 	{while true {seq
-		(&awaitClickBeep '#giveUp')
-		(&updateScore -10)
+		.awaitClickBeep '#giveUp'
+		score <-- [- 10]
+		{if [$level > 1] {seq
+			level <-- [- 1]
+			limitNumber <-- [/ 2]
+		}}
 		.break theGameCourse
 	}}
+	
+	# Display of all pieces of information
+	#-------------------------------------
+	{while true {seq
+		:await numGameCourse beep
+		{if [$numGameCourse > 0]
+			:displayNewMessageIn (+ 'Game Course #' $numGameCourse) '#gameBoard/title'
+		}
+	}}
+	{while true {seq
+		:await score beep
+		:displayMessageIn $score '#score'
+	}}
+	{while true {seq
+		:await level beep
+		:displayMessageIn $level '#level'
+	}}
 }
-
-#{while true
-#	{par @theGameCourse
-#		{seq
-#			[ numGameCourse <- [$numGameCourse + 1] ]
-#			(&displayNewMessageIn (+ 'Game Course #' $numGameCourse) '#gameBoard/title')
-#			(&gameCourse 0 255)
-#			.break theGameCourse
-#		}
-#		{seq
-#			(&awaitClickBeep '#giveUp')
-#			.print 'interrupted'
-#			.break theGameCourse
-#		}
-#	}
-#}

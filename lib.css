@@ -16,6 +16,12 @@ p.other {
 	margin-right: auto;
 }
 
+p.error {
+	border-color: #ffc0c0;
+	background-color: #ffefef;
+	margin-right: auto;
+}
+
 p.display {
 	border-style: solid;
 	border-width: 1px;
