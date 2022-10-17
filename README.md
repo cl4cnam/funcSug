@@ -5,8 +5,6 @@ To get a taste of the language see https://github.com/cl4cnam/Guess_the_number/b
 
 ### Note
 
-Now, interactiveTest.html and guessTheNumber.html require a http server (for example, "php -S 127.0.0.1:8000" and go to http://127.0.0.1:8000/interactiveTest.html and http://127.0.0.1:8000/guessTheNumber.html).
-
 This language has no syntax highlighting, but if you choose that of zephir (or nsis, powershell, ruby), it can be pleasant.
 
 The file ```parser.js``` has been generated online from the file ```funcSug.peggyjs``` on the site https://peggyjs.org/online.html with "parser variable" set to "peg".
@@ -27,10 +25,10 @@ Write your code in the file ```myProgram.fg```.
 
 ### Syntax elements
 
-In many language, a function call is expressed by added parentheses at right:
+In many language, a function call is expressed by adding parentheses at right:
 ```functionName(arg1, ..., argN)```.<br>
-In this language too, a function call is expressed by added parentheses but around:
-```(functionName arg1 ... argN)```.<br>
+In this language too, a function call is expressed by adding parentheses but around:
+```(functionName arg1 ... argN)``` (Yes, this is lisp syntax).<br>
 You can replace parentheses with curly braces "{}".
 
 To avoid too many parentheses, there are a few shortcuts:<br>
@@ -38,6 +36,8 @@ To avoid too many parentheses, there are a few shortcuts:<br>
 - ```.functionName arg1``` is a shortcut for ```(functionName arg1)```
 - ```:functionName arg1 arg2``` is a shortcut for ```(functionName arg1 arg2)```
 - ```%functionName arg1 arg2 arg3``` is a shortcut for ```(functionName arg1 arg2 arg3)```
+
+To get the value of a variable, precede it by the '$' sign'.
 
 A syntax variant:
 ```[arg1 functionName arg2]``` is ```(functionName arg1 arg2)```
@@ -53,11 +53,15 @@ This 'label' must be a declared variable.
 
 ```[variableName <- value]``` assigns  ```value``` to ```variableName```.
 
+```variableName <-- value``` (on its own line) assigns  ```value``` to ```variableName```.
+
+```variableName <-- [+ value]``` (on its own line) adds  ```value``` to ```variableName``` (also for '-', '\*', '/' operators).
+
 ```$variableName``` returns the value of ```variableName```.
 
-```[value1 + value2]``` returns the sum/concatenation of the two values (idem for `-`,`*`,`/`,`mod`).
+```[value1 + value2]``` returns the sum/concatenation of the two values (also for `-`,`*`,`/`,`mod`).
 
-```[value1 < value2]``` returns the truth value of ```value1 < value2``` (idem for `<=`,`=`,`/=`, `and`, `or`).
+```[value1 < value2]``` returns the truth value of ```value1 < value2``` (also for `<=`,`=`,`/=`, `and`, `or`).
 
 ```:randomIntBetween value1 value2``` returns a random integer between ```value1``` and ```value2```.
 
@@ -75,6 +79,12 @@ This 'label' must be a declared variable.
 
 ```%deffunc functionName parameterList expression``` defines the custom function ```functionName```.
 
-```(&functionName arg1 ... argN)``` executes the custom function ```functionName``` and returns its value.
+```:displayNewMessageIn text cssSelector``` displays a new message ```text``` into the DOM element identified by ```cssSelector```.
+
+```:displayNewMessageIn text cssSelector/cssClass``` displays a new message ```text``` into the DOM element identified by ```cssSelector``` and assigns ```cssClass``` to it.
+
+```.awaitNewHumanNumberIn cssSelector``` awaits a number from user in the DOM element identified by ```cssSelector```.
+
+```.awaitClickBeep cssSelector``` awaits a click from user in the DOM element identified by ```cssSelector```.
 
 In progress.
