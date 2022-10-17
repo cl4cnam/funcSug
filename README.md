@@ -1,17 +1,17 @@
 # **funcSug**
 
 This is a new programming language (in progress) loosely based on https://github.com/LordManta/SugarCubesJS of Jean-Ferdy Susini.
-To get a taste of the language see https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg and test it on https://cl4cnam.github.io/Guess_the_number/guessTheNumber.html
+To get a taste of the language, see https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg and test it on https://cl4cnam.github.io/Guess_the_number/guessTheNumber.html
 
 ### Note
 
-This language has no syntax highlighting, but if you choose that of zephir (or nsis, powershell, ruby), it can be pleasant.
+For now, this language has no syntax highlighting, but if you choose that of zephir (or nsis, powershell, ruby), it can be pleasant.
 
 The file ```parser.js``` has been generated online from the file ```funcSug.peggyjs``` on the site https://peggyjs.org/online.html with "parser variable" set to "peg".
 
 ### Use
 
-In your ```myProgram.html``` in the end of the body element, include the lines:
+In your ```myProgram.html```, in the end of the body element, include the lines:
 ```
   <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/libStd.fg" type="application/funcsug"></script>
   <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/libDOM.fg" type="application/funcsug"></script>
@@ -37,10 +37,10 @@ To avoid too many parentheses, there are a few shortcuts:<br>
 - ```:functionName arg1 arg2``` is a shortcut for ```(functionName arg1 arg2)```
 - ```%functionName arg1 arg2 arg3``` is a shortcut for ```(functionName arg1 arg2 arg3)```
 
-To get the value of a variable, precede it by the '$' sign'.
+Here is a syntax variant:<br>
+```[arg1 ... argN functionName arg(N+1)]``` is ```(functionName arg1 ... argN arg(N+1))```
 
-A syntax variant:
-```[arg1 functionName arg2]``` is ```(functionName arg1 arg2)```
+To get the value of a variable, precede it by the '$' sign'.
 
 In any expression, you can insert ``` @label ``` just after the function name to label the expression (This is useful for the ```break``` instruction).
 This 'label' must be a declared variable.
@@ -55,7 +55,7 @@ This 'label' must be a declared variable.
 
 ```variableName <-- value``` (on its own line) assigns  ```value``` to ```variableName```.
 
-```variableName <-- [+ value]``` (on its own line) adds  ```value``` to ```variableName``` (also for '-', '\*', '/' operators).
+```variableName <-- [+ value]``` (on its own line) increments  ```variableName``` by ```value``` (also for `-`,`*`,`/` operators).
 
 ```$variableName``` returns the value of ```variableName```.
 
