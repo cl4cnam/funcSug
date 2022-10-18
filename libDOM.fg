@@ -76,8 +76,11 @@
 	{ext ($p_idAnchor) `
 		const lElt_anchor = document.querySelector(args[0])
 		if (lElt_anchor===null) console.log("ERROR !!! libDOM.fs/inputNewHumanTextIn '" + args[0] + "' selector references no element!")
-		const lElt = document.createElement('p')
 		//const lElt = document.createElement('input')
+		const lElt = document.createElement('p')
+		//~ SAVE.elt = lElt
+		const lSAVE = {}
+		lSAVE.elt = lElt
 		lElt.classList.add('entry')
 		lElt.classList.add('self')
 		lElt.setAttribute('contentEditable', 'true')
@@ -92,9 +95,15 @@
 				output(evt.target.textContent)
 			}
 		}
+		lSAVE.react = l_react
+		SAVES.push(lSAVE)
 		lElt.addEventListener('beforeinput', l_react)
 		lElt_anchor.appendChild(lElt)
-	` $p_evtSugB}
+	` $p_evtSugB `
+		SAVE.elt.removeEventListener('beforeinput', SAVE.react)
+		SAVE.elt.setAttribute('contentEditable', 'false')
+		SAVE.elt.classList.replace('entry', 'display')
+	`}
 
 %deffunc inputNewHumanText (p_evtSugB)
 #        -----------------
