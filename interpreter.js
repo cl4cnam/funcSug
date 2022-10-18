@@ -1,7 +1,7 @@
 'use strict'
 
-const leafFrameList = []
 const namespaceSet = new Set()
+const cancellationSet = new Set()
 
 let mainFrame
 let globalFrameTree
@@ -235,12 +235,13 @@ const gDict_instructions = {
 	},
 	//===========================================================
 	
-	ext: { // ext <inputExpression> <jsStringToExecute> <outputExpression>
-		nbArg:3,
+	ext: { // ext <inputExpression> <jsStringToExecute> <outputExpression> [<jsStringForCancellation>]
+		nbArg: (n=> (n==3 || n==4) ),
 		exec: function(pFrame, p_content) {
 			const lPARAM_inputExpression = p_content[1]
 			const lPARAM_jsStringToExecute = p_content[2]
 			const lPARAM_outputExpression = p_content[3]
+			const ls_jsStringForCancellation = (p_content.length==5) ? p_content[4].content : ''
 			const l_inputContent = lPARAM_inputExpression.content
 			
 			if (pFrame.instrPointer==1) {
@@ -278,15 +279,30 @@ const gDict_instructions = {
 					"use strict"
 					const output=arguments[0]
 					const error=arguments[1]
+					const SAVES=arguments[2]
 					const args=[...arguments]
-					args.shift(); args.shift()
+					args.shift(); args.shift(); args.shift()
 				` + ls_jsStringToExecute
+				
+				// cancellation preparation
+				//=========================
+				const lList_saveExternals=[]
+				const l_cancelObj={
+					externalObjects: lList_saveExternals,
+					pathOfExecution: pFrame.pathOfExecution,
+					execCancel: ls_jsStringForCancellation
+				}
+				if(ls_jsStringForCancellation !== '') cancellationSet.add(l_cancelObj)
 				
 				// exec
 				//======
 				let promises = []
 				for (const argmts of l_theCombinations) {
-					promises.push( new Promise(   (resolve,reject) => {       (new Function(ls_jsStringToExecute))(resolve,reject,...argmts)    }   ) )
+					promises.push(
+						new Promise(
+							(resolve,reject) => {       (new Function(ls_jsStringToExecute))(resolve,reject,lList_saveExternals,...argmts)    }
+						)
+					)
 					promises[promises.length-1].then(res => {
 						l_outputLivebox.currMultival.push({frame:pFrame, val:res})
 						l_outputLivebox.precMultival.push(res) // useful ?
@@ -298,6 +314,7 @@ const gDict_instructions = {
 					l_outputLivebox.currBeep = true // useful ?
 					l_outputLivebox.precBip = true
 					l_outputLivebox.precBeep = true
+					if(ls_jsStringForCancellation !== '') cancellationSet.delete(l_cancelObj)
 					runBurst()
 				})
 				pFrame.toReturn_multival = []
@@ -644,11 +661,29 @@ function Instruction(ps_codeWord) {
 				ch.instruction.canc(ch)
 			}
 			if (pFrame.childrenList.length==0) {
-				if (this.codeWord==='ext') {
-					pFrame.cancel()
-				}
 				pFrame.removeChildFromLeaflist()
 			}
+			cancellationSet.forEach(
+				cancelElt => {
+					if (cancelElt.pathOfExecution.startsWith(pFrame.pathOfExecution)) {
+						let ls_jsStringToExecute = cancelElt.execCancel
+						ls_jsStringToExecute = `
+							"use strict"
+							const output=arguments[0]
+							const error=arguments[1]
+							const SAVE=arguments[2]
+							const args=[...arguments]
+							args.shift(); args.shift(); args.shift()
+						` + ls_jsStringToExecute
+						for (const extObj of cancelElt.externalObjects) {
+							const lPromise = new Promise(
+								(resolve,reject) => {       (new Function(ls_jsStringToExecute))(resolve,reject,extObj)    }
+							)
+						}
+						cancellationSet.delete(cancelElt)
+					}
+				}
+			)
 		}
 	}
 	
