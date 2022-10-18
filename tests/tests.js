@@ -284,6 +284,16 @@ const lesTests = [
 
 {line: new Error().lineNumber, code:`
 	{seq
+		.var a
+		[(rt yyu) 'output(45)' ext a]
+		.print :await a bip
+	}
+`, result: `
+	45
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
 		.var qwerty
 		{seq @qwerty
 			.var boite
