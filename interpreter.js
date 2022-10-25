@@ -689,11 +689,12 @@ function Instruction(ps_codeWord) {
 	
 	if (! this.activ) {
 		this.activ = function(pFrame) {
+			const ln_childrenNumber = pFrame.childrenList.length
 			for (const ch of pFrame.childrenList) {
 				ch.getInstruction()
 				ch.instruction.activ(ch)
 			}
-			if (pFrame.childrenList.length==0) {
+			if (ln_childrenNumber==0) {
 				;;     $$$__BugChecking(pFrame.terminated, 'pFrame.terminated', new Error().lineNumber)
 				this.exec(pFrame, pFrame.code.content)
 				if (pFrame.terminated) pFrame.removeChildFromLeaflist()
