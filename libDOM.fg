@@ -76,9 +76,7 @@
 	{ext ($p_idAnchor) `
 		const lElt_anchor = document.querySelector(args[0])
 		if (lElt_anchor===null) console.log("ERROR !!! libDOM.fs/inputNewHumanTextIn '" + args[0] + "' selector references no element!")
-		//const lElt = document.createElement('input')
 		const lElt = document.createElement('p')
-		//~ SAVE.elt = lElt
 		const lSAVE = {}
 		lSAVE.elt = lElt
 		lElt.classList.add('entry')
@@ -103,6 +101,7 @@
 		SAVE.elt.removeEventListener('beforeinput', SAVE.react)
 		SAVE.elt.setAttribute('contentEditable', 'false')
 		SAVE.elt.classList.replace('entry', 'display')
+		SAVE.elt.classList.add('canceled')
 	`}
 
 %deffunc inputNewHumanText (p_evtSugB)
@@ -120,16 +119,14 @@
 %deffunc awaitNewHumanNumberIn (p_idAnchor)
 #        ---------------------
 	{seq
-		.var tryText <- 'notANumber'
+		.var tryText <-- 'notANumber'
 		.var whileA
 		{while @whileA true {seq
 			:set tryText (&awaitNewHumanTextIn $p_idAnchor)
 			{if :and .not [$tryText < 0] .not [$tryText >= 0]
 				(&displayNewMessageIn 'This is not a number!' :+ $p_idAnchor '/error')
 			else
-				{seq .print 'alt 2 avt'
 				.break whileA
-				.print 'alt 2 après'}
 			}
 		}}
 		$tryText
