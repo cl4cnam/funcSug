@@ -1,6 +1,10 @@
 .print '.....> TEST'
 .print ''
-.print {seq 4 67 89}
+.print {seq
+	4
+	67
+	89
+}
 .var clickButton
 .var edit
 .print (&pluss 3 4 9)

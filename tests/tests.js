@@ -105,7 +105,10 @@ const lesTests = [
 `,},
 
 {line: new Error().lineNumber, code:`
-	.print {seq 1 2}
+	.print {seq
+		1
+		2
+	}
 `, result: `
 2
 `,},
@@ -122,6 +125,132 @@ const lesTests = [
 `, result: `
 1
 2
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		a <-- 0
+		a <-- 1
+		{par
+			a <-- [+1]
+			a <-- [+2]
+		}
+		.print $a
+	}
+`, result: `
+2
+3
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		a <-- 1
+		{par
+			a <-- [$a + 1]
+			a <-- [$[a + ''] * 2]
+		}
+		.print $a
+	}
+`, result: `
+2
+2
+`,},
+
+{line: new Error().lineNumber, code:`
+	{if (par true (seq 
+		false
+		true
+	))
+		.print 'c1'
+	else
+		.print 'deux'
+	}
+`, result: `
+c1
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		a <-- 0
+		a <-- 1
+		{par
+			a <-- [$a + 1]
+			a <-- [$[[a + ''] + ''] * 2]
+		}
+		.print $a
+	}
+`, result: `
+2
+4
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		a <-- 0
+		a <-- 1
+		.freeze a
+		{par
+			a <-- [+1]
+			a <-- [+2]
+		}
+		.next a
+		.print $a
+	}
+`, result: `
+2
+3
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		a <-- 0
+		a <-- 1
+		.freeze a
+		{par
+			a <-- [+1]
+			a <-- [*2]
+		}
+		.unfreeze a
+		.print $a
+	}
+`, result: `
+2
+2
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		a <-- 0
+		a <-- 1
+		.freeze a
+		{par
+			{seq
+				a <-- 1
+				.next a
+				.aggregsum a
+				.next a
+				.aggregsum a
+			}
+			{seq
+				a <-- 2
+				.next a
+				.aggregprod a
+				.next a
+				.aggregprod a
+			}
+		}
+		.unfreeze a
+		.print $a
+	}
+`, result: `
+5
+6
 `,},
 
 {line: new Error().lineNumber, code:`
@@ -177,7 +306,8 @@ const lesTests = [
 		.print :< 5 4
 		.print [1 > 0]
 		.print '======> MID'
-		.var a .var b
+		.var a
+		.var b
 		{par :set a 20 :set a 30}
 		{par :set b 4 :set b 5}
 		.print :- $a $b
@@ -276,10 +406,42 @@ const lesTests = [
 	{seq
 		.var a
 		%ext (rt yyu) 'output(45)' a
-		.print :await a bip
+		.print :await a beep
+		.print .isBeep a
 	}
 `, result: `
 	45
+	false
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		%ext (rt yyu) 'output(45)' a
+		.awaitBool .isBeep a
+		.print $a
+		.print .isBeep a
+	}
+`, result: `
+	45
+	true
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		%ext (rt yyu) 'output(45)' a
+		.print :await a bip
+		.print .isBip a
+		.print .isBeep a
+		.stopBeep a
+		.print .isBeep a
+	}
+`, result: `
+	45
+	false
+	true
+	false
 `,},
 
 {line: new Error().lineNumber, code:`
@@ -305,7 +467,10 @@ const lesTests = [
 
 {line: new Error().lineNumber, code:`
 	.print {seq
-		99 4 56 309
+		99
+		4
+		56
+		309
 	}
 `, result: `
 309
@@ -313,7 +478,8 @@ const lesTests = [
 
 {line: new Error().lineNumber, code:`
 	{seq
-		%deffunc plus (_x p_y) :+ $_x $p_y
+		%deffunc plus (_x p_y)
+			:+ $_x $p_y
 		.print (&plus 5 8)
 	}
 `, result: `
@@ -388,6 +554,22 @@ const lesTests = [
 {line: new Error().lineNumber, code:`
 	{seq
 		.var theSeq
+		{seq @theSeq
+			.print 45
+			.break theSeq
+			.print 'x'
+			.print 'y'
+		}
+		~.print '*'
+	}
+`, result: `
+45
+*
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var theSeq
 		.var a
 		:set a 0
 		{while :< $a 3
@@ -395,16 +577,22 @@ const lesTests = [
 				.print $a
 				[a <- [$a + 1] ]
 				.break theSeq
-				.print $a
+				.print 'x'
+				.print 'y'
 			}
+			~.print '*'
 		}
 		.var b
 	}
 `, result: `
 0
+*
 1
+*
 2
+*
 `,},
+
 
 
 ]

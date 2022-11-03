@@ -1,14 +1,15 @@
 {
-	function Expression(type, content, text, exprLabel) {
+	function Expression(type, content, text, exprLabel, cancelExpression) {
 		this.type = type
 		this.content = content
 		this.text = text
 		this.exprLabel = exprLabel
+		this.cancelExpression = cancelExpression
 		this.location = location()
 	}
 	input = input.replaceAll(/&([A-Za-z_]+)/g, 'call $$$1')
 	input = input.replaceAll(/%deffunc ([A-Za-z_]+) /g, '.var $1 :set $1 :lambda ')
-	input = input.replaceAll(/.var\s+([A-Za-z_]+) <- /g, '.var $1 :set $1 ')
+	input = input.replaceAll(/.var\s+([A-Za-z_]+) <-- /g, '.var $1 :set $1 ')
 	input = input.replaceAll('$_', '.evalget _')
 	input = input.replaceAll(/\n(.*)<--(.*)(?=\n)/g, '\n[ $1 <- $2 ]')
 	input = input.replaceAll(/([A-Za-z_]+)\s*<-\s*\[\s*\+\s*/g, '$1 <- [ $$$1 + ')
@@ -27,9 +28,12 @@ program
 expression
 	= "(" __ startExpr:expression expr:WSexpression* __ ")" { return new Expression('expression', [startExpr].concat(expr), '('+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+')' ) }
 	/ "[" __ startExpr:expression expr:WSexpression* __ "]" { return new Expression('expression', [startExpr].concat(expr), '['+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+']' ) }
-	/ "{" __ startExpr:expression exprLabel:exprLabel? expr:WSexpression* __ "}" { return new Expression('expression', [startExpr].concat(expr), '{'+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+'}', exprLabel ) }
+	/ "{" __ startExpr:expression exprLabel:exprLabel? expr:WSexpression* __ "}" cancelExpression:cancelExpression? { return new Expression('expression', [startExpr].concat(expr), '{'+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+'}', exprLabel, cancelExpression ) }
 	/ number / string / name
 	/ expression0 / expression1 / expression2 / expression3 / expression4 / expressionEmpty
+
+cancelExpression
+	= __ "~" __ expr:expression { return expr; }
 
 WSexpression
 	= spaces expr:expression { return expr; }
