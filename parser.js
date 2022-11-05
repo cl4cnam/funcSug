@@ -233,17 +233,17 @@ function peg$parse(input, options) {
   var peg$e27 = peg$classExpectation(["`"], true, false);
 
   var peg$f0 = function(expr) { return new Expression('program', expr, expr.text) };
-  var peg$f1 = function(startExpr, expr) { return new Expression('expression', [startExpr].concat(expr), '('+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+')' ) };
-  var peg$f2 = function(startExpr, expr) { return new Expression('expression', [startExpr].concat(expr), '['+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+']' ) };
-  var peg$f3 = function(startExpr, exprLabel, expr, cancelExpression) { return new Expression('expression', [startExpr].concat(expr), '{'+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+'}', exprLabel, cancelExpression ) };
+  var peg$f1 = function(startExpr, expr) { return new Expression('expression', [startExpr].concat(expr), text() ) };
+  var peg$f2 = function(startExpr, expr) { return new Expression('expression', [startExpr].concat(expr), text() ) };
+  var peg$f3 = function(startExpr, exprLabel, expr, cancelExpression) { return new Expression('expression', [startExpr].concat(expr), text(), exprLabel, cancelExpression ) };
   var peg$f4 = function(expr) { return expr; };
   var peg$f5 = function(expr) { return expr; };
-  var peg$f6 = function(n) { return new Expression('expression', [n], '!'+n.text) };
-  var peg$f7 = function(n, e1) { return new Expression('expression', [n, e1], '.'+n.text+' '+e1.text) };
-  var peg$f8 = function(n, e1, e2) { return new Expression('expression', [n, e1, e2], ':'+n.text+' '+e1.text+' '+e2.text) };
-  var peg$f9 = function(n, e1, e2, e3) { return new Expression('expression', [n, e1, e2, e3], '%'+n.text+' '+e1.text+' '+e2.text+' '+e3.text) };
-  var peg$f10 = function(expr) { return new Expression('expression', [new Expression('identifier', 'get', 'get'), expr], '$'+expr.text) };
-  var peg$f11 = function(spac) { return new Expression('expression', [], '('+spac.join("")+')') };
+  var peg$f6 = function(n) { return new Expression('expression', [n], text()) };
+  var peg$f7 = function(n, e1) { return new Expression('expression', [n, e1], text()) };
+  var peg$f8 = function(n, e1, e2) { return new Expression('expression', [n, e1, e2], text()) };
+  var peg$f9 = function(n, e1, e2, e3) { return new Expression('expression', [n, e1, e2, e3], text()) };
+  var peg$f10 = function(expr) { return new Expression('expression', [new Expression('identifier', 'get', 'get'), expr], text()) };
+  var peg$f11 = function(spac) { return new Expression('expression', [], text()) };
   var peg$f12 = function(n) { return n.join("") };
   var peg$f13 = function(n) { return new Expression('identifier', n.join(""), n.join("")) };
   var peg$f14 = function(digits) { return new Expression('number', parseInt((digits[0] || '') + digits[1].join(""), 10), (digits[0] || '') + digits[1].join("")) };
@@ -1358,7 +1358,7 @@ function peg$parse(input, options) {
 	input = input.replaceAll(/%deffunc ([A-Za-z_]+) /g, '.var $1 :set $1 :lambda ')
 	input = input.replaceAll(/.var\s+([A-Za-z_]+) <-- /g, '.var $1 :set $1 ')
 	input = input.replaceAll('$_', '.evalget _')
-	input = input.replaceAll(/\n(.*)<--(.*)(?=\n)/g, '\n[ $1 <- $2 ]')
+	input = input.replaceAll(/\n(\s*)(#?)(.*)<--(.*)(?=\n)/g, '\n$1$2[ $3 <- $4 ]')
 	input = input.replaceAll(/([A-Za-z_]+)\s*<-\s*\[\s*\+\s*/g, '$1 <- [ $$$1 + ')
 	input = input.replaceAll(/([A-Za-z_]+)\s*<-\s*\[\s*\*\s*/g, '$1 <- [ $$$1 * ')
 	input = input.replaceAll(/([A-Za-z_]+)\s*<-\s*\[\s*\-\s*/g, '$1 <- [ $$$1 - ')
