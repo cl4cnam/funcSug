@@ -43,7 +43,7 @@ function $$$__BugChecking(pb_bugCondition, ps_message, pn_line, p_otherInfo) {
 
 function $__ErrorChecking(pFrame, pb_errorCondition, ps_message) {
 	if (pb_errorCondition) {
-		console.error('Error (prog): %c' + ps_message + '%c --IN-- %c' + expressionToString(pFrame.code), 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue')
+		console.error('Error (funcSug): %c' + ps_message + '%c --IN-- %c' + expressionToString(pFrame.code), 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue')
 		throw '-- END OF ERROR --'
 		//~ throw 'Error (prog): ' + ps_message + ' --IN--' + expressionToString(pFrame.code)
 	}
@@ -135,7 +135,7 @@ function makeNewAttachedNamespace(pFrame) {
 function getNamespace(pFrame, label) {
 	;;     $$$__BugChecking(pFrame===undefined, 'pFrame===undefined', new Error().lineNumber)
 	if ( pFrame.namespace!==undefined && pFrame.namespace.has(label) ) return pFrame.namespace
-	if ( pFrame.parent ) return getNamespace(pFrame.parent, label)
+	if ( pFrame.historicParent ) return getNamespace(pFrame.namespaceParent || pFrame.historicParent, label)
 }
 
 function Livebox(p_namespace, p_label) {
@@ -430,7 +430,7 @@ const gDict_instructions = {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			for (const label of pFrame.childReturnedMultivals[0].val) {
-				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable')
+				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'freeze underscore variable')
 				// get variable
 				//-------------
 				const l_namespace = getNamespace(pFrame, label)
@@ -448,7 +448,7 @@ const gDict_instructions = {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			for (const label of pFrame.childReturnedMultivals[0].val) {
-				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable')
+				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'unfreeze underscore variable')
 				// get variable
 				//-------------
 				const l_namespace = getNamespace(pFrame, label)
@@ -466,7 +466,7 @@ const gDict_instructions = {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			for (const label of pFrame.childReturnedMultivals[0].val) {
-				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable')
+				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'next underscore variable')
 				// get variable
 				//-------------
 				const l_namespace = getNamespace(pFrame, label)
@@ -860,8 +860,11 @@ function Instruction(ps_codeWord) {
 			}
 			if (pFrame.code.cancelExpression) {
 				//~ pFrame.parent.childReturnedMultivals = []
-				pFrame.replaceChildFromLeafList(toNotcancellableExpression(pFrame.code.cancelExpression))
-			} else if (pFrame.childrenList.length==0) {
+				//~ pFrame.replaceChildFromLeafList(toNotcancellableExpression(pFrame.code.cancelExpression))
+				const l_namespaceParent = (pFrame?.parent?.code?.content[0]?.content === 'cancellableExec') ? pFrame.parent.parent : pFrame.parent
+				mainFrame.addChildToLeaflist(toNotcancellableExpression(pFrame.code.cancelExpression), null, l_namespaceParent)
+			}
+			if (pFrame.childrenList.length==0) {
 				pFrame.removeChildFromLeaflist()
 			}
 			cancellationSet.forEach(
@@ -998,7 +1001,8 @@ function toCancellableExpression(pExpression_oldCode) {
 		],
 		pExpression_oldCode.text,
 		null,
-		pExpression_oldCode.cancelExpression
+		//~ pExpression_oldCode.cancelExpression
+		null
 	)
 	lExpression.location = pExpression_oldCode.location
 	return lExpression
@@ -1083,9 +1087,14 @@ Frame.prototype.injectParametersWithValues = function(param, args, fct) {
 	}
 }
 
-Frame.prototype.addChildToLeaflist = function(expr) {
+Frame.prototype.addChildToLeaflist = function(expr, reason, namespaceParent) {
 	const childFrame = new Frame(expr)
 	condLog(4, '- - - ->new frame', expr.text)
+	
+	if (namespaceParent) {
+		childFrame.namespaceParent = namespaceParent
+		//~ localLog(namespaceParent)
+	}
 	
 	// globalFrameTree
 	//========================
@@ -1179,6 +1188,7 @@ Frame.prototype.getInstruction = function() {
 		
 		// verif number of arg
 		//====================
+		//~ localLog('======', this.code, l_content[0])
 		;;     $__ErrorChecking(this, typeof l_content[0].content !== 'string', 'instruction code cannot be multiple')
 		;;     $__ErrorChecking(this, typeof lInstruction.nbArg === 'number' && l_content.length !== lInstruction.nbArg+1, 'wrong number of arguments')
 		;;     $__ErrorChecking(this, typeof lInstruction.nbArg !== 'number' && ! lInstruction.nbArg(l_content.length-1), 'invalid number of arguments')
@@ -1194,10 +1204,12 @@ Frame.prototype.getInstruction = function() {
 		if (l_content[0].content === 'seq') {
 			let ln_precLine = -1
 			let ls_currLine = -1
+			let lExpr_prec = null
 			for (const expr of l_content) {
 				ls_currLine = expr.location.start.line
-				;;     $__ErrorChecking(this, ls_currLine == ln_precLine && expr.content[0].text !== 'set' && expr.text !== 'set', 'two elements of sequence on the same line///'+expr.text+'///')
+				;;     $__ErrorChecking(this, ls_currLine == ln_precLine && expr.content[0]?.text !== 'set', 'two elements of sequence on the same line: "'+lExpr_prec?.text+'" and "'+expr?.text+'"')
 				ln_precLine = ls_currLine
+				lExpr_prec = expr
 			}
 		}
 		
@@ -1220,6 +1232,7 @@ function Tree(p_root) {
 	
 	this.root.level = 0
 	this.root.parent = null
+	this.root.historicParent = null
 	this.root.childrenList = []
 	this.root.spanningNumOfChild = 0
 	this.root.initialChildIndex = null
@@ -1271,6 +1284,7 @@ function Tree(p_root) {
 		//---------------
 		p_node.level = p_parent.level + 1
 		p_node.parent = p_parent
+		p_node.historicParent = p_parent
 		p_node.initialChildIndex = p_parent.childrenList.length
 		p_node.spanningChildIndex = p_parent.spanningNumOfChild
 		p_parent.spanningNumOfChild += 1 // TODO : BigInt for very long (in time) (>= 100 years) program, BUG, FIXME
@@ -1334,6 +1348,7 @@ function Tree(p_root) {
 		//---------------
 		pNewNode.level = l_parent.level + 1
 		pNewNode.parent = l_parent
+		pNewNode.historicParent = l_parent
 		pNewNode.initialChildIndex = l_parent.childrenList.length
 		pNewNode.spanningChildIndex = l_parent.spanningNumOfChild
 		l_parent.spanningNumOfChild += 1 // TODO : BigInt for very long (in time) (>= 100 years) program, BUG, FIXME

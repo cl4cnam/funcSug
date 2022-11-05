@@ -21,6 +21,12 @@ const lesTests = [
 `,},
 
 {line: new Error().lineNumber, code:`
+	.print :+ 2 .print 4
+`, result: `
+4
+`,},
+
+{line: new Error().lineNumber, code:`
 	{seq
 		.print 34
 		.print 56
@@ -125,6 +131,14 @@ const lesTests = [
 `, result: `
 1
 2
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		# a <-- 0
+	}
+`, result: `
 `,},
 
 {line: new Error().lineNumber, code:`
@@ -591,6 +605,76 @@ c1
 *
 2
 *
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var theWhile
+		.var a
+		:set a 0
+		{while @theWhile :< $a 3
+			{seq
+				.print $a
+				[a <- [$a + 1] ]
+				.break theWhile
+				.print 'x'
+				.print 'y'
+			}
+		}
+		~.print '*'
+		.var b
+	}
+`, result: `
+0
+*
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var theWhile
+		.var a
+		:set a 0
+		{while @theWhile :< $a 3
+			{seq
+				.print $a
+				[a <- [$a + 1] ]
+				.break theWhile
+				.print 'x'
+				.print 'y'
+			}
+		}
+		~.print :+ '*' $a
+		.var b
+	}
+`, result: `
+0
+*1
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var theSeq
+		{seq @theSeq
+			.var a
+			:set a 0
+			{while :< $a 3
+				{seq
+					.print $a
+					[a <- [$a + 1] ]
+					.break theSeq
+					.print 'x'
+					.print 'y'
+				}
+			}
+			~.print '*'
+			.print 'z'
+		}
+		.print 'w'
+	}
+`, result: `
+0
+*
+w
 `,},
 
 
