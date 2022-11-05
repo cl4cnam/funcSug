@@ -11,7 +11,7 @@
 	input = input.replaceAll(/%deffunc ([A-Za-z_]+) /g, '.var $1 :set $1 :lambda ')
 	input = input.replaceAll(/.var\s+([A-Za-z_]+) <-- /g, '.var $1 :set $1 ')
 	input = input.replaceAll('$_', '.evalget _')
-	input = input.replaceAll(/\n(.*)<--(.*)(?=\n)/g, '\n[ $1 <- $2 ]')
+	input = input.replaceAll(/\n(\s*)(#?)(.*)<--(.*)(?=\n)/g, '\n$1$2[ $3 <- $4 ]')
 	input = input.replaceAll(/([A-Za-z_]+)\s*<-\s*\[\s*\+\s*/g, '$1 <- [ $$$1 + ')
 	input = input.replaceAll(/([A-Za-z_]+)\s*<-\s*\[\s*\*\s*/g, '$1 <- [ $$$1 * ')
 	input = input.replaceAll(/([A-Za-z_]+)\s*<-\s*\[\s*\-\s*/g, '$1 <- [ $$$1 - ')
@@ -26,9 +26,9 @@ program
 	= __ expr:expression __ { return new Expression('program', expr, expr.text) }
 
 expression
-	= "(" __ startExpr:expression expr:WSexpression* __ ")" { return new Expression('expression', [startExpr].concat(expr), '('+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+')' ) }
-	/ "[" __ startExpr:expression expr:WSexpression* __ "]" { return new Expression('expression', [startExpr].concat(expr), '['+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+']' ) }
-	/ "{" __ startExpr:expression exprLabel:exprLabel? expr:WSexpression* __ "}" cancelExpression:cancelExpression? { return new Expression('expression', [startExpr].concat(expr), '{'+startExpr.text+' '+expr.map(elt=>elt.text).join(' ')+'}', exprLabel, cancelExpression ) }
+	= "(" __ startExpr:expression expr:WSexpression* __ ")" { return new Expression('expression', [startExpr].concat(expr), text() ) }
+	/ "[" __ startExpr:expression expr:WSexpression* __ "]" { return new Expression('expression', [startExpr].concat(expr), text() ) }
+	/ "{" __ startExpr:expression exprLabel:exprLabel? expr:WSexpression* __ "}" cancelExpression:cancelExpression? { return new Expression('expression', [startExpr].concat(expr), text(), exprLabel, cancelExpression ) }
 	/ number / string / name
 	/ expression0 / expression1 / expression2 / expression3 / expression4 / expressionEmpty
 
@@ -39,22 +39,22 @@ WSexpression
 	= spaces expr:expression { return expr; }
 
 expression0
-	= "!" n:name { return new Expression('expression', [n], '!'+n.text) }
+	= "!" n:name { return new Expression('expression', [n], text()) }
 
 expression1
-	= "." n:name spaces e1:expression { return new Expression('expression', [n, e1], '.'+n.text+' '+e1.text) }
+	= "." n:name spaces e1:expression { return new Expression('expression', [n, e1], text()) }
 
 expression2
-	= ":" n:name spaces e1:expression spaces e2:expression { return new Expression('expression', [n, e1, e2], ':'+n.text+' '+e1.text+' '+e2.text) }
+	= ":" n:name spaces e1:expression spaces e2:expression { return new Expression('expression', [n, e1, e2], text()) }
 
 expression3
-	= "%" n:name spaces e1:expression spaces e2:expression spaces e3:expression { return new Expression('expression', [n, e1, e2, e3], '%'+n.text+' '+e1.text+' '+e2.text+' '+e3.text) }
+	= "%" n:name spaces e1:expression spaces e2:expression spaces e3:expression { return new Expression('expression', [n, e1, e2, e3], text()) }
 
 expression4
-	= "$" expr:expression { return new Expression('expression', [new Expression('identifier', 'get', 'get'), expr], '$'+expr.text) }
+	= "$" expr:expression { return new Expression('expression', [new Expression('identifier', 'get', 'get'), expr], text()) }
 
 expressionEmpty
-	= "(" spac:__ ")" { return new Expression('expression', [], '('+spac.join("")+')') }
+	= "(" spac:__ ")" { return new Expression('expression', [], text()) }
 
 exprLabel
 	= spaces "@" n:[A-Za-z_]+ { return n.join("") }
