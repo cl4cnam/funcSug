@@ -13,14 +13,6 @@ const lesTests = [
 `,},
 
 {line: new Error().lineNumber, code:`
-	{seq
-		.print .value '======> START'
-	}
-`, result: `
-	======> START
-`,},
-
-{line: new Error().lineNumber, code:`
 	.print :+ 2 .print 4
 `, result: `
 4
@@ -314,6 +306,7 @@ c1
 		.print -789
 		.print 'true'
 		.print :+ 'true' 1
+		.print :+ true 1
 		.print :- :+ 4 5 1
 		.print :+ :+ 'tru' 'e' 1
 		.print :+ '5*4=' :* 5 4
@@ -332,6 +325,7 @@ c1
 	456
 	-789
 	true
+	true1
 	2
 	8
 	true1
@@ -400,8 +394,9 @@ c1
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
-		%ext (rt yyu) 'console.log("coucou")' a
+		.var a <-- 0
+		.var b <-- 1
+		:short (a b) 'console.log("coucou")'
 	}
 `, result: `
 	coucou
@@ -409,19 +404,53 @@ c1
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
-		%ext (rt yyu) 'output(45)' a
-		.print $a
+		.var a <-- 2
+		.var b <-- 5
+		.print :short (a b) 'return (b+1)*(a+3)'
 	}
 `, result: `
+	30
 `,},
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
-		%ext (rt yyu) 'output(45)' a
-		.print :await a beep
-		.print .isBeep a
+		.var a <-- 0
+		.var b <-- 1
+		:ext (a b) 'console.log("coucou")'
+	}
+`, result: `
+	coucou
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a <-- 0
+		.var b <-- 38
+		%ext (a b) 'console.log(b)' a
+	}
+`, result: `
+	38
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a <-- 0
+		.var b <-- 1
+		%ext (a b) 'output(45)' a
+		.print $a
+	}
+`, result: `
+0
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a <-- 0
+		.var b <-- 1
+		.var c
+		%ext (a b) 'output(45)' c
+		.print :await c beep
+		.print .isBeep c
 	}
 `, result: `
 	45
@@ -430,11 +459,13 @@ c1
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
-		%ext (rt yyu) 'output(45)' a
-		.awaitBool .isBeep a
-		.print $a
-		.print .isBeep a
+		.var a <-- 0
+		.var b <-- 1
+		.var c
+		%ext (a b) 'output(45)' c
+		.awaitBool .isBeep c
+		.print $c
+		.print .isBeep c
 	}
 `, result: `
 	45
@@ -443,13 +474,15 @@ c1
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
-		%ext (rt yyu) 'output(45)' a
-		.print :await a bip
-		.print .isBip a
-		.print .isBeep a
-		.stopBeep a
-		.print .isBeep a
+		.var a <-- 0
+		.var b <-- 1
+		.var c
+		%ext (a b) 'output(45)' c
+		.print :await c bip
+		.print .isBip c
+		.print .isBeep c
+		.stopBeep c
+		.print .isBeep c
 	}
 `, result: `
 	45
@@ -460,9 +493,11 @@ c1
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
-		[(rt yyu) 'output(45)' ext a]
-		.print :await a bip
+		.var a <-- 0
+		.var b <-- 1
+		.var c
+		[(a b) 'output(45)' ext c]
+		.print :await c bip
 	}
 `, result: `
 	45
@@ -480,6 +515,94 @@ c1
 `,},
 
 {line: new Error().lineNumber, code:`
+	{seq
+		.var qwerty
+		{seq @qwerty
+			.var boite
+			:set boite !Namespace
+			%setToNamespace $boite a 34
+			.print :getFromNamespace $boite a
+			%setToNamespace $boite a 56
+			.print :getFromNamespace $boite a
+		}
+	}
+`, result: `
+34
+56
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var box
+		:set box !Namespace
+		box.a <-- 34
+		.print :getFromNamespace $box a
+	}
+`, result: `
+34
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var box
+		:set box !Namespace
+		%setToNamespace $box internBox !Namespace
+		%setToNamespace $box.internBox a 56
+		.print :getFromNamespace $box.internBox a
+	}
+`, result: `
+56
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var box
+		:set box !Namespace
+		%setToNamespace $box internBox !Namespace
+		%setToNamespace $box.internBox a 56
+		.print $box.internBox.a
+	}
+`, result: `
+56
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var box
+		:set box !Namespace
+		%setToNamespace $box internBox !Namespace
+		box.internBox.a <-- 56
+		.print $box.internBox.a
+	}
+`, result: `
+56
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		{deffunc test parame
+			.print :getFromNamespace $parame 1
+			.print :getFromNamespace $parame PARAMLENGTH
+		}
+		(test 34 57)
+	}
+`, result: `
+57
+2
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		{deffunc test parame
+			.print $parame.1
+		}
+		(test 34 57)
+	}
+`, result: `
+57
+`,},
+
+{line: new Error().lineNumber, code:`
 	.print {seq
 		99
 		4
@@ -492,8 +615,9 @@ c1
 
 {line: new Error().lineNumber, code:`
 	{seq
-		%deffunc plus (_x p_y)
+		{deffunc plus (_x p_y)
 			:+ $_x $p_y
+		}
 		.print (&plus 5 8)
 	}
 `, result: `
@@ -552,12 +676,10 @@ c1
 		.var a
 		:set a 0
 		{while @theLoop [$a < 3]
-			{seq
 				.print $a
 				.break theLoop
 				[a <- [$a + 1] ]
 				$a
-			}
 		}
 		.var b
 	}
@@ -613,13 +735,11 @@ c1
 		.var a
 		:set a 0
 		{while @theWhile :< $a 3
-			{seq
 				.print $a
 				[a <- [$a + 1] ]
 				.break theWhile
 				.print 'x'
 				.print 'y'
-			}
 		}
 		~.print '*'
 		.var b
@@ -635,13 +755,11 @@ c1
 		.var a
 		:set a 0
 		{while @theWhile :< $a 3
-			{seq
 				.print $a
 				[a <- [$a + 1] ]
 				.break theWhile
 				.print 'x'
 				.print 'y'
-			}
 		}
 		~.print :+ '*' $a
 		.var b
@@ -658,13 +776,11 @@ c1
 			.var a
 			:set a 0
 			{while :< $a 3
-				{seq
 					.print $a
 					[a <- [$a + 1] ]
 					.break theSeq
 					.print 'x'
 					.print 'y'
-				}
 			}
 			~.print '*'
 			.print 'z'
@@ -675,6 +791,50 @@ c1
 0
 *
 w
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a
+		:set a (par 4 7)
+		.print $a
+	}
+`, result: `
+4
+7
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a <-- (par 4 7)
+		.print $a
+	}
+`, result: `
+4
+7
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var nm <-- !Namespace
+		nm.a <-- (par 4 7)
+		.print $nm.a
+	}
+`, result: `
+4
+7
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a <-- (par 4 7)
+		{foreach a {seq
+			.print $a
+		}}
+	}
+`, result: `
+4
+7
 `,},
 
 
@@ -692,15 +852,21 @@ async function main() {
 {
 	const oldLog = console.log
 	let res = ''
+	let diff = -1
 	console.log = function(...args) {
 		res += args + '\n'
 	}
 	
 	for (const progTestIndex in lesTests) {
+		//~ if (progTestIndex != lesTests.length - 1) continue
 		const progTest = lesTests[progTestIndex]
 		res = ''
 		try {
-			if (progTest.code!=='') execProg(progTest.code)
+			if (progTest.code!=='') {
+				let startTime = performance.now()
+				execProg(progTest.code)
+				diff = performance.now() - startTime
+			}
 		} catch (err) {
 			oldLog('test ' + (parseInt(progTestIndex)+1) + ' line ' + progTest.line + ' : -------- SYNTAX ERROR OR BUG--------')
 			oldLog(progTest.code)
@@ -709,7 +875,7 @@ async function main() {
 		}
 		await new Promise(resolve=>{setTimeout(()=>{resolve(1)},0)})
 		if (res.trim()===progTest.result.replaceAll('\n\t','\n').trim()) {
-			oldLog('test ' + (parseInt(progTestIndex)+1) + ' line ' + progTest.line + ' : OK')
+			oldLog('test ' + (parseInt(progTestIndex)+1) + ' line ' + progTest.line + ' : OK (time: ' + diff + ')')
 		} else {
 			oldLog('test ' + (parseInt(progTestIndex)+1) + ' line ' + progTest.line + ' : RESULT ERROR')
 			oldLog(res.trim())
