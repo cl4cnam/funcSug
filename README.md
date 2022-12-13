@@ -77,6 +77,8 @@ This 'label' must be a declared variable.
 
 ```.break label``` interrupts the execution of the expression labelled by ```label```.
 
+```~ expression``` executes ```expression``` if the preceding expression is interrupted.
+
 ```%deffunc functionName parameterList expression``` defines the custom function ```functionName```.
 
 ```:displayNewMessageIn text cssSelector``` displays a new message ```text``` into the DOM element identified by ```cssSelector```.
