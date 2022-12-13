@@ -2,7 +2,35 @@
 
 const namespaceSet = new Set()
 const cancellationSet = new Set()
-const frozenLivebox = new Set()
+const frozenLiveboxSet = new Set()
+const cancellableFrameSet = new Set()
+
+// continuous
+//-----------
+let old_timestamp = undefined
+let continuousEvents = new Map()
+function send(type, val) {
+	if (! continuousEvents.has(type)) continuousEvents.set(type, [])
+	continuousEvents.get(type).push(val)
+}
+
+const continuousActionDict = {
+	send: new Map(),
+	adapt: new Map(),
+	play: new Map(),
+	emit: new Map(),
+}
+let continuousActionNotEmptyAnymore = false
+
+function addContinuousAction(type, key, fct) {
+	if (continuousActionDict.send.size === 0
+			&& continuousActionDict.adapt.size === 0
+			&& continuousActionDict.play.size === 0
+			&& continuousActionDict.emit.size === 0) {
+		continuousActionNotEmptyAnymore = true
+	}
+	continuousActionDict[type].set(key,fct)
+}
 
 let mainFrame
 let globalFrameTree
@@ -32,17 +60,18 @@ const condLogGroupEnd = function (debugLevel, ...param) {
 	if (g_debug >= debugLevel) localGroupEnd(...param)
 }
 
-function $$$__BugChecking(pb_bugCondition, ps_message, pn_line, p_otherInfo) {
+function $$$__BugChecking(pb_bugCondition, ps_message, pn_line, p_otherInfo, ps_messageForOtherInfo) {
 	if (pb_bugCondition) {
-		if (p_otherInfo!==undefined) localLog(p_otherInfo)
+		if (p_otherInfo!==undefined) console.warn(      ps_messageForOtherInfo, p_otherInfo      )
 		console.error('%c Bug in funcSug interpreter %c ' + ps_message + ' **at** line ' + pn_line, 'background-color: #ffb0b0; color: #800000')
 		throw '-- END OF BUG --'
 		//~ throw 'Bug: ' + ps_message + ' **at** line ' + pn_line
 	}
 }
 
-function $__ErrorChecking(pFrame, pb_errorCondition, ps_message) {
+function $__ErrorChecking(pFrame, pb_errorCondition, ps_message, p_otherInfo, ps_messageForOtherInfo) {
 	if (pb_errorCondition) {
+		if (p_otherInfo!==undefined) console.warn(      ps_messageForOtherInfo, p_otherInfo      )
 		console.error('Error (funcSug): %c' + ps_message + '%c --IN-- %c' + expressionToString(pFrame.code), 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue')
 		throw '-- END OF ERROR --'
 		//~ throw 'Error (prog): ' + ps_message + ' --IN--' + expressionToString(pFrame.code)
@@ -82,37 +111,6 @@ function cartesianProduct(...p_arrays) { // inspired by https://stackoverflow.co
 	)
 }
 
-function deepClone(p_object) { // inspired by https://stackoverflow.com/questions/728360/how-do-i-correctly-clone-a-javascript-object
-	if (typeof p_object !== 'object' || p_object === null) return p_object
-	
-	if (p_object instanceof Array) return p_object.map(elt=>deepClone(elt))
-	
-	if (p_object instanceof Object) {
-		const l_clone = {}
-		for (var attr in p_object) {
-			if (p_object.hasOwnProperty(attr)) l_clone[attr] = deepClone(p_object[attr])
-		}
-		return l_clone
-	}
-	
-	;;     $$$__BugChecking(true, "Unable to copy obj! Its type isn't supported.", new Error().lineNumber)
-}
-
-//===================================================================================================
-//
-// return management
-//
-//===================================================================================================
-//===================================================================================================
-
-function extractFromReturnedValues(returnedValues, initialIndex) {
-	//~ localLog(returnedValues, initialIndex)
-	const lArray_fastestToSlowest = returnedValues.map( elt=>elt.idx )
-	const l_index = lArray_fastestToSlowest.indexOf(initialIndex)
-	;;     $$$__BugChecking(l_index===-1, 'initialIndex not found', new Error().lineNumber, returnedValues)
-	return returnedValues[l_index].val
-}
-
 //===================================================================================================
 //
 // variables
@@ -128,6 +126,7 @@ function makeNewDetachedNamespace(pFrame) {
 }
 
 function makeNewAttachedNamespace(pFrame) {
+	;;     $$$__BugChecking(pFrame.namespace!==undefined, 'pFrame.namespace already set', new Error().lineNumber)
 	pFrame.namespace = makeNewDetachedNamespace(pFrame)
 	pFrame.namespace.attached = true
 }
@@ -139,6 +138,8 @@ function getNamespace(pFrame, label) {
 }
 
 function Livebox(p_namespace, p_label) {
+	this.lbNamespace = p_namespace
+	this.lbLabel = p_label
 	this.precBip = false
 	this.precBeep = false
 	this.currBip = false
@@ -157,7 +158,7 @@ function getCommonStart(ps_text1, ps_text2) {
 	return ps_text1.slice(0,i)
 }
 
-Livebox.prototype.setval = function(pFrame, val) {
+Livebox.prototype.setval = function(pFrame, val, pb_multiple) {
 	this.currBip = true
 	this.currBeep = true
 	// delete values in direct line
@@ -173,12 +174,24 @@ Livebox.prototype.setval = function(pFrame, val) {
 		}
 	}
 	// add new val
-	this.currMultival.push({frame:pFrame, val:val})
+	if (pb_multiple) {
+		for (const valElt of val) {
+			this.currMultival.push({frame:pFrame, val:valElt})
+		}
+	} else {
+		this.currMultival.push({frame:pFrame, val:val})
+	}
 }
 
 function makeNewVariable(pFrame, p_label) {
 	if (pFrame.namespace===undefined) makeNewAttachedNamespace(pFrame)
+	;;     $$$__BugChecking(pFrame.namespace.has( p_label ), 'variable already defined', new Error().lineNumber, [pFrame, p_label])
 	pFrame.namespace.set( p_label, new Livebox(pFrame.namespace, p_label) )
+}
+
+function variableExists(pFrame, p_label) {
+	if (pFrame.namespace===undefined) return false
+	return pFrame.namespace.has( p_label )
 }
 
 //===================================================================================================
@@ -193,11 +206,51 @@ const gDict_instructions = {
 	lambda: { // lambda <paramExpression> <expressionToExecute>
 		nbArg:2,
 		exec: function(pFrame, p_content) {
-			;;     $__ErrorChecking(pFrame, p_content[1].type !== 'expression', 'parameters not a list')
+			//~ ;;     $__ErrorChecking(pFrame, p_content[1].type !== 'expression', 'parameters not a list')
 			;;     $__ErrorChecking(pFrame, p_content[2].type !== 'expression', 'body not an expression')
-			;;     $__ErrorChecking(pFrame, p_content[1].content.some(elt=>(elt.type !== 'identifier')), 'some parameter is not an identifier')
+			//~ ;;     $__ErrorChecking(pFrame, p_content[1].content.some(elt=>(elt.type !== 'identifier')), 'some parameter is not an identifier')
 			pFrame.toReturn_multival.push({type: 'lambda', frame:pFrame, param:p_content[1], body:p_content[2]})
 			pFrame.terminated = true
+		}
+	},
+	//===========================================================
+	
+	foreach: { // foreach <variable> <expressionToExecute>
+		nbArg:2,
+		exec: function(pFrame, p_content) {
+			const lPARAM_variable = p_content[1]
+			const lPARAM_expressionToExecute = p_content[2]
+			;;     $__ErrorChecking(pFrame, p_content[2].type !== 'expression', 'expressionToExecute not an expression')
+			
+			if (pFrame.instrPointer==1) {
+				pFrame.addChild(lPARAM_variable, 'foreachVariable')
+			} else if (pFrame.instrPointer==2) {
+				const l_argsLabel = pFrame.childReturnedMultivals.foreachVariable
+				;;     $__ErrorChecking(pFrame, l_argsLabel.length>1, 'multiple foreach-ed variable')
+				for (const label of l_argsLabel) {
+					const l_namespace = getNamespace(pFrame, label)
+					;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'undefined foreach-ed variable')
+					const l_livebox = l_namespace.get(label)
+					const l_multival = l_livebox.getMultival()
+					
+					// exec
+					//==========
+					let ln_valCnt = 0
+					for (const val of l_multival) {
+						const l_childFrame = pFrame.addChild(lPARAM_expressionToExecute, 'expressionToExecute'+ln_valCnt)
+						l_childFrame.injectParametersWithValues(
+							[new Expression('identifier', label, label)],
+							[val],
+							{frame:pFrame, foreach: true}
+						)
+						ln_valCnt += 1
+					}
+					pFrame.valCnt = ln_valCnt
+				}
+			} else {
+				pFrame.toReturn_multival = []
+				pFrame.terminated = true
+			}
 		}
 	},
 	//===========================================================
@@ -207,17 +260,26 @@ const gDict_instructions = {
 		exec: function(pFrame, p_content) {
 			if (pFrame.instrPointer==1) {
 				;;     $$$__BugChecking(p_content[1]===undefined, 'p_content[1]===undefined', new Error().lineNumber)
-				pFrame.addChildToLeaflist(p_content[1])
+				pFrame.addChild(p_content[1], 'calledFunction')
 			} else if (pFrame.instrPointer==2) {
-				pFrame.lambda = extractFromReturnedValues(pFrame.childReturnedMultivals, 0)
+				pFrame.lambda = pFrame.childReturnedMultivals.calledFunction
 				;;     $__ErrorChecking(pFrame, pFrame.lambda.length!==1, 'multiple lambdas')
 				;;     $__ErrorChecking(pFrame, pFrame.lambda.some(elt=>(elt.type!=='lambda')), 'not lambda')
-				;;     $__ErrorChecking(pFrame, pFrame.lambda.some(elt=>   (   elt.param.content.length !== p_content.length-2   )   ), 'arguments number differs from parameters number')
-				pFrame.childReturnedMultivals = []
+				;;     $__ErrorChecking(pFrame, typeof pFrame.lambda[0].param.content !== 'string' && pFrame.lambda.some(elt=>   (   elt.param.content.length !== p_content.length-2   )   ), 'arguments number differs from parameters number')
 				const l_params = pFrame.lambda[0].param.content
-				for (let i=2;i<=p_content.length-1;i++) {
-					;;     $$$__BugChecking(p_content[i]===undefined, 'p_content[i]===undefined', new Error().lineNumber)
-					if(l_params[i-2][0] !== '_') pFrame.addChildToLeaflist(p_content[i])
+				if (p_content.length==3 && p_content[2].content[0] == '*') {
+					// spread syntax
+					
+				} else {
+					for (let i=2;i<=p_content.length-1;i++) {
+						;;     $$$__BugChecking(p_content[i]===undefined, 'p_content[i]===undefined', new Error().lineNumber)
+						//~ if(l_params[i-2][0] !== '_') pFrame.addChild(p_content[i], 'param' + (i-1))
+						if (
+							typeof l_params === 'string' && l_params[0] !== '_' || typeof l_params !== 'string' && l_params[i-2][0] !== '_'
+						) {
+							pFrame.addChild(p_content[i], 'param' + (i-1))
+						}
+					}
 				}
 			} else if (pFrame.instrPointer==3) {
 				
@@ -227,21 +289,26 @@ const gDict_instructions = {
 				const l_argsResults = []
 				let cpt = 0
 				for (let i=1;i<p_content.length-1;i++) {
-					l_argsResults[i-1] = (l_params[i-1].content[0] !== '_') ? extractFromReturnedValues(pFrame.childReturnedMultivals, cpt) : [p_content[i+1]]
+					//~ l_argsResults[i-1] = (l_params[i-1].content[0] !== '_') ? pFrame.childReturnedMultivals['param'+i] : [p_content[i+1]]
+					l_argsResults[i-1] = (
+						typeof l_params === 'string' && l_params[0] !== '_' || typeof l_params !== 'string' && l_params[i-1].content[0] !== '_'
+					) ? pFrame.childReturnedMultivals['param'+i] : [p_content[i+1]]
 					cpt += 1
 				}
-				pFrame.childReturnedMultivals = []
 				const l_theCombinations = cartesianProduct(...l_argsResults)
 				
 				// exec
 				//==========
+				let ln_combCnt = 0
 				for (const comb of l_theCombinations) {
-					pFrame.addChildToLeaflist(pFrame.lambda[0].body)
+					pFrame.addChild(pFrame.lambda[0].body, 'bodyToExecute'+ln_combCnt)
 					pFrame.injectParametersWithValues(pFrame.lambda[0].param.content, comb, pFrame.lambda[0])
+					ln_combCnt += 1
 				}
+				pFrame.combCnt = ln_combCnt
 			} else {
-				for (let i=0; i<pFrame.childReturnedMultivals.length; i++) {
-					const l_argResult = extractFromReturnedValues(pFrame.childReturnedMultivals, i)
+				for (let i=0; i<pFrame.combCnt; i++) {
+					const l_argResult = pFrame.childReturnedMultivals['bodyToExecute'+i]
 					pFrame.toReturn_multival.push(...l_argResult)
 				}
 				pFrame.terminated = true
@@ -251,7 +318,7 @@ const gDict_instructions = {
 	//===========================================================
 	
 	ext: { // ext <inputExpression> <jsStringToExecute> <outputExpression> [<jsStringForCancellation>]
-		nbArg: (n=> (n==3 || n==4) ),
+		nbArg: (n=> (n==2 || n==3 || n==4) ),
 		exec: function(pFrame, p_content) {
 			const lPARAM_inputExpression = p_content[1]
 			const lPARAM_jsStringToExecute = p_content[2]
@@ -261,43 +328,57 @@ const gDict_instructions = {
 			
 			if (pFrame.instrPointer==1) {
 				// input
-				//========
+				//------
 				;;     $__ErrorChecking(pFrame, lPARAM_inputExpression.type!=='expression', 'inputExpression not an expression')
 				for (let i=0;i<l_inputContent.length;i++) {
 					;;     $$$__BugChecking(l_inputContent[i]===undefined, 'l_inputContent[i]===undefined', new Error().lineNumber)
-					pFrame.addChildToLeaflist(l_inputContent[i])
+					const lExpr_inputProg = peg.parse('.get ' + l_inputContent[i].content)
+					pFrame.addChild(lExpr_inputProg.content, 'input' + i)
 				}
-				pFrame.addChildToLeaflist(lPARAM_outputExpression)
+				// jsStringToExecute
+				//------------------
+				pFrame.addChild(lPARAM_jsStringToExecute, 'jsStringToExecute')
+				// outputExpression
+				//-----------------
+				if (lPARAM_outputExpression) pFrame.addChild(lPARAM_outputExpression, 'outputExpression')
 			} else {
 				// get input
 				//==========
 				const l_argsResults = []
 				for (let i=0;i<l_inputContent.length;i++) {
-					l_argsResults[i] = extractFromReturnedValues(pFrame.childReturnedMultivals, i)
+					l_argsResults[i] = pFrame.childReturnedMultivals['input' + i]
 				}
-				const l_argOutput = extractFromReturnedValues(pFrame.childReturnedMultivals, l_inputContent.length)
-				;;     $__ErrorChecking(pFrame, l_argOutput.length!==1, 'multiple output')
+				const l_argOutput = pFrame.childReturnedMultivals.outputExpression
+				;;     $__ErrorChecking(pFrame, l_argOutput?.length>1, 'multiple output')
 				const l_theCombinations = cartesianProduct(...l_argsResults)
+				
+				// get jsStringToExecute
+				//======================
+				const l_arg_jsStringToExecute = pFrame.childReturnedMultivals.jsStringToExecute
+				;;     $__ErrorChecking(pFrame, l_arg_jsStringToExecute?.length>1, 'multiple jsStringToExecute')
 				
 				// output
 				//========
-				const l_outputLabel = l_argOutput[0]
+				const l_outputLabel = l_argOutput?.[0]
 				const l_namespace = getNamespace(pFrame, l_outputLabel)
-				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'undefined output variable ' + l_outputLabel)
-				const l_outputLivebox = l_namespace.get(l_outputLabel)
-				l_namespace.set( l_outputLivebox, new Livebox(l_namespace, l_outputLivebox) )
+				;;     $__ErrorChecking(pFrame, l_outputLabel!==undefined && l_namespace===undefined, 'undefined output variable ' + l_outputLabel)
+				const l_outputLivebox = (l_outputLabel) ? l_namespace.get(l_outputLabel) : undefined
+				if (l_outputLabel) l_namespace.set( l_outputLivebox, new Livebox(l_namespace, l_outputLabel) )
 				
 				// replace in jsStringToExecute
 				//=============================
-				let ls_jsStringToExecute = lPARAM_jsStringToExecute.content
-				ls_jsStringToExecute = `
+				let ls_jsStringToExecute = `
 					"use strict"
 					const output=arguments[0]
 					const error=arguments[1]
 					const SAVES=arguments[2]
-					const args=[...arguments]
-					args.shift(); args.shift(); args.shift();
-				` + ls_jsStringToExecute
+				`
+				let cptArg = 3
+				for (const vari of l_inputContent) {
+					ls_jsStringToExecute += 'const ' + vari.content + '=arguments[' + cptArg + ']\n'
+					cptArg += 1
+				}
+				ls_jsStringToExecute += l_arg_jsStringToExecute[0]
 				
 				// cancellation preparation
 				//=========================
@@ -322,6 +403,9 @@ const gDict_instructions = {
 						l_outputLivebox.currMultival.push({frame:pFrame, val:res})
 						l_outputLivebox.precMultival.push(res) // useful ?
 						runBurst()
+					}).catch(err=>{
+						console.error('javascript ERROR: ' + expressionToString(lPARAM_jsStringToExecute), 'color: #008000')
+						console.error(err)
 					})
 				}
 				Promise.all(promises).then(res => {
@@ -331,9 +415,127 @@ const gDict_instructions = {
 					l_outputLivebox.precBeep = true
 					if(ls_jsStringForCancellation !== '') cancellationSet.delete(l_cancelObj)
 					runBurst()
+				}).catch(err=>{
+						console.error('javascript ERROR: ' + expressionToString(lPARAM_jsStringToExecute), 'color: #008000')
+						console.error(err)
 				})
 				pFrame.toReturn_multival = []
 				pFrame.terminated = true
+			}
+		}
+	},
+	//===========================================================
+	
+	short: { // short <inputExpression> <jsStringToExecute>
+		nbArg: 2,
+		exec: function(pFrame, p_content) {
+			const lPARAM_inputExpression = p_content[1]
+			const lPARAM_jsStringToExecute = p_content[2]
+			const l_inputContent = lPARAM_inputExpression.content
+			
+			if (pFrame.instrPointer==1) {
+				// input
+				//------
+				;;     $__ErrorChecking(pFrame, lPARAM_inputExpression.type!=='expression', 'inputExpression not an expression')
+				for (let i=0;i<l_inputContent.length;i++) {
+					;;     $$$__BugChecking(l_inputContent[i]===undefined, 'l_inputContent[i]===undefined', new Error().lineNumber)
+					const lExpr_inputProg = peg.parse('.get ' + l_inputContent[i].content)
+					pFrame.addChild(lExpr_inputProg.content, 'input' + i)
+				}
+				// jsStringToExecute
+				//------------------
+				pFrame.addChild(lPARAM_jsStringToExecute, 'jsStringToExecute')
+			} else {
+				// get input
+				//==========
+				const l_argsResults = []
+				for (let i=0;i<l_inputContent.length;i++) {
+					l_argsResults[i] = pFrame.childReturnedMultivals['input' + i]
+				}
+				const l_theCombinations = cartesianProduct(...l_argsResults)
+				
+				// get jsStringToExecute
+				//======================
+				const l_arg_jsStringToExecute = pFrame.childReturnedMultivals.jsStringToExecute
+				;;     $__ErrorChecking(pFrame, l_arg_jsStringToExecute?.length>1, 'multiple jsStringToExecute')
+				
+				// replace in jsStringToExecute
+				//=============================
+				let ls_jsStringToExecute = `
+					"use strict"
+				`
+				let cptArg = 0
+				for (const vari of l_inputContent) {
+					ls_jsStringToExecute += 'const ' + vari.content + '=arguments[' + cptArg + ']\n'
+					cptArg += 1
+				}
+				ls_jsStringToExecute += l_arg_jsStringToExecute[0]
+				
+				// exec
+				//======
+				pFrame.toReturn_multival = []
+				for (const argmts of l_theCombinations) {
+					pFrame.toReturn_multival.push(   (new Function(ls_jsStringToExecute))(...argmts)   )
+				}
+				pFrame.terminated = true
+			}
+		}
+	},
+	//===========================================================
+	
+	continuous: { // continuous <type> <key> <jsStringToExecute>
+		nbArg: 3,
+		exec: function(pFrame, p_content) {
+			const lPARAM_type = p_content[1]
+			const lPARAM_key = p_content[2]
+			const lPARAM_jsStringToExecute = p_content[3]
+			
+			if (pFrame.instrPointer==1) {
+				;;     $__ErrorChecking(pFrame, lPARAM_type.type!=='identifier', 'lPARAM_type not an identifier', lPARAM_type)
+				// key
+				//------
+				;;     $__ErrorChecking(pFrame, lPARAM_key.type!=='identifier', 'lPARAM_key not an identifier', lPARAM_type)
+				const lExpr_key = peg.parse('.get ' + lPARAM_key.content)
+				pFrame.addChild(lExpr_key.content, 'key')
+				
+				// jsStringToExecute
+				//------------------
+				pFrame.addChild(lPARAM_jsStringToExecute, 'jsStringToExecute')
+			} else if (pFrame.instrPointer==2) {
+				// get key
+				//==========
+				const l_arg_key = pFrame.childReturnedMultivals.key
+				;;     $__ErrorChecking(pFrame, l_arg_key?.length>1, 'continuous: multiple key')
+				
+				// get jsStringToExecute
+				//======================
+				const l_arg_jsStringToExecute = pFrame.childReturnedMultivals.jsStringToExecute
+				;;     $__ErrorChecking(pFrame, l_arg_jsStringToExecute?.length>1, 'continuous: multiple jsStringToExecute')
+				
+				// replace in jsStringToExecute
+				//=============================
+				let ls_jsStringToExecute = `
+					"use strict"
+					function v(elt) {return elt.baseVal.value}
+				`
+				ls_jsStringToExecute += 'const ' + lPARAM_key.content + '=arguments[0]\n'
+				ls_jsStringToExecute += 'const delta=arguments[1]\n'
+				if (lPARAM_type.content === 'send') ls_jsStringToExecute += 'const send=arguments[2]\n'
+				if (lPARAM_type.content === 'adapt') ls_jsStringToExecute += 'const events=arguments[2]\n'
+				ls_jsStringToExecute += l_arg_jsStringToExecute[0]
+				
+				// exec
+				//======
+				addContinuousAction(
+					lPARAM_type.content,
+					pFrame.childReturnedMultivals.key[0],
+					new Function(ls_jsStringToExecute)
+				)
+				pFrame.toReturn_multival = []
+				//~ pFrame.terminated = true
+				pFrame.awake = false
+			} else {
+				pFrame.awake = false
 			}
 		}
 	},
@@ -346,9 +548,9 @@ const gDict_instructions = {
 			const lPARAM_type = p_content[2]
 			
 			if (pFrame.instrPointer==1) {
-				pFrame.addChildToLeaflist(lPARAM_variable)
+				pFrame.addChild(lPARAM_variable, 'awaitedVariable')
 			} else {
-				const l_argsLabel = extractFromReturnedValues(pFrame.childReturnedMultivals, 0)
+				const l_argsLabel = pFrame.childReturnedMultivals.awaitedVariable
 				;;     $__ErrorChecking(pFrame, l_argsLabel.length>1, 'multiple awaited variable')
 				for (const label of l_argsLabel) {
 					const l_namespace = getNamespace(pFrame, label)
@@ -377,13 +579,9 @@ const gDict_instructions = {
 			let lastResult
 			if (pFrame.instrPointer%2==1) {
 				;;     $$$__BugChecking(p_content[1]===undefined, 'p_content[1]===undefined', new Error().lineNumber)
-				if (pFrame.instrPointer > 1) {
-					pFrame.childReturnedMultivals = []
-				}
-				pFrame.lastChild = pFrame.addChildToLeaflist(p_content[1])
+				pFrame.addChild(p_content[1], 'awaitedExpression')
 			} else {
-				const l_firstargResult = extractFromReturnedValues(pFrame.childReturnedMultivals, 0)
-				pFrame.childReturnedMultivals = []
+				const l_firstargResult = pFrame.childReturnedMultivals.awaitedExpression
 				const lb_thereIsTrue = l_firstargResult.some(x=>x)
 				if (lb_thereIsTrue) {
 					pFrame.awake = true
@@ -399,8 +597,7 @@ const gDict_instructions = {
 	print: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
-			//~ localLog('print', pFrame.childReturnedMultivals[0])
-			for (const val of pFrame.childReturnedMultivals[0].val) console.log(val)
+			for (const val of pFrame.childReturnedMultivals.arg1) console.log(val)
 			pFrame.toReturn_multival = []
 		}
 	},
@@ -418,7 +615,9 @@ const gDict_instructions = {
 	var: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
-			for (const label of pFrame.childReturnedMultivals[0].val) {
+			for (const label of pFrame.childReturnedMultivals.arg1) {
+				;;     $__ErrorChecking(pFrame, variableExists(pFrame.parent, label), 'variable already exists in this namespace', label)
+				variableExists(pFrame.parent, label)
 				makeNewVariable(pFrame.parent, label)
 			}
 			pFrame.toReturn_multival = []
@@ -429,7 +628,7 @@ const gDict_instructions = {
 	freeze: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
-			for (const label of pFrame.childReturnedMultivals[0].val) {
+			for (const label of pFrame.childReturnedMultivals.arg1) {
 				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'freeze underscore variable')
 				// get variable
 				//-------------
@@ -437,7 +636,7 @@ const gDict_instructions = {
 				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'freeze undefined variable')
 				const l_livebox = l_namespace.get(label)
 				
-				frozenLivebox.add(l_livebox)
+				frozenLiveboxSet.add(l_livebox)
 			}
 			pFrame.toReturn_multival = []
 		}
@@ -447,7 +646,7 @@ const gDict_instructions = {
 	unfreeze: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
-			for (const label of pFrame.childReturnedMultivals[0].val) {
+			for (const label of pFrame.childReturnedMultivals.arg1) {
 				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'unfreeze underscore variable')
 				// get variable
 				//-------------
@@ -455,7 +654,7 @@ const gDict_instructions = {
 				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'unfreeze undefined variable')
 				const l_livebox = l_namespace.get(label)
 				
-				frozenLivebox.delete(l_livebox)
+				frozenLiveboxSet.delete(l_livebox)
 			}
 			pFrame.toReturn_multival = []
 		}
@@ -465,7 +664,7 @@ const gDict_instructions = {
 	next: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
-			for (const label of pFrame.childReturnedMultivals[0].val) {
+			for (const label of pFrame.childReturnedMultivals.arg1) {
 				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'next underscore variable')
 				// get variable
 				//-------------
@@ -486,7 +685,7 @@ const gDict_instructions = {
 	aggregsum: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
-			for (const label of pFrame.childReturnedMultivals[0].val) {
+			for (const label of pFrame.childReturnedMultivals.arg1) {
 				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable')
 				// get variable
 				//-------------
@@ -504,7 +703,7 @@ const gDict_instructions = {
 	aggregprod: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
-			for (const label of pFrame.childReturnedMultivals[0].val) {
+			for (const label of pFrame.childReturnedMultivals.arg1) {
 				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable')
 				// get variable
 				//-------------
@@ -522,7 +721,7 @@ const gDict_instructions = {
 	get: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
-			for (const label of pFrame.childReturnedMultivals[0].val) {
+			for (const label of pFrame.childReturnedMultivals.arg1) {
 				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable')
 				// get variable
 				//-------------
@@ -533,6 +732,26 @@ const gDict_instructions = {
 				//----------
 				//~ localLog('get', label, l_livebox.getMultival())
 				pFrame.toReturn_multival.push(...l_livebox.getMultival())
+			}
+		}
+	},
+	//===========================================================
+	
+	getFromNamespace: { // getFromNamespace <namespace> <var>
+		nbArg:2,
+		postExec: function(pFrame, p_content) {
+			for (const l_namespace of pFrame.childReturnedMultivals.arg1) {
+				;;     $__ErrorChecking(pFrame, ! (l_namespace instanceof Map), 'getFromNamespace not from a namespace', l_namespace, 'l_namespace is: ')
+				for (const label of pFrame.childReturnedMultivals.arg2) {
+					// get variable
+					//-------------
+					const l_livebox = l_namespace.get(label)
+					;;     $__ErrorChecking(pFrame, l_livebox === undefined, 'getFromNamespace this label does not exist in this namespace')
+					
+					// get value
+					//----------
+					pFrame.toReturn_multival.push(...l_livebox.getMultival())
+				}
 			}
 		}
 	},
@@ -553,13 +772,13 @@ const gDict_instructions = {
 				const l_values = l_livebox.getMultival()
 				for (let i=0;i<l_values.length;i++) {
 					;;     $$$__BugChecking(l_values[i]===undefined, 'l_values[i]===undefined', new Error().lineNumber)
-					pFrame.addChildToLeaflist(l_values[i])
+					pFrame.addChild(l_values[i], 'evaluatedVariable'+i)
 				}
 			} else {
 				// get value
 				//----------
-				for (let i=0; i<pFrame.childReturnedMultivals.length; i++) {
-					const l_argResult = extractFromReturnedValues(pFrame.childReturnedMultivals, i)
+				for (const key of Object.keys(pFrame.childReturnedMultivals)) {
+					const l_argResult = pFrame.childReturnedMultivals[key]
 					pFrame.toReturn_multival.push(...l_argResult)
 				}
 				pFrame.terminated = true
@@ -582,6 +801,8 @@ const gDict_instructions = {
 	'and': { operExec: (x, y) => x && y},
 	'or': { operExec: (x, y) => x || y},
 	'not': { singleExec: x => !x },
+	'sin': { singleExec: x => Math.sin(x) },
+	'cos': { singleExec: x => Math.cos(x) },
 	'randomIntBetween': { operExec: (min, max) =>  Math.floor( (max-min+1)*Math.random()+min )  },
 	//===========================================================
 	
@@ -594,7 +815,7 @@ const gDict_instructions = {
 	bip: { // generate(evt)
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
-			const l_firstargResult = extractFromReturnedValues(pFrame.childReturnedMultivals, 0)
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
 			for (const label of l_firstargResult) {
 				const l_namespace = getNamespace(pFrame, label)
 				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'bip undefined variable')
@@ -610,7 +831,7 @@ const gDict_instructions = {
 	isBip: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
-			const l_firstargResult = extractFromReturnedValues(pFrame.childReturnedMultivals, 0)
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
 			for (const label of l_firstargResult) {
 				const l_namespace = getNamespace(pFrame, label)
 				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'isBip undefined variable')
@@ -624,7 +845,7 @@ const gDict_instructions = {
 	isBeep: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
-			const l_firstargResult = extractFromReturnedValues(pFrame.childReturnedMultivals, 0)
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
 			for (const label of l_firstargResult) {
 				const l_namespace = getNamespace(pFrame, label)
 				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'isBeep undefined variable')
@@ -638,7 +859,7 @@ const gDict_instructions = {
 	stopBeep: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
-			const l_firstargResult = extractFromReturnedValues(pFrame.childReturnedMultivals, 0)
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
 			for (const label of l_firstargResult) {
 				const l_namespace = getNamespace(pFrame, label)
 				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'stopBeep undefined variable')
@@ -653,15 +874,31 @@ const gDict_instructions = {
 	set: { // generate(evt, value)
 		nbArg:2,
 		postExec: function(pFrame, p_content) {
-			const l_firstargResult = extractFromReturnedValues(pFrame.childReturnedMultivals, 0)
-			const l_secondargResult = extractFromReturnedValues(pFrame.childReturnedMultivals, 1)
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
+			const l_secondargResult = pFrame.childReturnedMultivals.arg2
 			for (const label of l_firstargResult) {
 				const l_namespace = getNamespace(pFrame, label)
 				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'set undefined variable')
 				const l_livebox = l_namespace.get(label)
-				for (const val of l_secondargResult) {
-					//~ localLog('setval', label, val)
-					l_livebox.setval(pFrame, val)
+				l_livebox.setval(pFrame, l_secondargResult, true)
+			}
+			pFrame.toReturn_multival = []
+		}
+	},
+	//===========================================================
+	
+	setToNamespace: { // setToNamespace <namespace> <var> <value>
+		nbArg:3,
+		postExec: function(pFrame, p_content) {
+			for (const l_namespace of pFrame.childReturnedMultivals.arg1) {
+				;;     $__ErrorChecking(pFrame, ! (l_namespace instanceof Map), 'getFromNamespace not from a namespace', l_namespace)
+				for (const label of pFrame.childReturnedMultivals.arg2) {
+					let l_livebox = l_namespace.get(label)
+					if (l_livebox === undefined) {
+						l_namespace.set( label, new Livebox(l_namespace, label) )
+						l_livebox = l_namespace.get(label)
+					}
+					l_livebox.setval(pFrame, pFrame.childReturnedMultivals.arg3, true)
 				}
 			}
 			pFrame.toReturn_multival = []
@@ -672,8 +909,8 @@ const gDict_instructions = {
 	par: {
 		nbArg: (n=> (n>=1) ),
 		postExec: function(pFrame, p_content) {
-			for (let i=0; i<pFrame.childReturnedMultivals.length; i++) {
-				const l_argResult = extractFromReturnedValues(pFrame.childReturnedMultivals, i)
+			for (const key of Object.keys(pFrame.childReturnedMultivals)) {
+				const l_argResult = pFrame.childReturnedMultivals[key]
 				//~ localLog('par', i)
 				pFrame.toReturn_multival.push(...l_argResult)
 			}
@@ -686,10 +923,9 @@ const gDict_instructions = {
 		exec: function(pFrame, p_content) {
 			if (pFrame.instrPointer<p_content.length) {
 				;;     $$$__BugChecking(p_content[pFrame.instrPointer]===undefined, 'p_content[pFrame.instrPointer]===undefined', new Error().lineNumber)
-				pFrame.lastChild = pFrame.addChildToLeaflist(p_content[pFrame.instrPointer])
-				pFrame.childReturnedMultivals = []
+				pFrame.addChild(p_content[pFrame.instrPointer], 'oneOfSequence')
 			} else {
-				const l_argResult = extractFromReturnedValues(pFrame.childReturnedMultivals, 0)
+				const l_argResult = pFrame.childReturnedMultivals.oneOfSequence
 				pFrame.toReturn_multival.push(...l_argResult)
 				pFrame.terminated = true
 			}
@@ -704,19 +940,16 @@ const gDict_instructions = {
 				;;     $$$__BugChecking(p_content[1]===undefined, 'p_content[1]===undefined', new Error().lineNumber)
 				;;     $$$__BugChecking(p_content.length==5 && p_content[3]===undefined, 'p_content[3]===undefined', new Error().lineNumber)
 				;;     $__ErrorChecking(pFrame, p_content.length==5 && p_content[3].content != 'else', 'else missing')
-				pFrame.addChildToLeaflist(p_content[1])
+				pFrame.addChild(p_content[1], 'ifCondition')
 			} else if (pFrame.instrPointer==2) {
-				const l_firstargResult = extractFromReturnedValues(pFrame.childReturnedMultivals, 0)
-				pFrame.childReturnedMultivals = []
+				const l_firstargResult = pFrame.childReturnedMultivals.ifCondition
 				const lb_thereIsTrue = l_firstargResult.some(x=>x)
 				const lb_thereIsFalse = l_firstargResult.some(x=>!x)
-				if (lb_thereIsTrue) pFrame.addChildToLeaflist(p_content[2])
-				if (lb_thereIsFalse && p_content.length==5) pFrame.addChildToLeaflist(p_content[4])
+				if (lb_thereIsTrue) pFrame.addChild(p_content[2], 'thenBranch')
+				if (lb_thereIsFalse && p_content.length==5) pFrame.addChild(p_content[4], 'elseBranch')
 			} else {
-				for (let i=0; i<pFrame.childReturnedMultivals.length; i++) {
-					const l_argResult = extractFromReturnedValues(pFrame.childReturnedMultivals, i)
-					pFrame.toReturn_multival.push(...l_argResult)
-				}
+				if (pFrame.childReturnedMultivals.thenBranch !== undefined) pFrame.toReturn_multival.push(...pFrame.childReturnedMultivals.thenBranch)
+				if (pFrame.childReturnedMultivals.elseBranch !== undefined) pFrame.toReturn_multival.push(...pFrame.childReturnedMultivals.elseBranch)
 				pFrame.terminated = true
 			}
 		}
@@ -731,16 +964,14 @@ const gDict_instructions = {
 				;;     $$$__BugChecking(p_content[1]===undefined, 'p_content[1]===undefined', new Error().lineNumber)
 				;;     $$$__BugChecking(p_content[2]===undefined, 'p_content[2]===undefined', new Error().lineNumber)
 				if (pFrame.instrPointer > 1) {
-					lastResult = extractFromReturnedValues(pFrame.childReturnedMultivals, 0)
-					pFrame.childReturnedMultivals = []
+					lastResult = pFrame.childReturnedMultivals.whileBody
 				}
-				pFrame.lastChild = pFrame.addChildToLeaflist(p_content[1])
+				pFrame.addChild(p_content[1], 'whileCondition')
 			} else {
-				const l_firstargResult = extractFromReturnedValues(pFrame.childReturnedMultivals, 0)
-				pFrame.childReturnedMultivals = []
+				const l_firstargResult = pFrame.childReturnedMultivals.whileCondition
 				const lb_thereIsTrue = l_firstargResult.some(x=>x)
 				if (lb_thereIsTrue) {
-					pFrame.lastChild = pFrame.addChildToLeaflist(p_content[2])
+					pFrame.addChild(p_content[2], 'whileBody')
 				} else {
 					pFrame.toReturn_multival = [lastResult]
 					pFrame.terminated = true
@@ -769,31 +1000,7 @@ const gDict_instructions = {
 					pFrame.removeChildFromLeaflist()
 				}
 				l_livebox.currBeep = false
-			} else {
-				const ln_childrenNumber = pFrame.childrenList.length
-				for (const ch of [...pFrame.childrenList]) {
-					ch.getInstruction()
-					ch.instruction.activ(ch)
-				}
-				if (ln_childrenNumber==0) {
-					;;     $$$__BugChecking(pFrame.terminated, 'pFrame.terminated', new Error().lineNumber)
-					this.exec(pFrame, pFrame.code.content)
-					if (pFrame.terminated) pFrame.removeChildFromLeaflist()
-					else pFrame.instrPointer += 1
-				}
 			}
-		}
-	},
-	//===========================================================
-	
-	value: {
-		nbArg:1,
-		exec: function(pFrame, p_content) {
-			;;     $$$__BugChecking(p_content[1]===undefined, 'p_content[1]===undefined', new Error().lineNumber)
-			if (p_content[1].content === 'true') p_content[1].content = true
-			if (p_content[1].content === 'false') p_content[1].content = false
-			pFrame.toReturn_multival.push(p_content[1].content)
-			pFrame.terminated = true
 		}
 	},
 	//===========================================================
@@ -812,16 +1019,16 @@ const gDict_instructions = {
 		nbArg:1,
 		exec: function(pFrame, p_content) {
 			if (pFrame.instrPointer==1) {
-				pFrame.addChildToLeaflist(p_content[1])
+				pFrame.addChild(p_content[1], 'expressionToExecute')
 			} else if (pFrame.instrPointer==2) {
-				const l_firstargResult = extractFromReturnedValues(pFrame.childReturnedMultivals, 0)
-				pFrame.childReturnedMultivals = []
-				for (const expressi of l_firstargResult) {
-					pFrame.addChildToLeaflist(expressi)
+				const l_firstargResult = pFrame.childReturnedMultivals.expressionToExecute
+				for (let i=0; i<l_firstargResult.length; i++) {
+					pFrame.addChild(l_firstargResult[i], 'expressionToExecuteB'+i)
 				}
+				pFrame.exprCnt = l_firstargResult.length
 			} else {
-				for (let i=0; i<pFrame.childReturnedMultivals.length; i++) {
-					const l_argResult = extractFromReturnedValues(pFrame.childReturnedMultivals, i)
+				for (let i=0; i<pFrame.exprCnt; i++) {
+					const l_argResult = pFrame.childReturnedMultivals['expressionToExecuteB'+i]
 					pFrame.toReturn_multival.push(...l_argResult)
 				}
 				pFrame.terminated = true
@@ -859,10 +1066,8 @@ function Instruction(ps_codeWord) {
 				ch.instruction.canc(ch)
 			}
 			if (pFrame.code.cancelExpression) {
-				//~ pFrame.parent.childReturnedMultivals = []
-				//~ pFrame.replaceChildFromLeafList(toNotcancellableExpression(pFrame.code.cancelExpression))
 				const l_namespaceParent = (pFrame?.parent?.code?.content[0]?.content === 'cancellableExec') ? pFrame.parent.parent : pFrame.parent
-				mainFrame.addChildToLeaflist(toNotcancellableExpression(pFrame.code.cancelExpression), null, l_namespaceParent)
+				mainFrame.addChild(toNotcancellableExpression(pFrame.code.cancelExpression), 'whenCanceled', l_namespaceParent)
 			}
 			if (pFrame.childrenList.length==0) {
 				pFrame.removeChildFromLeaflist()
@@ -891,27 +1096,10 @@ function Instruction(ps_codeWord) {
 		}
 	}
 	
-	if (! this.activ) {
-		this.activ = function(pFrame) {
-			const ln_childrenNumber = pFrame.childrenList.length
-			condLog(5, '- - - - - - activ', pFrame.code.content[0].content, pFrame.code.content[1]?.text, (pFrame.code.content[2]!==undefined)?pFrame.code.content[2].text:' -- ', ln_childrenNumber)
-			for (const ch of [...pFrame.childrenList]) {
-				ch.getInstruction()
-				ch.instruction.activ(ch)
-			}
-			if (ln_childrenNumber==0) {
-				;;     $$$__BugChecking(pFrame.terminated, 'pFrame.terminated', new Error().lineNumber)
-				this.exec(pFrame, pFrame.code.content)
-				if (pFrame.terminated) pFrame.removeChildFromLeaflist()
-				else pFrame.instrPointer += 1
-			}
-		}
-	}
-	
 	if (this.singleExec) {
 		this.nbArg = 1
 		this.postExec = function(pFrame, p_content) {
-			const l_firstargResult = extractFromReturnedValues(pFrame.childReturnedMultivals, 0)
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
 			for (const arg1 of l_firstargResult) {
 				pFrame.toReturn_multival.push(this.singleExec(arg1))
 			}
@@ -921,8 +1109,8 @@ function Instruction(ps_codeWord) {
 	if (this.operExec) {
 		this.nbArg = 2
 		this.postExec = function(pFrame, p_content) {
-			const l_firstargResult = extractFromReturnedValues(pFrame.childReturnedMultivals, 0)
-			const l_secondargResult = extractFromReturnedValues(pFrame.childReturnedMultivals, 1)
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
+			const l_secondargResult = pFrame.childReturnedMultivals.arg2
 			for (const arg1 of l_firstargResult) {
 				for (const arg2 of l_secondargResult) {
 					pFrame.toReturn_multival.push(this.operExec(arg1, arg2))
@@ -938,7 +1126,7 @@ function Instruction(ps_codeWord) {
 			//==========
 			const l_argsResults = []
 			for (let i=0;i<p_content.length-1;i++) {
-				l_argsResults[i] = extractFromReturnedValues(pFrame.childReturnedMultivals, i)
+				l_argsResults[i] = pFrame.childReturnedMultivals['arg'+(i+1)]
 			}
 			const l_theCombinations = cartesianProduct(...l_argsResults)
 			for (const comb of l_theCombinations) {
@@ -957,7 +1145,7 @@ function Instruction(ps_codeWord) {
 				//~ localLog('####debut--', p_content[0].content, p_content[1].text, (p_content[2]!==undefined)?p_content[2].text:' -- ')
 				for (let i=1;i<=p_content.length-1;i++) {
 					;;     $$$__BugChecking(p_content[i]===undefined, 'p_content[i]===undefined', new Error().lineNumber)
-					pFrame.addChildToLeaflist(p_content[i])
+					pFrame.addChild(p_content[i], 'arg' + i)
 				}
 			} else {
 				this.postExec(pFrame, p_content)
@@ -1022,19 +1210,54 @@ function toNotcancellableExpression(pExpression_oldCode) {
 	return lExpression
 }
 
-function toValueExpression(pExpression_oldCode) {
-	const lExpression = new Expression(
-		'expression',
-		[
-			new Expression('identifier', 'value', 'value'),
-			pExpression_oldCode
-		],
-		pExpression_oldCode.text,
-		pExpression_oldCode.exprLabel,
-		pExpression_oldCode.cancelExpression
-	)
-	lExpression.location = pExpression_oldCode.location
-	return lExpression
+function getSeqInserted(pExpression, pn_pos, ps_keyword) {
+	if (pn_pos > 0) {
+		//~ const lArray_content = [...pExpression.content]
+		const lArray_contentContent = pExpression.content.map(elt=>elt.content)
+		let lIndex_keyword, lArray_content1, lArray_content2
+		
+		if (ps_keyword && lArray_contentContent.includes(ps_keyword)) {
+			lIndex_keyword = lArray_contentContent.indexOf(ps_keyword)
+			lArray_content1 = pExpression.content.slice(pn_pos, lIndex_keyword)
+			lArray_content2 = pExpression.content.slice(lIndex_keyword+1)
+		} else {
+			lArray_content1 = pExpression.content.slice(pn_pos)
+		}
+		
+		//~ for (let i=0; i<pn_pos; i++) lArray_content.shift()
+		const lExpr_seq1 = new Expression(
+			'expression',
+			[
+				new Expression('identifier', 'seq', 'seq'),
+				...lArray_content1,
+			],
+			pExpression.text
+		)
+		const l_rest2 = (! lIndex_keyword) ? [] :[
+			pExpression.content[lIndex_keyword],
+			new Expression(
+				'expression',
+				[
+					new Expression('identifier', 'seq', 'seq'),
+					...lArray_content2
+				],
+				pExpression.text
+			)
+		]
+		const lExpression = new Expression(
+			'expression',
+			[
+				pExpression.content[0],
+				pExpression.content[1],
+				lExpr_seq1,
+				...l_rest2
+			],
+			pExpression.text,
+			pExpression.exprLabel,
+			pExpression.cancelExpression,
+		)
+		return lExpression
+	}
 }
 
 //===================================================================================================
@@ -1054,14 +1277,8 @@ const Frame = function(code) {
 	this.superInstantNumber = g_superInstantNumber
 	this.instrPointer = 1
 	this.toReturn_multival = []
-	this.childReturnedMultivals = []
+	this.childReturnedMultivals = {}
 	this.pathOfExecution = ''
-}
-
-Frame.prototype.toSimpleString = function() {
-	const codeText = (this.code.type === 'expression') ? this.code.content[0].content : this.code.text
-	const valueText = (this.code.type === 'expression' && this.code.content[0].content === 'value') ? this.code.content[1].content : ''
-	return 'level ' + this.level + ', Frame #' + this.serialNumber + ', ' + codeText + '/' + valueText
 }
 
 Frame.prototype.toString = function() {
@@ -1075,71 +1292,94 @@ Frame.prototype.toString = function() {
 }
 
 Frame.prototype.injectParametersWithValues = function(param, args, fct) {
-	for (const labelIndex in param) {
-		const label = param[labelIndex].content
-		;;     $__ErrorChecking(fct.frame, ! label.startsWith('p_') && label[0] != '_', "parameters must begin with 'p_' or '_'")
-		makeNewVariable(this, label)
+	if (typeof param === 'string') {
+		makeNewVariable(this, param)
 		const l_namespace = this.namespace
-		const l_livebox = l_namespace.get(label)
+		const l_livebox = l_namespace.get(param)
+		const l_freeNamespace = new Map()
+		namespaceSet.add(l_freeNamespace)
+		// set values of args
+		//-------------------
+		for (let i=0; i<args.length; i++) {
+			const l_internalLivebox = new Livebox(l_freeNamespace, i)
+			l_freeNamespace.set(i, l_internalLivebox)
+			l_internalLivebox.currBip = true
+			l_internalLivebox.currBeep = true
+			l_internalLivebox.currMultival = [{frame:this, val:args[i]}]
+		}
+		
+		// set length
+		//-----------
+		const l_maxLivebox = new Livebox(l_freeNamespace, 'PARAMLENGTH')
+		l_freeNamespace.set('PARAMLENGTH', l_maxLivebox)
+		l_maxLivebox.currBip = true
+		l_maxLivebox.currBeep = true
+		l_maxLivebox.currMultival = [{frame:this, val:args.length}]
+		
+		// set namespace
+		//--------------
 		l_livebox.currBip = true
 		l_livebox.currBeep = true
-		l_livebox.currMultival.push({frame:this, val:args[labelIndex]})
-	}
-}
-
-Frame.prototype.addChildToLeaflist = function(expr, reason, namespaceParent) {
-	const childFrame = new Frame(expr)
-	condLog(4, '- - - ->new frame', expr.text)
-	
-	if (namespaceParent) {
-		childFrame.namespaceParent = namespaceParent
-		//~ localLog(namespaceParent)
-	}
-	
-	// globalFrameTree
-	//========================
-	globalFrameTree.addNode(childFrame, this)
-	
-	// pathOfExecution
-	//========================
-	let ls_symb
-	if (['seq', 'while', 'mix'].includes(childFrame.parent.code.content[0].content)) {
-		ls_symb = ';'
+		l_livebox.currMultival.push({frame:this, val:l_freeNamespace})
 	} else {
-		ls_symb = '/'
+		for (const labelIndex in param) {
+			const label = param[labelIndex].content
+			;;     $__ErrorChecking(fct.frame, ! fct.foreach && ! label.startsWith('p_') && label[0] != '_', "parameters must begin with 'p_' or '_'")
+			makeNewVariable(this, label)
+			const l_namespace = this.namespace
+			const l_livebox = l_namespace.get(label)
+			l_livebox.currBip = true
+			l_livebox.currBeep = true
+			l_livebox.currMultival.push({frame:this, val:args[labelIndex]})
+		}
 	}
-	
-	childFrame.pathOfExecution = childFrame.parent.pathOfExecution + ls_symb + childFrame.spanningChildIndex
-	
-	// return
-	//===================
-	return childFrame
 }
 
-Frame.prototype.replaceChildFromLeafList = function(expr) {
-	const childFrame = new Frame(expr)
-	condLog(4, '- - - ->new frame (replace)', expr.text)
-	
-	if (this.parent) {
+Frame.prototype.addChild = function(expr, reason, namespaceParent) {
+	if (expr.type === 'string' || expr.type === 'number' || expr.type === 'identifier') {
+		if (expr.content == 'true' && expr.type === 'identifier') expr.content = true
+		if (expr.content == 'false' && expr.type === 'identifier') expr.content = false
+		this.childReturnedMultivals[reason] = [expr.content]
+	} else {
+		;;     $$$__BugChecking(expr.type === 'program', 'frame cannot have code of type "program"', new Error().lineNumber)
+		const childFrame = new Frame(expr)
+		childFrame.reason = reason
+		childFrame.namespaceParent = namespaceParent
 		
-		// transfer return values
-		//-----------------------
-		this.parent.childReturnedMultivals.push({idx:this.initialChildIndex, val:this.toReturn_multival})
+		condLog(4, '- - - ->new frame', expr.text)
 		
+		// globalFrameTree
+		//========================
+		globalFrameTree.addNode(childFrame, this)
+		
+		// pathOfExecution
+		//========================
+		let ls_symb
+		if (['seq', 'while', 'mix'].includes(childFrame.parent.code.content[0].content)) {
+			ls_symb = ';'
+		} else {
+			ls_symb = '/'
+		}
+		
+		childFrame.pathOfExecution = childFrame.parent.pathOfExecution + ls_symb + childFrame.spanningChildIndex
+		
+		// return
+		//===================
+		return childFrame
 	}
-	
-	// globalFrameTree
-	//========================
-	globalFrameTree.replaceNode(this, childFrame)
-	
-	// return
-	//===================
-	return childFrame
 }
 
 Frame.prototype.removeChildFromLeaflist = function() {
 
 	condLog(4, '- - - ->frame return', this.code.text, this.toReturn_multival)
+	
+	// remove namespace
+	//------------------
+	namespaceSet.delete(this.namespace)
+	
+	// remove 
+	//-----------
+	cancellableFrameSet.delete(this)
 	
 	// remove links between frames
 	//----------------------------
@@ -1147,7 +1387,7 @@ Frame.prototype.removeChildFromLeaflist = function() {
 		
 		// transfer return values
 		//-----------------------
-		this.parent.childReturnedMultivals.push({idx:this.initialChildIndex, val:this.toReturn_multival})
+		this.parent.childReturnedMultivals[this.reason] = this.toReturn_multival
 		
 	}
 	
@@ -1179,25 +1419,32 @@ Frame.prototype.getInstruction = function() {
 			if (this.code.exprLabel) {
 				this.code = toCancellableExpression(this.code)
 			}
-		} else {
-			this.code = toValueExpression(this.code)
+			if ( ['lambda', 'while', 'foreach'].includes(this.code.content[0]?.content) ) {
+				this.code = getSeqInserted(this.code, 2)
+			} else if (this.code.content[0]?.content === 'if') {
+				this.code = getSeqInserted(this.code, 2, 'else')
+			}
+			if (this.code.content[0].content === 'cancellableExec') {
+				cancellableFrameSet.add(this)
+			}
 		}
 		
 		const l_content = this.code.content
-		const lInstruction = new Instruction(l_content[0].content)
+		const lInstruction = new Instruction(l_content[0]?.content)
 		
 		// verif number of arg
 		//====================
-		//~ localLog('======', this.code, l_content[0])
-		;;     $__ErrorChecking(this, typeof l_content[0].content !== 'string', 'instruction code cannot be multiple')
-		;;     $__ErrorChecking(this, typeof lInstruction.nbArg === 'number' && l_content.length !== lInstruction.nbArg+1, 'wrong number of arguments')
-		;;     $__ErrorChecking(this, typeof lInstruction.nbArg !== 'number' && ! lInstruction.nbArg(l_content.length-1), 'invalid number of arguments')
-		
-		;;     $$$__BugChecking(! (l_content instanceof Array), 'expression not array', new Error().lineNumber)
-		;;     $$$__BugChecking(l_content.length === 0, 'exec empty array', new Error().lineNumber)
-		;;     $$$__BugChecking(l_content[0].content === undefined, 'exec undefined instr', new Error().lineNumber)
-		
-		;;     $__ErrorChecking(this, ! ['identifier'].includes(l_content[0].type), 'cannot execute')
+		if (typeof l_content !== 'string' && typeof l_content !== 'number') {
+			;;     $__ErrorChecking(this, typeof l_content[0].content !== 'string', 'instruction code cannot be multiple')
+			;;     $__ErrorChecking(this, typeof lInstruction.nbArg === 'number' && l_content.length !== lInstruction.nbArg+1, 'wrong number of arguments')
+			;;     $__ErrorChecking(this, typeof lInstruction.nbArg !== 'number' && ! lInstruction.nbArg(l_content.length-1), 'invalid number of arguments')
+			
+			;;     $$$__BugChecking(! (l_content instanceof Array), 'expression not array', new Error().lineNumber)
+			;;     $$$__BugChecking(l_content.length === 0, 'exec empty array', new Error().lineNumber)
+			;;     $$$__BugChecking(l_content[0].content === undefined, 'exec undefined instr', new Error().lineNumber)
+			
+			;;     $__ErrorChecking(this, ! ['identifier'].includes(l_content[0].type), 'cannot execute')
+		}
 		
 		// verif each elt of sequence on its own line
 		//============================================
@@ -1262,7 +1509,7 @@ function Tree(p_root) {
 			;;     $$$__BugChecking(l_precedingChild.childrenList === undefined, 'l_precedingChild not in tree', new Error().lineNumber)
 			;;     $$$__BugChecking(l_precedingChild === p_node, 'new child should be other', new Error().lineNumber)
 			const ln_precedingChildIndex = this.leafList.indexOf(l_precedingChild)
-			//~ localLog('l_precedingChild', ln_precedingChildIndex, l_precedingChild)
+			//~ localLog('l_precedingChild', ln_precedingChildIndex, l_precedingChild, p_node)
 			//~ ;;     $$$__BugChecking(ln_precedingChildIndex === -1, 'child should have been in leafList', new Error().lineNumber)
 			if (ln_precedingChildIndex === -1) this.leafList.push(p_node) // not ideal FIXME
 			else this.leafList.splice(ln_precedingChildIndex+1, 0, p_node)
@@ -1289,70 +1536,6 @@ function Tree(p_root) {
 		p_node.spanningChildIndex = p_parent.spanningNumOfChild
 		p_parent.spanningNumOfChild += 1 // TODO : BigInt for very long (in time) (>= 100 years) program, BUG, FIXME
 		p_parent.childrenList.push(p_node)
-	}
-	
-	this.replaceNode = function(p_oldNode, pNewNode) {
-		//~ localLog('replaceNode', p_oldNode, pNewNode)
-		;;     $$$__BugChecking(! this.nodeSet.has(p_oldNode), 'p_oldNode not in tree', new Error().lineNumber)
-		;;     $$$__BugChecking(p_oldNode.parent === undefined, 'p_oldNode not in tree', new Error().lineNumber)
-		;;     $$$__BugChecking(p_oldNode.childrenList === undefined, 'p_oldNode not in tree', new Error().lineNumber)
-		;;     $$$__BugChecking(p_oldNode.childrenList.length !== 0, 'p_oldNode has still children', new Error().lineNumber)
-		
-		;;     $$$__BugChecking(this.nodeSet.has(pNewNode), 'pNewNode already in tree', new Error().lineNumber)
-		;;     $$$__BugChecking(pNewNode.parent !== undefined, 'pNewNode already in tree', new Error().lineNumber)
-		;;     $$$__BugChecking(pNewNode.childrenList !== undefined, 'pNewNode already in tree', new Error().lineNumber)
-		
-		// get parent
-		//-----------
-		const l_parent = p_oldNode.parent
-		;;     $$$__BugChecking(! this.nodeSet.has(l_parent), 'l_parent not in tree', new Error().lineNumber)
-		;;     $$$__BugChecking(l_parent.parent === undefined, 'l_parent not in tree', new Error().lineNumber)
-		;;     $$$__BugChecking(l_parent.childrenList === undefined, 'l_parent not in tree', new Error().lineNumber)
-		
-		// nodeSet
-		//--------
-		this.nodeSet.delete(p_oldNode)
-		this.nodeSet.add(pNewNode)
-		
-		// leafList
-		//----------
-		const ln_leafChildI = this.leafList.indexOf(p_oldNode)
-		;;     $$$__BugChecking(l_parent && l_parent.childrenList.length == 0, 'childrenList of parent is empty', new Error().lineNumber, p_oldNode)
-		this.leafList.splice(ln_leafChildI, 1, pNewNode)
-		
-		// unlink from parent
-		//---------------
-		if (p_oldNode != this.root) {
-			const ln_childrenI = p_oldNode.parent.childrenList.indexOf(p_oldNode)
-			;;     $$$__BugChecking(ln_childrenI === -1, 'child not found', new Error().lineNumber)
-			p_oldNode.parent.childrenList.splice(ln_childrenI, 1)
-		}
-		
-		// unmark node
-		//----------
-		delete p_oldNode.level
-		delete p_oldNode.parent
-		delete p_oldNode.childrenList
-		delete p_oldNode.initialChildIndex
-		
-		// mark node
-		//----------
-		pNewNode.level = null
-		pNewNode.parent = null
-		pNewNode.childrenList = []
-		pNewNode.initialChildIndex = null
-		pNewNode.spanningNumOfChild = 0
-		pNewNode.spanningChildIndex = null
-		
-		// link to parent
-		//---------------
-		pNewNode.level = l_parent.level + 1
-		pNewNode.parent = l_parent
-		pNewNode.historicParent = l_parent
-		pNewNode.initialChildIndex = l_parent.childrenList.length
-		pNewNode.spanningChildIndex = l_parent.spanningNumOfChild
-		l_parent.spanningNumOfChild += 1 // TODO : BigInt for very long (in time) (>= 100 years) program, BUG, FIXME
-		l_parent.childrenList.push(pNewNode)
 	}
 	
 	this.removeNode = function(p_node) {
@@ -1419,7 +1602,8 @@ function Tree(p_root) {
 //===================================================================================================
 
 function runBurst() {
-	g_superInstantNumber += 1 
+	g_superInstantNumber += 1
+	//~ localLog('====> SuperInstant:', g_superInstantNumber)
 	;;        condLogGroup(1, '====> SuperInstant:', g_superInstantNumber)
 	//~ ;;        condLog(1, '-------------')
 	
@@ -1434,18 +1618,28 @@ function runBurst() {
 		}
 		// exec 1 microinstant
 		//====================
+		//~ localLog('------> MicroInstant', cpt2)
 		if (! mainFrame.childrenList) break
-		;;        condLogGroup(3, '------> MicroInstant')
+		;;        condLogGroup(3, '------> MicroInstant', cpt2)
 		;;        condLog(3, '                                       -')
-		mainFrame.getInstruction()
-		mainFrame.instruction.activ(mainFrame)
+		for (const cancellableFrame of cancellableFrameSet) {
+			cancellableFrame.getInstruction()
+			cancellableFrame.instruction.activ(cancellableFrame)
+		}
+		for (const leaf of [...globalFrameTree.leafList]) {
+			leaf.getInstruction()
+			leaf.instruction.exec(leaf, leaf.code.content)
+			if (leaf.terminated) leaf.removeChildFromLeaflist()
+			else leaf.instrPointer += 1
+		}
 		
 		// copy "current" values to "precedent"
 		//=====================================
 		for (const l_namespace of namespaceSet) {
 			for (const l_var of l_namespace.keys()) {
 				const l_livebox = l_namespace.get(l_var)
-				if (! frozenLivebox.has(l_livebox)) {
+				;;     $$$__BugChecking(! (l_livebox instanceof Livebox), 'l_livebox not a Livebox', new Error().lineNumber, l_livebox, 'l_livebox is:')
+				if (! frozenLiveboxSet.has(l_livebox)) {
 					l_livebox.precMultival = l_livebox.currMultival.map(elt=>elt.val)
 					l_livebox.precBip = l_livebox.currBip
 					l_livebox.precBeep = l_livebox.currBeep
@@ -1453,6 +1647,28 @@ function runBurst() {
 				}
 			}
 		}
+		
+		// update continuousAction
+		//========================
+		let cpt3 = 0
+		if (continuousActionNotEmptyAnymore) {
+			continuousActionNotEmptyAnymore = false
+			const raf_func = function raf_func(timestamp) {
+				cpt3 += 1
+				const delta = (old_timestamp) ? timestamp - old_timestamp : 0
+				for (const [key, fct] of continuousActionDict.send) fct(key, delta, send)
+				for (const [key, fct] of continuousActionDict.adapt) fct(key, delta, continuousEvents)
+				for (const [key, fct] of continuousActionDict.play) fct(key, delta)
+				for (const [key, fct] of continuousActionDict.emit) fct(key, delta)
+				if (continuousActionDict.play.size !== 0 && (g_debug == 0 || cpt3 < 500)) requestAnimationFrame(raf_func)
+				//~ if (continuousActionDict.play.size !== 0 && cpt3 < 1) requestAnimationFrame(raf_func)
+				//~ else localLog('---STOP')
+				continuousEvents = new Map()
+				old_timestamp = timestamp
+			}
+			requestAnimationFrame(raf_func)
+		}
+		
 		;;        condLogGroupEnd(3, '------> MicroInstant', 'END')
 	}
 	;;        condLogGroupEnd(1, '====> SuperInstant:', 'END')
