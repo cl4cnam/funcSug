@@ -7,7 +7,7 @@
 }
 .var clickButton
 .var edit
-.print (&pluss 3 4 9)
+#.print (&pluss 3 4 9)
 #(&inputNewHumanText edit)
 #.print (&awaitHumanText)
 :getClick '#theButton' clickButton
