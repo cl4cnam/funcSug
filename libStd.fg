@@ -1,1 +1,7 @@
-%deffunc pluss (p_x p_y p_z) :+ :+ $p_x $p_y $p_z
+{deffunc import (p_externalVariable)
+	{short () :+ 'return ' $p_externalVariable}
+}
+
+{deffunc export (p_val p_extObj p_extVar)
+	{short (p_val p_extObj) (+ 'p_extObj.' $p_extVar '=p_val')}
+}

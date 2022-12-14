@@ -1,0 +1,24 @@
+#====================================
+# Display functions
+#====================================
+
+{deffunc displayNewSVGElementIn (p_svg  p_anchor)
+#        ----------------------
+		.var svgElt
+		{ext (p_svg p_anchor) `
+			const ls_drawing = p_svg
+			const ls_anchor = p_anchor
+			
+			const lArray_drawing = ls_drawing.split(' ')
+			lArray_drawing.splice(1, 0, 'xmlns="http://www.w3.org/2000/svg"')
+			const ls_svgDrawing = lArray_drawing.join(' ')
+			
+			const lElt_anchor = document.querySelector(ls_anchor)
+			if (lElt_anchor===null) console.log("ERROR !!! libDOMSVG.fs/displayNewSVGIn '" + ls_anchor + "' selector references no element!")
+			const parsedElement = new DOMParser().parseFromString(ls_svgDrawing, 'application/xml')
+			const lElt = document.importNode(parsedElement.documentElement, true)
+			lElt_anchor.appendChild(lElt)
+			output(lElt)
+		` svgElt}
+		:await svgElt beep
+}

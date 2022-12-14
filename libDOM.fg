@@ -4,12 +4,12 @@
 # Click functions
 #====================================
 
-%deffunc getClick (p_idElt p_evtSug)
+{deffunc getClick (p_idElt p_evtSug)
 #        --------
-	{ext ($p_idElt) `
-		const lElt = document.querySelector(args[0])
+	{ext (p_idElt) `
+		const lElt = document.querySelector(p_idElt)
+		if (lElt===null) console.log("ERROR !!! libDOM.fs/getClick '" + p_idElt + "' selector references no element!")
 		lElt.disabled = false
-		if (lElt===null) console.log("ERROR !!! libDOM.fs/getClick '" + args[0] + "' selector references no element!")
 		const l_react = function(evt) {
 			lElt.removeEventListener('click', l_react)
 			lElt.disabled = false
@@ -17,31 +17,30 @@
 		};
 		lElt.addEventListener('click', l_react)
 	` $p_evtSug}
+}
 
-%deffunc awaitClickBip (p_idElt)
+{deffunc awaitClickBip (p_idElt)
 #        -------------
-	{seq
 		.var evtSug
 		(&getClick $p_idElt evtSug)
 		:await evtSug bip
-	}
+}
 
-%deffunc awaitClickBeep (p_idElt)
+{deffunc awaitClickBeep (p_idElt)
 #        --------------
-	{seq
 		.var evtSug
 		(&getClick $p_idElt evtSug)
 		:await evtSug beep
-	}
+}
 
 #====================================
 # Display functions
 #====================================
 
-%deffunc displayNewMessageIn (p_message p_idAnchor)
+{deffunc displayNewMessageIn (p_message p_idAnchor)
 #        -------------------
-	{ext ($p_message $p_idAnchor) `
-		const lList_idAnchor = args[1].split('/')
+	{ext (p_message p_idAnchor) `
+		const lList_idAnchor = p_idAnchor.split('/')
 		const ls_idAnchor = lList_idAnchor[0]
 		const ls_class = (lList_idAnchor.length>1) ? lList_idAnchor[1] : 'other'
 		const lElt_anchor = document.querySelector(ls_idAnchor)
@@ -49,33 +48,36 @@
 		const lElt = document.createElement('p')
 		lElt.classList.add('display')
 		lElt.classList.add(ls_class)
-		lElt.innerHTML = args[0]
+		lElt.innerHTML = p_message
 		lElt_anchor.appendChild(lElt)
 		lElt.scrollIntoView()
-	` dummy}
+	`}
+}
 
-%deffunc displayNewMessage (p_message)
+{deffunc displayNewMessage (p_message)
 #        -----------------
 	(&displayNewMessageIn $p_message 'body')
+}
 
-%deffunc displayMessageIn (p_message p_idAnchor)
+{deffunc displayMessageIn (p_message p_idAnchor)
 #        ----------------
-	{ext ($p_message $p_idAnchor) `
-		const lElt_anchor = document.querySelector(args[1])
-		if (lElt_anchor===null) console.log("ERROR !!! libDOM.fs/displayMessageIn '" + args[1] + "' selector references no element!")
-		lElt_anchor.innerHTML = args[0]
+	{ext (p_message p_idAnchor) `
+		const lElt_anchor = document.querySelector(p_idAnchor)
+		if (lElt_anchor===null) console.log("ERROR !!! libDOM.fs/displayMessageIn '" + p_idAnchor + "' selector references no element!")
+		lElt_anchor.innerHTML = p_message
 		lElt_anchor.scrollIntoView()
-	` dummy}
+	`}
+}
 
 #====================================
 # Input functions
 #====================================
 
-%deffunc inputNewHumanTextIn (p_evtSugB p_idAnchor)
+{deffunc inputNewHumanTextIn (p_evtSugB p_idAnchor)
 #        -------------------
-	{ext ($p_idAnchor) `
-		const lElt_anchor = document.querySelector(args[0])
-		if (lElt_anchor===null) console.log("ERROR !!! libDOM.fs/inputNewHumanTextIn '" + args[0] + "' selector references no element!")
+	{ext (p_idAnchor) `
+		const lElt_anchor = document.querySelector(p_idAnchor)
+		if (lElt_anchor===null) console.log("ERROR !!! libDOM.fs/inputNewHumanTextIn '" + p_idAnchor + "' selector references no element!")
 		const lElt = document.createElement('p')
 		const lSAVE = {}
 		lSAVE.elt = lElt
@@ -103,22 +105,22 @@
 		SAVE.elt.classList.replace('entry', 'display')
 		SAVE.elt.classList.add('canceled')
 	`}
+}
 
-%deffunc inputNewHumanText (p_evtSugB)
+{deffunc inputNewHumanText (p_evtSugB)
 #        -----------------
 	(&inputNewHumanTextIn $p_evtSugB 'body')
+}
 
-%deffunc awaitNewHumanTextIn (p_idAnchor)
+{deffunc awaitNewHumanTextIn (p_idAnchor)
 #        -------------------
-	{seq
 		.var evtSugA
 		(&inputNewHumanTextIn evtSugA $p_idAnchor)
 		:await evtSugA beep
-	}
+}
 
-%deffunc awaitNewHumanNumberIn (p_idAnchor)
+{deffunc awaitNewHumanNumberIn (p_idAnchor)
 #        ---------------------
-	{seq
 		.var tryText <-- 'notANumber'
 		.var whileA
 		{while @whileA true {seq
@@ -130,33 +132,32 @@
 			}
 		}}
 		$tryText
-	}
+}
 
-%deffunc awaitHumanText ()
+{deffunc awaitHumanText ()
 #        --------------
-	{seq
 		.var evtSugA
 		(&inputNewHumanText evtSugA)
 		:await evtSugA beep
-	}
+}
 
 #====================================
 # Time functions
 #====================================
 
-%deffunc waitMilliseconds (p_nMilliseconds)
+{deffunc waitMilliseconds (p_nMilliseconds)
 #        -----------
-	{seq
 		.var waitEnd
-		{ext ($p_nMilliseconds) `
+		{ext (p_nMilliseconds) `
 			setTimeout(
-				O=>output(args[0]),
-				args[0]
+				O=>output(p_nMilliseconds),
+				p_nMilliseconds
 			)
 		` waitEnd}
 		:await waitEnd beep
-	}
+}
 
-%deffunc waitSeconds (p_nSeconds)
+{deffunc waitSeconds (p_nSeconds)
 #        -----------
 	(&waitMilliseconds :* 1000 $p_nSeconds)
+}

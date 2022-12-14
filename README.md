@@ -51,7 +51,7 @@ This 'label' must be a declared variable.
 
 ```.var variableName``` declares a new local variable.
 
-```[variableName <- value]``` assigns  ```value``` to ```variableName```.
+```[variableName <-- value]``` assigns  ```value``` to ```variableName```.
 
 ```variableName <-- value``` (on its own line) assigns  ```value``` to ```variableName```.
 
@@ -67,7 +67,7 @@ This 'label' must be a declared variable.
 
 ```{if condition thenBranch else elseBranch}``` acts as usual (```else elseBranch``` is optional).
 
-```{while condition instruction}``` repeats ```instruction``` while ```condition``` returns true.
+```{while condition instruction1 ... instructionN}``` repeats ```instruction1 ... instructionN``` while ```condition``` returns true.
 
 ```{seq expression1 ... expressionN}``` executes the expressions in sequence and returns the value of the last.
 
@@ -79,7 +79,9 @@ This 'label' must be a declared variable.
 
 ```~ expression``` executes ```expression``` if the preceding expression is interrupted.
 
-```%deffunc functionName parameterList expression``` defines the custom function ```functionName```.
+```{deffunc functionName parameterList instruction1 ... instructionN}``` defines the custom function ```functionName```.
+
+```{short (variable1 ... variableN) jsString}``` executes the code in ```jsString``` (in which ```variable1 ... variableN``` can be used).
 
 ```:displayNewMessageIn text cssSelector``` displays a new message ```text``` into the DOM element identified by ```cssSelector```.
 
