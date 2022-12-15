@@ -12,11 +12,15 @@
 		lElt.disabled = false
 		const l_react = function(evt) {
 			lElt.removeEventListener('click', l_react)
-			lElt.disabled = false
+			lElt.disabled = true
 			output()
 		};
 		lElt.addEventListener('click', l_react)
-	` $p_evtSug}
+		SAVES.push({elt:lElt, react:l_react})
+	` $p_evtSug `
+		SAVE.elt.removeEventListener('click', SAVE.react)
+		SAVE.elt.disabled = true
+	`}
 }
 
 {deffunc awaitClickBip (p_idElt)
@@ -36,6 +40,24 @@
 #====================================
 # Display functions
 #====================================
+
+{deffunc addCssClassTo (p_class p_selector)
+#        -------------
+	{short (p_class p_selector) `
+		const lElt_anchor = document.querySelector(p_selector)
+		if (lElt_anchor===null) console.log("ERROR !!! libDOM.fs/addCssClassTo '" + p_selector + "' selector references no element!")
+		lElt_anchor.classList.add(p_class)
+	`}
+}
+
+{deffunc DelCssClassFrom (p_class p_selector)
+#        ---------------
+	{short (p_class p_selector) `
+		const lElt_anchor = document.querySelector(p_selector)
+		if (lElt_anchor===null) console.log("ERROR !!! libDOM.fs/addCssClassTo '" + p_selector + "' selector references no element!")
+		lElt_anchor.classList.remove(p_class)
+	`}
+}
 
 {deffunc displayNewMessageIn (p_message p_idAnchor)
 #        -------------------
@@ -79,8 +101,6 @@
 		const lElt_anchor = document.querySelector(p_idAnchor)
 		if (lElt_anchor===null) console.log("ERROR !!! libDOM.fs/inputNewHumanTextIn '" + p_idAnchor + "' selector references no element!")
 		const lElt = document.createElement('p')
-		const lSAVE = {}
-		lSAVE.elt = lElt
 		lElt.classList.add('entry')
 		lElt.classList.add('self')
 		lElt.setAttribute('contentEditable', 'true')
@@ -95,10 +115,9 @@
 				output(evt.target.textContent)
 			}
 		}
-		lSAVE.react = l_react
-		SAVES.push(lSAVE)
 		lElt.addEventListener('beforeinput', l_react)
 		lElt_anchor.appendChild(lElt)
+		SAVES.push({elt:lElt, react:l_react})
 	` $p_evtSugB `
 		SAVE.elt.removeEventListener('beforeinput', SAVE.react)
 		SAVE.elt.setAttribute('contentEditable', 'false')
