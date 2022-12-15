@@ -837,6 +837,34 @@ w
 7
 `,},
 
+{line: new Error().lineNumber, code:`
+	{seq
+		.var theMix
+		{mix @theMix
+			{while true
+				.break theMix
+			}
+		}
+		.print 77
+	}
+`, result: `
+77
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var theMix
+		.var evt
+		{mix @theMix
+			:await evt beep
+			:await evt beep
+			.break theMix
+		}
+		.print 77
+	}
+`, result: `
+77
+`,},
 
 
 ]
