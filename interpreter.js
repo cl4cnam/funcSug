@@ -1061,7 +1061,7 @@ function Instruction(ps_codeWord) {
 	
 	if (! this.canc) {
 		this.canc = function(pFrame) {
-			for (const ch of pFrame.childrenList) {
+			for (const ch of [...pFrame.childrenList]) {
 				ch.getInstruction()
 				ch.instruction.canc(ch)
 			}
@@ -1609,7 +1609,9 @@ function runBurst() {
 	
 	globalFrameTree.setPropertyTrueForAllLeaf('awake')
 	let cpt2 = 0
-	while (  globalFrameTree.someLeafHasPropertyTrue('awake' ) ) {
+	let precedent_stillAwake = true
+	let stillAwake = globalFrameTree.someLeafHasPropertyTrue('awake' )
+	while ( precedent_stillAwake || stillAwake ) {
 		cpt2 += 1
 		if (cpt2==250 && g_debug > 0) console.warn('!!! soon INFINITE LOOP ?? !!!')
 		if (cpt2==500 && g_debug > 0) {
@@ -1668,6 +1670,9 @@ function runBurst() {
 			}
 			requestAnimationFrame(raf_func)
 		}
+		
+		precedent_stillAwake = stillAwake
+		stillAwake = globalFrameTree.someLeafHasPropertyTrue('awake' )
 		
 		;;        condLogGroupEnd(3, '------> MicroInstant', 'END')
 	}
