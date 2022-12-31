@@ -1,6 +1,6 @@
 # **funcSug**
 
-This is a new concurrent programming language (in progress) loosely based on https://github.com/LordManta/SugarCubesJS of Jean-Ferdy Susini.
+This is a new concurrent programming language (in progress, but it already works) loosely based on https://github.com/LordManta/SugarCubesJS of Jean-Ferdy Susini.
 
 In this language, you can write
 ```
