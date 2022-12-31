@@ -1,8 +1,8 @@
 # **funcSug**
 
-This is a new programming language (in progress) loosely based on https://github.com/LordManta/SugarCubesJS of Jean-Ferdy Susini.
+This is a new concurrent programming language (in progress) loosely based on https://github.com/LordManta/SugarCubesJS of Jean-Ferdy Susini.
 
-To get a taste of the language, see https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg and test it at https://cl4cnam.github.io/Guess_the_number/guessTheNumber.html. You may also want to have a look at https://github.com/cl4cnam/miniSweet/blob/main/miniSweet.fg an test it at https://cl4cnam.github.io/miniSweet/miniSweet.html.
+To get a taste of the language, see https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg and test it at https://cl4cnam.github.io/Guess_the_number/guessTheNumber.html. You may also want to have a look at https://github.com/cl4cnam/miniSweet/blob/main/miniSweet.fg and test it at https://cl4cnam.github.io/miniSweet/miniSweet.html.
 
 Don't look too hard at my syntax (I intend to change it into a pythonic syntax). Look instead at the structure of the code (https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg): One cannot follow this structure in usual programming language.
 
