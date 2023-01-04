@@ -135,7 +135,7 @@ const lesTests = [
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
+		.varmul a
 		a <-- 0
 		a <-- 1
 		{par
@@ -151,7 +151,7 @@ const lesTests = [
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
+		.varmul a
 		a <-- 1
 		{par
 			a <-- [$a + 1]
@@ -179,7 +179,7 @@ c1
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
+		.varmul a
 		a <-- 0
 		a <-- 1
 		{par
@@ -195,7 +195,7 @@ c1
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
+		.varmul a
 		a <-- 0
 		a <-- 1
 		.freeze a
@@ -213,7 +213,7 @@ c1
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
+		.varmul a
 		a <-- 0
 		a <-- 1
 		.freeze a
@@ -231,7 +231,7 @@ c1
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
+		.varmul a
 		a <-- 0
 		a <-- 1
 		.freeze a
@@ -261,7 +261,7 @@ c1
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
+		.varmul a
 		{seq
 			:set a 1
 			:set a 2
@@ -274,7 +274,7 @@ c1
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
+		.varmul a
 		{par
 			:set a 1
 			:set a 2
@@ -288,7 +288,7 @@ c1
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
+		.varmul a
 		{mix
 			:set a 1
 			:set a 2
@@ -313,8 +313,8 @@ c1
 		.print :< 5 4
 		.print [1 > 0]
 		.print '======> MID'
-		.var a
-		.var b
+		.varmul a
+		.varmul b
 		{par :set a 20 :set a 30}
 		{par :set b 4 :set b 5}
 		.print :- $a $b
@@ -689,6 +689,25 @@ c1
 
 {line: new Error().lineNumber, code:`
 	{seq
+		.var a <-- 0
+		{while [$a < 3]
+			.var b <-- 'OK'
+			.print $a
+			.print $b
+			a <-- [$a + 1]
+		}
+	}
+`, result: `
+0
+OK
+1
+OK
+2
+OK
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
 		.var theSeq
 		{seq @theSeq
 			.print 45
@@ -864,6 +883,60 @@ w
 	}
 `, result: `
 77
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		{repeat 0
+			.print 77
+		}
+	}
+`, result: `
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		{repeat 1
+			.print 77
+		}
+	}
+`, result: `
+77
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		{repeat 3
+			.print 77
+		}
+	}
+`, result: `
+77
+77
+77
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		{deffunc change (p_variable)
+			:set $p_variable 45
+		}
+		.var aVariable
+		.change aVariable
+		.print $aVariable
+	}
+`, result: `
+45
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.print :parRange 3 5
+	}
+`, result: `
+3
+4
+5
 `,},
 
 

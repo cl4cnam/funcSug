@@ -8,10 +8,29 @@ const cancellableFrameSet = new Set()
 // continuous
 //-----------
 let old_timestamp = undefined
-let continuousEvents = new Map()
+let continuousEvents
+
+clearContinuousEvents()
+
+function clearContinuousEvents() {
+	continuousEvents = new Map()
+	continuousEvents.old_get = continuousEvents.get
+	continuousEvents.get = (key) => continuousEvents.old_get(key) || []
+}
+
 function send(type, val) {
 	if (! continuousEvents.has(type)) continuousEvents.set(type, [])
 	continuousEvents.get(type).push(val)
+}
+
+function prep_goAssign(pFrame_) {
+	return function goAssign(ps_variable, p_val, pFrame = pFrame_) {
+		const l_namespace = getNamespace(pFrame, ps_variable)
+		;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'set undefined variable')
+		const l_livebox = l_namespace.get(ps_variable)
+		l_livebox.setval(pFrame, [p_val], true)
+		runBurst()
+	}
 }
 
 const continuousActionDict = {
@@ -21,15 +40,27 @@ const continuousActionDict = {
 	emit: new Map(),
 }
 let continuousActionNotEmptyAnymore = false
+let continuousActionEmpty = true
 
-function addContinuousAction(type, key, fct) {
+function addContinuousAction(type, key, fct, frame) {
 	if (continuousActionDict.send.size === 0
 			&& continuousActionDict.adapt.size === 0
 			&& continuousActionDict.play.size === 0
 			&& continuousActionDict.emit.size === 0) {
 		continuousActionNotEmptyAnymore = true
 	}
-	continuousActionDict[type].set(key,fct)
+	continuousActionDict[type].set(key,{fct:fct,frame:frame})
+	continuousActionEmpty = false
+}
+
+function delContinuousAction(type, key) {
+	continuousActionDict[type].delete(key)
+	if (continuousActionDict.send.size === 0
+			&& continuousActionDict.adapt.size === 0
+			&& continuousActionDict.play.size === 0
+			&& continuousActionDict.emit.size === 0) {
+		continuousActionEmpty = true
+	}
 }
 
 let mainFrame
@@ -137,9 +168,10 @@ function getNamespace(pFrame, label) {
 	if ( pFrame.historicParent ) return getNamespace(pFrame.namespaceParent || pFrame.historicParent, label)
 }
 
-function Livebox(p_namespace, p_label) {
+function Livebox(p_namespace, p_label, pb_split) {
 	this.lbNamespace = p_namespace
 	this.lbLabel = p_label
+	this.lb_split = pb_split
 	this.precBip = false
 	this.precBeep = false
 	this.currBip = false
@@ -163,12 +195,17 @@ Livebox.prototype.setval = function(pFrame, val, pb_multiple) {
 	this.currBeep = true
 	// delete values in direct line
 	for (const otherVal of [...this.currMultival]) {
-		//~ if ( isPrecedingFrame(otherVal.frame, pFrame) ) {
-		let ls_common = getCommonStart(otherVal.frame.pathOfExecution, pFrame.pathOfExecution)
-		while (['0','1','2','3','4','5','6','7','8','9'].includes(ls_common.charAt(ls_common.length - 1))) {
-			ls_common = ls_common.slice(0,-1)
+		//~ const lb_specialVariable = typeof this.lbLabel === 'string' && this.lbLabel.charAt(0) === '*'
+		const lb_specialVariable = this.lb_split
+		let ls_common
+		if (lb_specialVariable) {
+			//~ if ( isPrecedingFrame(otherVal.frame, pFrame) ) {
+			ls_common = getCommonStart(otherVal.frame.pathOfExecution, pFrame.pathOfExecution)
+			while (['0','1','2','3','4','5','6','7','8','9'].includes(ls_common.charAt(ls_common.length - 1))) {
+				ls_common = ls_common.slice(0,-1)
+			}
 		}
-		if ( ls_common.charAt(ls_common.length - 1) == ';') {
+		if ( !lb_specialVariable || ls_common.charAt(ls_common.length - 1) == ';') {
 			const l_otherValIndex = this.currMultival.indexOf(otherVal)
 			this.currMultival.splice(l_otherValIndex, 1)
 		}
@@ -183,10 +220,10 @@ Livebox.prototype.setval = function(pFrame, val, pb_multiple) {
 	}
 }
 
-function makeNewVariable(pFrame, p_label) {
+function makeNewVariable(pFrame, p_label, pb_split) {
 	if (pFrame.namespace===undefined) makeNewAttachedNamespace(pFrame)
 	;;     $$$__BugChecking(pFrame.namespace.has( p_label ), 'variable already defined', new Error().lineNumber, [pFrame, p_label])
-	pFrame.namespace.set( p_label, new Livebox(pFrame.namespace, p_label) )
+	pFrame.namespace.set( p_label, new Livebox(pFrame.namespace, p_label, pb_split) )
 }
 
 function variableExists(pFrame, p_label) {
@@ -372,8 +409,9 @@ const gDict_instructions = {
 					const output=arguments[0]
 					const error=arguments[1]
 					const SAVES=arguments[2]
+					const goAssign=arguments[3]
 				`
-				let cptArg = 3
+				let cptArg = 4
 				for (const vari of l_inputContent) {
 					ls_jsStringToExecute += 'const ' + vari.content + '=arguments[' + cptArg + ']\n'
 					cptArg += 1
@@ -396,7 +434,7 @@ const gDict_instructions = {
 				for (const argmts of l_theCombinations) {
 					promises.push(
 						new Promise(
-							(resolve,reject) => {       (new Function(ls_jsStringToExecute))(resolve,reject,lList_saveExternals,...argmts)    }
+							(resolve,reject) => {       (new Function(ls_jsStringToExecute))(resolve,reject,lList_saveExternals,prep_goAssign(pFrame),...argmts)    }
 						)
 					)
 					promises[promises.length-1].then(res => {
@@ -463,6 +501,7 @@ const gDict_instructions = {
 				//=============================
 				let ls_jsStringToExecute = `
 					"use strict"
+					function v(elt) {return elt.baseVal.value}
 				`
 				let cptArg = 0
 				for (const vari of l_inputContent) {
@@ -521,15 +560,26 @@ const gDict_instructions = {
 				ls_jsStringToExecute += 'const ' + lPARAM_key.content + '=arguments[0]\n'
 				ls_jsStringToExecute += 'const delta=arguments[1]\n'
 				if (lPARAM_type.content === 'send') ls_jsStringToExecute += 'const send=arguments[2]\n'
-				if (lPARAM_type.content === 'adapt') ls_jsStringToExecute += 'const events=arguments[2]\n'
+				if (lPARAM_type.content === 'adapt') ls_jsStringToExecute += 'const events=arguments[2]\nconst goAssign=arguments[3]\nconst goBreak=arguments[3]\n'
 				ls_jsStringToExecute += l_arg_jsStringToExecute[0]
+				
+				// cancellation preparation
+				//=========================
+				const l_cancelObj={
+					externalObjects: 'continuous',
+					pathOfExecution: pFrame.pathOfExecution,
+					type: lPARAM_type.content,
+					key: pFrame.childReturnedMultivals.key[0]
+				}
+				cancellationSet.add(l_cancelObj)
 				
 				// exec
 				//======
 				addContinuousAction(
 					lPARAM_type.content,
 					pFrame.childReturnedMultivals.key[0],
-					new Function(ls_jsStringToExecute)
+					new Function(ls_jsStringToExecute),
+					pFrame,
 				)
 				pFrame.toReturn_multival = []
 				//~ pFrame.terminated = true
@@ -612,13 +662,26 @@ const gDict_instructions = {
 	},
 	//===========================================================
 	
-	var: {
+	'var': {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			for (const label of pFrame.childReturnedMultivals.arg1) {
 				;;     $__ErrorChecking(pFrame, variableExists(pFrame.parent, label), 'variable already exists in this namespace', label)
 				variableExists(pFrame.parent, label)
 				makeNewVariable(pFrame.parent, label)
+			}
+			pFrame.toReturn_multival = []
+		}
+	},
+	//===========================================================
+	
+	'varmul': {
+		nbArg:1,
+		postExec: function(pFrame, p_content) {
+			for (const label of pFrame.childReturnedMultivals.arg1) {
+				;;     $__ErrorChecking(pFrame, variableExists(pFrame.parent, label), 'variable already exists in this namespace', label)
+				variableExists(pFrame.parent, label)
+				makeNewVariable(pFrame.parent, label, true)
 			}
 			pFrame.toReturn_multival = []
 		}
@@ -804,6 +867,7 @@ const gDict_instructions = {
 	'sin': { singleExec: x => Math.sin(x) },
 	'cos': { singleExec: x => Math.cos(x) },
 	'randomIntBetween': { operExec: (min, max) =>  Math.floor( (max-min+1)*Math.random()+min )  },
+	'lengthOf': { singleExec: x => x.length },
 	//===========================================================
 	
 	'notCancellable': {
@@ -918,6 +982,18 @@ const gDict_instructions = {
 	},
 	//===========================================================
 	
+	parRange: { // parRange <min> <max>
+		nbArg: 2,
+		postExec: function(pFrame, p_content) {
+			const l_min = pFrame.childReturnedMultivals.arg1
+			const l_max = pFrame.childReturnedMultivals.arg2
+			;;     $__ErrorChecking(pFrame, l_min.length>1, 'multiple min')
+			;;     $__ErrorChecking(pFrame, l_max.length>1, 'multiple max')
+			pFrame.toReturn_multival = [...Array(l_max[0] - l_min[0] + 1).keys()].map(i => i+l_min[0])
+		}
+	},
+	//===========================================================
+	
 	seq: {
 		nbArg: (n=> (n>=1) ),
 		exec: function(pFrame, p_content) {
@@ -933,7 +1009,7 @@ const gDict_instructions = {
 	},
 	//===========================================================
 	
-	if: { // 'if' <condition> <expression> 'else' <expression>
+	'if': { // 'if' <condition> <expression> 'else' <expression>
 		nbArg: (n=> (n==2 || n==4) ),
 		exec: function(pFrame, p_content) {
 			if (pFrame.instrPointer==1) {
@@ -956,7 +1032,7 @@ const gDict_instructions = {
 	},
 	//===========================================================
 	
-	while: { // 'while' <condition> <expression> // = repeatIf
+	'while': { // 'while' <condition> <expression> // = repeatIf
 		nbArg:2,
 		exec: function(pFrame, p_content) {
 			let lastResult
@@ -974,6 +1050,29 @@ const gDict_instructions = {
 					pFrame.addChild(p_content[2], 'whileBody')
 				} else {
 					pFrame.toReturn_multival = [lastResult]
+					pFrame.terminated = true
+				}
+			}
+		}
+	},
+	//===========================================================
+	
+	'repeat': { // 'repeat' <number> <expression>
+		nbArg:2,
+		exec: function(pFrame, p_content) {
+			let lastResult
+			if (pFrame.instrPointer==1) {
+				;;     $$$__BugChecking(p_content[1]===undefined, 'p_content[1]===undefined', new Error().lineNumber)
+				;;     $$$__BugChecking(p_content[2]===undefined, 'p_content[2]===undefined', new Error().lineNumber)
+				pFrame.addChild(p_content[1], 'number')
+			} else {
+				const l_firstargResult = pFrame.childReturnedMultivals.number
+				;;     $__ErrorChecking(pFrame, l_firstargResult.length>1, 'multiple repeat number')
+				const l_number = l_firstargResult[0]
+				if (pFrame.instrPointer<=l_number+1) {
+					pFrame.addChild(p_content[2], 'repeatBody')
+				} else {
+					pFrame.toReturn_multival = []
 					pFrame.terminated = true
 				}
 			}
@@ -1075,19 +1174,23 @@ function Instruction(ps_codeWord) {
 			cancellationSet.forEach(
 				cancelElt => {
 					if (cancelElt.pathOfExecution.startsWith(pFrame.pathOfExecution)) {
-						let ls_jsStringToExecute = cancelElt.execCancel
-						ls_jsStringToExecute = `
-							"use strict"
-							const output=arguments[0]
-							const error=arguments[1]
-							const SAVE=arguments[2]
-							const args=[...arguments]
-							args.shift(); args.shift(); args.shift();
-						` + ls_jsStringToExecute
-						for (const extObj of cancelElt.externalObjects) {
-							const lPromise = new Promise(
-								(resolve,reject) => {       (new Function(ls_jsStringToExecute))(resolve,reject,extObj)    }
-							)
+						if (cancelElt.externalObjects === 'continuous') {
+							delContinuousAction(cancelElt.type, cancelElt.key)
+						} else {
+							let ls_jsStringToExecute = cancelElt.execCancel
+							ls_jsStringToExecute = `
+								"use strict"
+								const output=arguments[0]
+								const error=arguments[1]
+								const SAVE=arguments[2]
+								const args=[...arguments]
+								args.shift(); args.shift(); args.shift();
+							` + ls_jsStringToExecute
+							for (const extObj of cancelElt.externalObjects) {
+								const lPromise = new Promise(
+									(resolve,reject) => {       (new Function(ls_jsStringToExecute))(resolve,reject,extObj)    }
+								)
+							}
 						}
 						cancellationSet.delete(cancelElt)
 					}
@@ -1186,6 +1289,23 @@ function toCancellableExpression(pExpression_oldCode) {
 			new Expression('identifier', 'cancellableExec', 'cancellableExec'),
 			new Expression('identifier', pExpression_oldCode.exprLabel, pExpression_oldCode.exprLabel),
 			new Expression(pExpression_oldCode.type, pExpression_oldCode.content, pExpression_oldCode.text, null, pExpression_oldCode.cancelExpression)
+		],
+		pExpression_oldCode.text,
+		null,
+		//~ pExpression_oldCode.cancelExpression
+		null
+	)
+	lExpression.location = pExpression_oldCode.location
+	return lExpression
+}
+
+function untilToCancellableExpression(pExpression_oldCode) {
+	const lExpression = new Expression(
+		'expression',
+		[
+			new Expression('identifier', 'cancellableExec', 'cancellableExec'),
+			pExpression_oldCode.content[3],
+			pExpression_oldCode.content[1],
 		],
 		pExpression_oldCode.text,
 		null,
@@ -1410,7 +1530,13 @@ Frame.prototype.getInstruction = function() {
 			
 			// get Instruction
 			//======================
-			let lInstruction_firstTry = new Instruction(l_content[0].content)
+			if (this.code.content[0]?.content === 'doOnce') {
+				;;     $__ErrorChecking(this, this.code.content.length !== 4, 'doOnce: wrong number of arguments')
+				;;     $__ErrorChecking(this, this.code.content[2]?.content !== 'until', 'doOnce: "until" is missing')
+				this.code = untilToCancellableExpression(this.code)
+			}
+			
+			let lInstruction_firstTry = new Instruction(this.code.content[0].content)
 			if (lInstruction_firstTry.nbArg===undefined) lInstruction_firstTry = undefined
 			
 			if (lInstruction_firstTry===undefined && l_content[0].type==='identifier') {
@@ -1419,7 +1545,7 @@ Frame.prototype.getInstruction = function() {
 			if (this.code.exprLabel) {
 				this.code = toCancellableExpression(this.code)
 			}
-			if ( ['lambda', 'while', 'foreach'].includes(this.code.content[0]?.content) ) {
+			if ( ['lambda', 'while', 'foreach', 'repeat'].includes(this.code.content[0]?.content) ) {
 				this.code = getSeqInserted(this.code, 2)
 			} else if (this.code.content[0]?.content === 'if') {
 				this.code = getSeqInserted(this.code, 2, 'else')
@@ -1658,14 +1784,14 @@ function runBurst() {
 			const raf_func = function raf_func(timestamp) {
 				cpt3 += 1
 				const delta = (old_timestamp) ? timestamp - old_timestamp : 0
-				for (const [key, fct] of continuousActionDict.send) fct(key, delta, send)
-				for (const [key, fct] of continuousActionDict.adapt) fct(key, delta, continuousEvents)
-				for (const [key, fct] of continuousActionDict.play) fct(key, delta)
-				for (const [key, fct] of continuousActionDict.emit) fct(key, delta)
-				if (continuousActionDict.play.size !== 0 && (g_debug == 0 || cpt3 < 500)) requestAnimationFrame(raf_func)
-				//~ if (continuousActionDict.play.size !== 0 && cpt3 < 1) requestAnimationFrame(raf_func)
+				for (const [key, fct_frame] of continuousActionDict.send) fct_frame.fct(key, delta, send)
+				for (const [key, fct_frame] of continuousActionDict.adapt) fct_frame.fct(key, delta, continuousEvents, prep_goAssign(fct_frame.frame))
+				for (const [key, fct_frame] of continuousActionDict.play) fct_frame.fct(key, delta)
+				for (const [key, fct_frame] of continuousActionDict.emit) fct_frame.fct(key, delta)
+				if (!continuousActionEmpty && (g_debug <= 0.5 || cpt3 < 500)) requestAnimationFrame(raf_func)
+				//~ if (continuousActionEmpty && cpt3 < 1) requestAnimationFrame(raf_func)
 				//~ else localLog('---STOP')
-				continuousEvents = new Map()
+				clearContinuousEvents()
 				old_timestamp = timestamp
 			}
 			requestAnimationFrame(raf_func)
