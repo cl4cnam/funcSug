@@ -1,4 +1,5 @@
 .var dummy
+.var document <-- .import document
 
 #====================================
 # Click functions
@@ -94,6 +95,61 @@
 #====================================
 # Input functions
 #====================================
+
+{deffunc listen (p_elt p_evtDOM p_evtSug)
+	{ext (p_elt p_evtDOM p_evtSug) `
+		const l_react = function(evt) {
+			goAssign(p_evtSug, evt)
+		}
+		p_elt.addEventListener(p_evtDOM, l_react)
+		SAVES.push({elt:p_elt, react:l_react, evtDOM:p_evtDOM})
+	` dummy `
+		SAVE.elt.removeEventListener(SAVE.evtDOM, SAVE.react)
+	`}
+}
+
+{deffunc listener (p_target p_evtDOM p_sToExecute)
+	{ext (p_target p_evtDOM) (+ `
+		const l_react = function(evt) {
+			` $p_sToExecute `
+		}
+		p_target.addEventListener(p_evtDOM, l_react)
+		SAVES.push({elt:p_target, react:l_react, evtDOM:p_evtDOM})
+	`) dummy `
+		SAVE.elt.removeEventListener(SAVE.evtDOM, SAVE.react)
+	`}
+}
+
+{deffunc listenOnce (p_elt p_evtDOM p_evtSug)
+	{ext (p_elt p_evtDOM) `
+		const l_react = function(evt) {
+			p_elt.removeEventListener(p_evtDOM, l_react)
+			output(evt)
+		}
+		p_elt.addEventListener(p_evtDOM, l_react)
+		SAVES.push({elt:p_elt, react:l_react, evtDOM:p_evtDOM})
+	` $p_evtSug `
+		//~ console.log('DELETE')
+		SAVE.elt.removeEventListener(SAVE.evtDOM, SAVE.react)
+	`}
+}
+
+{deffunc awaitDOMevtBeep (p_elt p_evtDOM)
+	.var evtSug
+	%listenOnce $p_elt $p_evtDOM evtSug
+	:await evtSug beep
+}
+
+{deffunc loopAwaitDOMevt (p_elt p_sEvtDOM p_eltB p_sExternalScript)
+	{while true
+		.var evtSug
+		%listenOnce $p_elt $p_sEvtDOM evtSug
+		.var evt <-- :await evtSug beep
+		.var target <-- $p_elt
+		.var elt <-- $p_eltB
+		{short (evt target elt) $p_sExternalScript}
+	}
+}
 
 {deffunc inputNewHumanTextIn (p_evtSugB p_idAnchor)
 #        -------------------
