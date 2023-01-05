@@ -11,7 +11,15 @@ In this language, you can write
 ```
 to execute ```parallelBranch1``` and ```parallelBranch2``` concurrently.
 
-To get a taste of the language, see https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg and test it at https://cl4cnam.github.io/Guess_the_number/guessTheNumber.html. You may also want to have a look at https://github.com/cl4cnam/miniSweet/blob/main/miniSweet.fg and test it at https://cl4cnam.github.io/miniSweet/miniSweet.html.
+### Get a taste of the language
+See [the 'Guess the Number' code](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg)
+and [test it](https://cl4cnam.github.io/Guess_the_number/guessTheNumber.html).
+
+You may also want to have a look at:
+- [the 'Mini Sweet' code](https://github.com/cl4cnam/miniSweet/blob/main/miniSweet.fg)
+and [test it](https://cl4cnam.github.io/miniSweet/miniSweet.html).
+- [the 'Breakout' code](https://github.com/cl4cnam/breakout/blob/main/breakout.fg)
+and [test it](https://cl4cnam.github.io/breakout/breakout.html).
 
 Don't look too hard at my syntax (I intend to change it into a pythonic syntax). Look instead at the structure of the code (https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg): One cannot follow this structure in usual programming language.
 
