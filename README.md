@@ -35,13 +35,13 @@ In your ```myProgram.html```, in the end of the body element, include the lines:
 ```
   <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/libStd.fg" type="application/funcsug"></script>
   <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/libDOM.fg" type="application/funcsug"></script>
+  <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/libDOMSVG.fg" type="application/funcsug"></script>
   <script src="myProgram.fg" type="application/funcsug"></script>
   <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/parser.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/interpreter.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/DOMloader.js"></script>
 ```
 Write your code in the file ```myProgram.fg```.
-(For now, ```libStd.fg``` is useless)
 
 ### Syntax elements
 
