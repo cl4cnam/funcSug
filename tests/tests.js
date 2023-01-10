@@ -603,6 +603,18 @@ c1
 `,},
 
 {line: new Error().lineNumber, code:`
+	{seq
+		{deffunc test parame
+			.print $parame.ALL
+		}
+		(test 34 57)
+	}
+`, result: `
+34
+57
+`,},
+
+{line: new Error().lineNumber, code:`
 	.print {seq
 		99
 		4
@@ -854,6 +866,21 @@ w
 `, result: `
 4
 7
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a <-- (par 4 7)
+		{foreach a {seq
+			.print $a
+			.print $a_N
+		}}
+	}
+`, result: `
+4
+7
+0
+1
 `,},
 
 {line: new Error().lineNumber, code:`
