@@ -280,6 +280,11 @@ const gDict_instructions = {
 							[val],
 							{frame:pFrame, foreach: true}
 						)
+						l_childFrame.injectParametersWithValues(
+							[new Expression('identifier', label+'_N', label+'_N')],
+							[ln_valCnt],
+							{frame:pFrame, foreach: true}
+						)
 						ln_valCnt += 1
 					}
 					pFrame.valCnt = ln_valCnt
@@ -1427,6 +1432,14 @@ Frame.prototype.injectParametersWithValues = function(param, args, fct) {
 			l_internalLivebox.currBeep = true
 			l_internalLivebox.currMultival = [{frame:this, val:args[i]}]
 		}
+		
+		// set ALL
+		//-----------
+		const l_allLivebox = new Livebox(l_freeNamespace, 'ALL')
+		l_freeNamespace.set('ALL', l_allLivebox)
+		l_allLivebox.currBip = true
+		l_allLivebox.currBeep = true
+		l_allLivebox.currMultival = args.map(   arg  =>  ({ frame:this, val:arg })   )
 		
 		// set length
 		//-----------
