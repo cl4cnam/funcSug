@@ -11,13 +11,20 @@
 #(&inputNewHumanText edit)
 #.print (&awaitHumanText)
 :getClick '#theButton' clickButton
-.print '.....> MID'
+.print '.....> STEP1'
+.print .awaitFileText 'interactiveTest.fg'
+.print '.....> STEP2'
 :await clickButton beep
-.print '.....> MID2'
+.print '.....> STEP3'
 #.print :await edit beep
 .print :randomIntBetween 0 31
 #(&displayNewMessageIn 'Hello!' 'body')
 .displayNewMessage 'Hello!'
 #(&awaitClickBeep '#theButton')
 .print (&awaitHumanText)
+.print .existsCssSelector '#xyz'
+.print .existsCssSelector 'body'
+%setCssProperty 'theButton' 'background-color' '#c0ffff'
+.print '.....> STEP4'
+.print (awaitChoice 'body' 'un' 'deux')
 .print '.....> END'
