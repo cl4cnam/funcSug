@@ -8,13 +8,14 @@
 {deffunc getClick (p_idElt p_evtSug)
 #        --------
 	{ext (p_idElt) `
-		const lElt = document.querySelector(p_idElt)
+		const lElt = (p_idElt instanceof HTMLElement) ? p_idElt : document.querySelector(p_idElt)
 		if (lElt===null) console.log("ERROR !!! libDOM.fs/getClick '" + p_idElt + "' selector references no element!")
 		lElt.disabled = false
 		const l_react = function(evt) {
+			evt.preventDefault()
 			lElt.removeEventListener('click', l_react)
 			lElt.disabled = true
-			output()
+			output(lElt.innerHTML)
 		};
 		lElt.addEventListener('click', l_react)
 		SAVES.push({elt:lElt, react:l_react})
@@ -36,6 +37,23 @@
 		.var evtSug
 		(&getClick $p_idElt evtSug)
 		:await evtSug beep
+}
+
+{deffunc awaitChoice p_choices
+	.var cssSelector <-- $p_choices.0
+	.var choice <-- $p_choices.ALL
+	.var response
+	.var choicesPar
+	{foreach @choicesPar choice
+		.var choiceText
+		{if [$choice_N /= 0]
+			choiceText <-- :displayNewMessageIn $choice $cssSelector
+			response <-- .awaitClickBeep $choiceText
+			.break choicesPar
+		}
+		~{short (choiceText) `choiceText.parentNode.removeChild(choiceText)`}
+	}
+	$response
 }
 
 #====================================
@@ -60,8 +78,25 @@
 	`}
 }
 
+{deffunc existsCssSelector (p_selector)
+#        -----------------
+	{short (p_selector) `
+		return document.querySelector(p_selector) !== null
+	`}
+}
+
+{deffunc setCssProperty (p_id p_property p_value)
+#        --------------
+	{short (p_id p_property p_value) `
+		const lElt = document.getElementById(p_id)
+		if (lElt===null) console.error("ERROR !!! libDOM.fs/setCssProperty '" + p_id + "' id references no element!")
+		lElt.style[p_property] = p_value
+	`}
+}
+
 {deffunc displayNewMessageIn (p_message p_idAnchor)
 #        -------------------
+	.var elt
 	{ext (p_message p_idAnchor) `
 		const lList_idAnchor = p_idAnchor.split('/')
 		const ls_idAnchor = lList_idAnchor[0]
@@ -74,7 +109,9 @@
 		lElt.innerHTML = p_message
 		lElt_anchor.appendChild(lElt)
 		lElt.scrollIntoView()
-	`}
+		output(lElt)
+	` elt}
+	:await elt beep
 }
 
 {deffunc displayNewMessage (p_message)
@@ -235,4 +272,22 @@
 {deffunc waitSeconds (p_nSeconds)
 #        -----------
 	(&waitMilliseconds :* 1000 $p_nSeconds)
+}
+
+#====================================
+# File functions
+#====================================
+
+{deffunc getFileText (p_filePath p_evtContent)
+#        -----------
+	{ext (p_filePath) `
+		fetch(p_filePath).then(response=>output(response.text()))
+	` $p_evtContent}
+}
+
+{deffunc awaitFileText (p_filePath)
+#        -------------
+	.var content
+	:getFileText $p_filePath content
+	:await content beep
 }
