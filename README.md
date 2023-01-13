@@ -16,12 +16,14 @@ See [the 'Guess the Number' code](https://github.com/cl4cnam/Guess_the_number/bl
 and [test it](https://cl4cnam.github.io/Guess_the_number/guessTheNumber.html).
 
 You may also want to have a look at:
-- [the 'Mini Sweet' code](https://github.com/cl4cnam/miniSweet/blob/main/miniSweet.fg)
-and [test it](https://cl4cnam.github.io/miniSweet/miniSweet.html).
 - [the 'Breakout' code](https://github.com/cl4cnam/breakout/blob/main/breakout.fg)
 and [test it](https://cl4cnam.github.io/breakout/breakout.html).
+- [the 'Mini Sweet' code](https://github.com/cl4cnam/miniSweet/blob/main/miniSweet.fg)
+and [test it](https://cl4cnam.github.io/miniSweet/miniSweet.html).
 
-Don't look too hard at my syntax (I intend to change it into a pythonic syntax). Look instead at the [structure of the code](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg): One cannot follow this structure in usual programming language.
+Don't look too hard at my syntax (I intend to change it into a pythonic syntax). Look instead at the [global structure of the code](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg): One cannot follow this structure in usual programming language.
+- In ['Guess the Number'](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg), ```gameCourse``` is just a function that returns only when the player has found the number. At that moment, ```gameCourse``` returns the number of steps.
+- In ['Breakout'](https://github.com/cl4cnam/breakout/blob/main/breakout.fg), ```lifeOfBrick``` is just a function that returns only when the brick is broken. The same goes for the ```lifeOfBall``` function.
 
 ### Note
 
