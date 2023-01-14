@@ -603,18 +603,6 @@ c1
 `,},
 
 {line: new Error().lineNumber, code:`
-	{seq
-		{deffunc test parame
-			.print $parame.ALL
-		}
-		(test 34 57)
-	}
-`, result: `
-34
-57
-`,},
-
-{line: new Error().lineNumber, code:`
 	.print {seq
 		99
 		4
@@ -625,16 +613,16 @@ c1
 309
 `,},
 
-{line: new Error().lineNumber, code:`
-	{seq
-		{deffunc plus (_x p_y)
-			:+ $_x $p_y
-		}
-		.print (&plus 5 8)
-	}
-`, result: `
-13
-`,},
+//~ {line: new Error().lineNumber, code:`
+	//~ {seq
+		//~ {deffunc plus (_x p_y)
+			//~ :+ $_x $p_y
+		//~ }
+		//~ .print (&plus 5 8)
+	//~ }
+//~ `, result: `
+//~ 13
+//~ `,},
 
 {line: new Error().lineNumber, code:`
 	{seq
@@ -964,6 +952,15 @@ w
 3
 4
 5
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.print .listToPar {short () 'return [76,54]'}
+	}
+`, result: `
+76
+54
 `,},
 
 

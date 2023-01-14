@@ -39,19 +39,37 @@
 		:await evtSug beep
 }
 
-{deffunc awaitChoice p_choices
-	.var cssSelector <-- $p_choices.0
-	.var choice <-- $p_choices.ALL
+{deffunc awaitNewChoice (p_type p_around p_choice)
+#        --------------
 	.var response
 	.var choicesPar
-	{foreach @choicesPar choice
+	{foreach @choicesPar p_choice
 		.var choiceText
-		{if [$choice_N /= 0]
-			choiceText <-- :displayNewMessageIn $choice $cssSelector
+		{seq
+			choiceText <-- :displayNewMessageIn $p_choice $p_around
 			response <-- .awaitClickBeep $choiceText
 			.break choicesPar
 		}
-		~{short (choiceText) `choiceText.parentNode.removeChild(choiceText)`}
+		~{if [$p_type = 'remove']
+			{short (choiceText) `choiceText.parentNode.removeChild(choiceText)`}
+		}
+	}
+	$response
+}
+
+{deffunc awaitChoice (p_choice)
+#        --------------
+	.var response
+	.var choicesPar
+	{if .isString $p_choice
+		p_choice <-- .listToPar {short (p_choice) `return [...document.querySelectorAll(p_choice)]`}
+	}
+	{foreach @choicesPar p_choice
+		.var choiceText
+		{seq
+			response <-- .awaitClickBeep $p_choice
+			.break choicesPar
+		}
 	}
 	$response
 }
