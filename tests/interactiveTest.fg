@@ -26,5 +26,7 @@
 .print .existsCssSelector 'body'
 %setCssProperty 'theButton' 'background-color' '#c0ffff'
 .print '.....> STEP4'
-.print (awaitChoice 'body' 'un' 'deux')
+#.print %awaitNewChoice 'remove' 'body' (par 'un' 'deux')
+.print %awaitNewChoice 'keep' 'body' (par 'un' 'deux')
+.print .awaitChoice 'p.display.other'
 .print '.....> END'
