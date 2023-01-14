@@ -277,12 +277,12 @@ const gDict_instructions = {
 						const l_childFrame = pFrame.addChild(lPARAM_expressionToExecute, 'expressionToExecute'+ln_valCnt)
 						l_childFrame.injectParametersWithValues(
 							[new Expression('identifier', label, label)],
-							[val],
+							[[val]],
 							{frame:pFrame, foreach: true}
 						)
 						l_childFrame.injectParametersWithValues(
 							[new Expression('identifier', label+'_N', label+'_N')],
-							[ln_valCnt],
+							[[ln_valCnt]],
 							{frame:pFrame, foreach: true}
 						)
 						ln_valCnt += 1
@@ -337,22 +337,13 @@ const gDict_instructions = {
 					) ? pFrame.childReturnedMultivals['param'+i] : [p_content[i+1]]
 					cpt += 1
 				}
-				const l_theCombinations = cartesianProduct(...l_argsResults)
 				
 				// exec
 				//==========
-				let ln_combCnt = 0
-				for (const comb of l_theCombinations) {
-					pFrame.addChild(pFrame.lambda[0].body, 'bodyToExecute'+ln_combCnt)
-					pFrame.injectParametersWithValues(pFrame.lambda[0].param.content, comb, pFrame.lambda[0])
-					ln_combCnt += 1
-				}
-				pFrame.combCnt = ln_combCnt
+				pFrame.addChild(pFrame.lambda[0].body, 'bodyToExecute')
+				pFrame.injectParametersWithValues(pFrame.lambda[0].param.content, l_argsResults, pFrame.lambda[0])
 			} else {
-				for (let i=0; i<pFrame.combCnt; i++) {
-					const l_argResult = pFrame.childReturnedMultivals['bodyToExecute'+i]
-					pFrame.toReturn_multival.push(...l_argResult)
-				}
+				pFrame.toReturn_multival = pFrame.childReturnedMultivals.bodyToExecute
 				pFrame.terminated = true
 			}
 		}
@@ -814,7 +805,7 @@ const gDict_instructions = {
 					// get variable
 					//-------------
 					const l_livebox = l_namespace.get(label)
-					;;     $__ErrorChecking(pFrame, l_livebox === undefined, 'getFromNamespace this label does not exist in this namespace')
+					;;     $__ErrorChecking(pFrame, l_livebox === undefined, 'getFromNamespace this label does not exist in this namespace', [l_namespace, label])
 					
 					// get value
 					//----------
@@ -873,6 +864,7 @@ const gDict_instructions = {
 	'cos': { singleExec: x => Math.cos(x) },
 	'randomIntBetween': { operExec: (min, max) =>  Math.floor( (max-min+1)*Math.random()+min )  },
 	'lengthOf': { singleExec: x => x.length },
+	'isString': { singleExec: x => (typeof x === 'string') },
 	//===========================================================
 	
 	'notCancellable': {
@@ -907,6 +899,15 @@ const gDict_instructions = {
 				const l_livebox = l_namespace.get(label)
 				pFrame.toReturn_multival.push(l_livebox.precBip)
 			}
+		}
+	},
+	//===========================================================
+	
+	listToPar: {
+		nbArg:1,
+		postExec: function(pFrame, p_content) {
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
+			pFrame.toReturn_multival.push(...l_firstargResult[0])
 		}
 	},
 	//===========================================================
@@ -1430,16 +1431,8 @@ Frame.prototype.injectParametersWithValues = function(param, args, fct) {
 			l_freeNamespace.set(i, l_internalLivebox)
 			l_internalLivebox.currBip = true
 			l_internalLivebox.currBeep = true
-			l_internalLivebox.currMultival = [{frame:this, val:args[i]}]
+			l_internalLivebox.currMultival = args[i].map(    val => ({frame:this, val:val})    )
 		}
-		
-		// set ALL
-		//-----------
-		const l_allLivebox = new Livebox(l_freeNamespace, 'ALL')
-		l_freeNamespace.set('ALL', l_allLivebox)
-		l_allLivebox.currBip = true
-		l_allLivebox.currBeep = true
-		l_allLivebox.currMultival = args.map(   arg  =>  ({ frame:this, val:arg })   )
 		
 		// set length
 		//-----------
@@ -1463,7 +1456,8 @@ Frame.prototype.injectParametersWithValues = function(param, args, fct) {
 			const l_livebox = l_namespace.get(label)
 			l_livebox.currBip = true
 			l_livebox.currBeep = true
-			l_livebox.currMultival.push({frame:this, val:args[labelIndex]})
+			const l_multiVal = args[labelIndex]
+			l_livebox.currMultival = l_multiVal.map(    val=>({frame:this, val:val})    )
 		}
 	}
 }
