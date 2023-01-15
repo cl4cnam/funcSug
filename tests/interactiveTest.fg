@@ -22,6 +22,8 @@
 .displayNewMessage 'Hello!'
 #(&awaitClickBeep '#theButton')
 .print (&awaitHumanText)
+.var message <-- :displayMessageIn 'Hello World!' 'p.display.other'
+{short (message) `message.style.color = 'red'`}
 .print .existsCssSelector '#xyz'
 .print .existsCssSelector 'body'
 %setCssProperty 'theButton' 'background-color' '#c0ffff'

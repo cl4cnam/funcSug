@@ -580,6 +580,34 @@ c1
 
 {line: new Error().lineNumber, code:`
 	{seq
+		{deffunc test ()
+			78
+		}
+		.print !test
+	}
+`, result: `
+78
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		{deffunc test (p_bool)
+			{if $p_bool
+				78
+			else
+				45
+			}
+		}
+		.print .test false
+		.print .test true
+	}
+`, result: `
+45
+78
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
 		{deffunc test parame
 			.print :getFromNamespace $parame 1
 			.print :getFromNamespace $parame PARAMLENGTH
