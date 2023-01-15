@@ -139,12 +139,15 @@
 
 {deffunc displayMessageIn (p_message p_idAnchor)
 #        ----------------
+	.var elt
 	{ext (p_message p_idAnchor) `
 		const lElt_anchor = document.querySelector(p_idAnchor)
 		if (lElt_anchor===null) console.log("ERROR !!! libDOM.fs/displayMessageIn '" + p_idAnchor + "' selector references no element!")
 		lElt_anchor.innerHTML = p_message
 		lElt_anchor.scrollIntoView()
-	`}
+		output(lElt_anchor)
+	` elt}
+	:await elt beep
 }
 
 #====================================
