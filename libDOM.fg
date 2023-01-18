@@ -8,7 +8,7 @@
 {deffunc getClick (p_idElt p_evtSug)
 #        --------
 	{ext (p_idElt) `
-		const lElt = (p_idElt instanceof HTMLElement) ? p_idElt : document.querySelector(p_idElt)
+		const lElt = (p_idElt instanceof Element) ? p_idElt : document.querySelector(p_idElt)
 		if (lElt===null) console.log("ERROR !!! libDOM.fs/getClick '" + p_idElt + "' selector references no element!")
 		lElt.disabled = false
 		const l_react = function(evt) {

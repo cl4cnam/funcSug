@@ -1,10 +1,11 @@
 {
-	function Expression(type, content, text, exprLabel, cancelExpression) {
+	function Expression(type, content, text, exprLabel, cancelExpression, multLabel) {
 		this.type = type
 		this.content = content
 		this.text = text
 		this.exprLabel = exprLabel
 		this.cancelExpression = cancelExpression
+		this.multLabel = multLabel
 		this.location = location()
 	}
 	input = input.replaceAll(/&([A-Za-z_]+)/g, 'call $$$1')
@@ -32,7 +33,7 @@ program
 expression
 	= "(" __ startExpr:expression expr:WSexpression* __ ")" { return new Expression('expression', [startExpr].concat(expr), text() ) }
 	/ "[" __ startExpr:expression expr:WSexpression* __ "]" { return new Expression('expression', [startExpr].concat(expr), text() ) }
-	/ "{" __ startExpr:expression exprLabel:exprLabel? expr:WSexpression* __ "}" cancelExpression:cancelExpression? { return new Expression('expression', [startExpr].concat(expr), text(), exprLabel, cancelExpression ) }
+	/ "{" __ startExpr:expression exprLabel:exprLabel? multLabel:multLabel? expr:WSexpression* __ "}" cancelExpression:cancelExpression? { return new Expression('expression', [startExpr].concat(expr), text(), exprLabel, cancelExpression, multLabel ) }
 	/ number / string / name
 	/ expression0 / expression1 / expression2 / expression3 / expression4 / expressionEmpty
 
@@ -62,6 +63,9 @@ expressionEmpty
 
 exprLabel
 	= spaces "@" n:[A-Za-z_]+ { return n.join("") }
+
+multLabel
+	= spaces "*" n:[A-Za-z_]+ { return n.join("") }
 
 name
 	= simpleName

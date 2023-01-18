@@ -4,9 +4,11 @@ const namespaceSet = new Set()
 const cancellationSet = new Set()
 const frozenLiveboxSet = new Set()
 const cancellableFrameSet = new Set()
+const dynamicParallelSet = new Set()
 
 // continuous
 //-----------
+let gs_prepContinuous = ''
 let old_timestamp = undefined
 let continuousEvents
 
@@ -553,10 +555,11 @@ const gDict_instructions = {
 					"use strict"
 					function v(elt) {return elt.baseVal.value}
 				`
-				ls_jsStringToExecute += 'const ' + lPARAM_key.content + '=arguments[0]\n'
+				ls_jsStringToExecute += gs_prepContinuous
+				ls_jsStringToExecute += ';const ' + lPARAM_key.content + '=arguments[0]\n'
 				ls_jsStringToExecute += 'const delta=arguments[1]\n'
 				if (lPARAM_type.content === 'send') ls_jsStringToExecute += 'const send=arguments[2]\n'
-				if (lPARAM_type.content === 'adapt') ls_jsStringToExecute += 'const events=arguments[2]\nconst goAssign=arguments[3]\nconst goBreak=arguments[3]\n'
+				if (lPARAM_type.content === 'adapt') ls_jsStringToExecute += 'const events=arguments[2]\nconst goAssign=arguments[3]\nconst goBreak=arguments[3]\nconst goBip=arguments[3]\n'
 				ls_jsStringToExecute += l_arg_jsStringToExecute[0]
 				
 				// cancellation preparation
@@ -636,6 +639,16 @@ const gDict_instructions = {
 				}
 				if (pFrame.awake) pFrame.terminated = true
 			}
+		}
+	},
+	//===========================================================
+	
+	prepContinuous: { // 'prepContinuous' <functionsDefinition>
+		nbArg:1,
+		exec: function(pFrame, p_content) {
+			;;     $$$__BugChecking(p_content[1]===undefined, 'p_content[1]===undefined', new Error().lineNumber)
+			gs_prepContinuous += p_content[1].content
+			pFrame.terminated = true
 		}
 	},
 	//===========================================================
@@ -976,8 +989,46 @@ const gDict_instructions = {
 	},
 	//===========================================================
 	
+	spawn: {
+		nbArg:2,
+		exec: function(pFrame, p_content) {
+			if (pFrame.instrPointer==1) {
+				for (let i=1;i<=p_content.length-1;i++) {
+					;;     $$$__BugChecking(p_content[i]===undefined, 'p_content[i]===undefined', new Error().lineNumber)
+				}
+				pFrame.addChild(p_content[1], 'arg1')
+			} else {
+				const l_firstargResult = pFrame.childReturnedMultivals.arg1
+				const l_secondargResult = p_content[2]
+				for (const label of l_firstargResult) {
+					const l_namespace = getNamespace(pFrame, label)
+					;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'set undefined variable')
+					const l_livebox = l_namespace.get(label)
+					l_livebox.setval(pFrame, {expr:l_secondargResult,frame:pFrame}, false)
+				}
+				pFrame.toReturn_multival = []
+				pFrame.terminated = true
+			}
+		}
+	},
+	//===========================================================
+	
 	par: {
 		nbArg: (n=> (n>=1) ),
+		activ: function(pFrame) {
+			const lPARAM_variable = pFrame.code.multLabel
+			const l_namespace = getNamespace(pFrame, lPARAM_variable)
+			;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'undefined dynamicAdder variable')
+			const l_livebox = l_namespace.get(lPARAM_variable)
+			
+			if (l_livebox.precBeep) {
+				const branches = l_livebox.getMultival()
+				for (const branch of branches) {
+					pFrame.addChild(branch.expr, 'branch' + pFrame.spanningNumOfChild, branch.frame)
+				}
+				l_livebox.currBeep = false
+			}
+		},
 		postExec: function(pFrame, p_content) {
 			for (const key of Object.keys(pFrame.childReturnedMultivals)) {
 				const l_argResult = pFrame.childReturnedMultivals[key]
@@ -1507,6 +1558,7 @@ Frame.prototype.removeChildFromLeaflist = function() {
 	// remove 
 	//-----------
 	cancellableFrameSet.delete(this)
+	dynamicParallelSet.delete(this)
 	
 	// remove links between frames
 	//----------------------------
@@ -1551,6 +1603,9 @@ Frame.prototype.getInstruction = function() {
 			}
 			if (this.code.exprLabel) {
 				this.code = toCancellableExpression(this.code)
+			}
+			if (this.code.multLabel) {
+				dynamicParallelSet.add(this)
 			}
 			if ( ['lambda', 'while', 'foreach', 'repeat'].includes(this.code.content[0]?.content) ) {
 				this.code = getSeqInserted(this.code, 2)
@@ -1760,6 +1815,10 @@ function runBurst() {
 		for (const cancellableFrame of cancellableFrameSet) {
 			cancellableFrame.getInstruction()
 			cancellableFrame.instruction.activ(cancellableFrame)
+		}
+		for (const dynamicParFrame of dynamicParallelSet) {
+			dynamicParFrame.getInstruction()
+			dynamicParFrame.instruction.activ(dynamicParFrame)
 		}
 		for (const leaf of [...globalFrameTree.leafList]) {
 			leaf.getInstruction()

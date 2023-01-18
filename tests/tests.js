@@ -991,6 +991,28 @@ w
 54
 `,},
 
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a <-- 3
+		.var suppl
+		{par
+			*suppl
+			{while [$a > 0]
+				.print $a
+				a <-- [- 1]
+			}
+			{spawn suppl
+				.print 'Hello!'
+			}
+		}
+	}
+`, result: `
+Hello!
+3
+2
+1
+`,},
+
 
 ]
 
