@@ -641,16 +641,45 @@ c1
 309
 `,},
 
-//~ {line: new Error().lineNumber, code:`
-	//~ {seq
-		//~ {deffunc plus (_x p_y)
-			//~ :+ $_x $p_y
-		//~ }
-		//~ .print (&plus 5 8)
-	//~ }
-//~ `, result: `
-//~ 13
-//~ `,},
+{line: new Error().lineNumber, code:`
+	{seq
+		{deffunc plus (_x p_y)
+			:+ $_x $p_y
+		}
+		.print (&plus 5 8)
+	}
+`, result: `
+13
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		{deffunc ifa (p_cond _action)
+			{if $p_cond
+				$_action
+			}
+		}
+		{ifa false
+			.print 61
+		}
+	}
+`, result: `
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		{match 63
+			case 54
+				.print '==NO=='
+			case (par 44 63 77)
+				.print 'OK'
+			case 2
+				.print '--NO--'
+		}
+	}
+`, result: `
+OK
+`,},
 
 {line: new Error().lineNumber, code:`
 	{seq
@@ -980,6 +1009,25 @@ w
 3
 4
 5
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a <-- (par 45)
+		{foreach a
+			.print $a
+		}
+	}
+`, result: `
+45
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.print .listToPar {short () 'return [76]'}
+	}
+`, result: `
+76
 `,},
 
 {line: new Error().lineNumber, code:`
