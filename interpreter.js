@@ -1414,6 +1414,37 @@ function toNotcancellableExpression(pExpression_oldCode) {
 	return lExpression
 }
 
+function getSeqInsertedForMatch(pExpression) {
+	let lArray_contentContent = pExpression.content.map(elt=>elt.content)
+	let lb_toInsert = true
+	let lIndex_keyword1
+	let lIndex_keyword2
+	
+	lIndex_keyword1 = lArray_contentContent.indexOf('case', 1)
+	
+	while (lb_toInsert) {
+		lIndex_keyword2 = lArray_contentContent.indexOf('case', lIndex_keyword1+1)
+		if (lIndex_keyword2 === -1) {
+			lIndex_keyword2 = lArray_contentContent.length
+			lb_toInsert = false
+		}
+		
+		const lArray_content = pExpression.content.slice(lIndex_keyword1+2, lIndex_keyword2)
+		const lExpr_seq = new Expression(
+			'expression',
+			[
+				new Expression('identifier', 'seq', 'seq'),
+				...lArray_content,
+			],
+			'{seq\n' + lArray_content.map(elt=>elt.text).join('\n') + '\n}'
+		)
+		pExpression.content.splice(lIndex_keyword1+2, lIndex_keyword2 - lIndex_keyword1 -2, lExpr_seq)
+		
+		lIndex_keyword1 += 3
+		lArray_contentContent = pExpression.content.map(elt=>elt.content)
+	}
+}
+
 function getSeqInserted(pExpression, pn_pos, ps_keyword) {
 	if (pn_pos > 0) {
 		//~ const lArray_content = [...pExpression.content]
@@ -1638,6 +1669,8 @@ Frame.prototype.getInstruction = function() {
 				this.code = getSeqInserted(this.code, 2)
 			} else if (this.code.content[0]?.content === 'if') {
 				this.code = getSeqInserted(this.code, 2, 'else')
+			} else if (this.code.content[0]?.content === 'match') {
+				getSeqInsertedForMatch(this.code)
 			}
 			if (this.code.content[0].content === 'cancellableExec') {
 				cancellableFrameSet.add(this)
