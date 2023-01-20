@@ -178,6 +178,18 @@ c1
 `,},
 
 {line: new Error().lineNumber, code:`
+	{if false
+		.print 'c1'
+	else
+		.print 'two'
+		.print 'three'
+	}
+`, result: `
+two
+three
+`,},
+
+{line: new Error().lineNumber, code:`
 	{seq
 		.varmul a
 		a <-- 0
@@ -679,6 +691,44 @@ c1
 	}
 `, result: `
 OK
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		{match 63
+			case 54
+				.print '==NO=='
+			case (par 44 63 77)
+				.print 'OK'
+				.print '==='
+			case 2
+				.print '--NO--'
+		}
+	}
+`, result: `
+OK
+===
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		{match 63
+			case 54
+				.print '==NO=='
+			case (par 44 63 77)
+				.print 'OK'
+				.print '==='
+			case 3
+				.print '--NO--'
+				.print '------'
+			case 2
+				.print '--NO NO--'
+				.print '---------'
+		}
+	}
+`, result: `
+OK
+===
 `,},
 
 {line: new Error().lineNumber, code:`
