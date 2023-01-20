@@ -319,7 +319,7 @@ const gDict_instructions = {
 						;;     $$$__BugChecking(p_content[i]===undefined, 'p_content[i]===undefined', new Error().lineNumber)
 						//~ if(l_params[i-2][0] !== '_') pFrame.addChild(p_content[i], 'param' + (i-1))
 						if (
-							typeof l_params === 'string' && l_params[0] !== '_' || typeof l_params !== 'string' && l_params[i-2][0] !== '_'
+							typeof l_params === 'string' && l_params[0] !== '_' || typeof l_params !== 'string' && l_params[i-2].content[0] !== '_'
 						) {
 							pFrame.addChild(p_content[i], 'param' + (i-1))
 						}
@@ -1083,6 +1083,33 @@ const gDict_instructions = {
 			} else {
 				if (pFrame.childReturnedMultivals.thenBranch !== undefined) pFrame.toReturn_multival.push(...pFrame.childReturnedMultivals.thenBranch)
 				if (pFrame.childReturnedMultivals.elseBranch !== undefined) pFrame.toReturn_multival.push(...pFrame.childReturnedMultivals.elseBranch)
+				pFrame.terminated = true
+			}
+		}
+	},
+	//===========================================================
+	
+	'match': { // 'match' <value> 'case' <value1> <expression1> ... 'case' <valueN> <expressionN>
+		nbArg: (n=> (n>=4 && n%3==1) ),
+		exec: function(pFrame, p_content) {
+			if (pFrame.instrPointer==1) {
+				;;     $$$__BugChecking(p_content[1]===undefined, 'p_content[1]===undefined', new Error().lineNumber)
+				for (let i=2; i<p_content.length; i+=3) {
+					;;     $__ErrorChecking(pFrame, p_content[i].content != 'case', 'case missing')
+				}
+				pFrame.addChild(p_content[1], 'tomatchValue')
+				for (let i=3; i<p_content.length; i+=3) {
+					pFrame.addChild(p_content[i], 'matchedValue'+(i/3))
+				}
+			} else if (pFrame.instrPointer==2) {
+				for (let i=3; i<p_content.length; i+=3) {
+					//~ if (pFrame.childReturnedMultivals['matchedValue'+(i/3)][0] === pFrame.childReturnedMultivals.tomatchValue[0]) {
+					if (pFrame.childReturnedMultivals['matchedValue'+(i/3)].includes(pFrame.childReturnedMultivals.tomatchValue[0])) {
+						pFrame.addChild(p_content[i+1], 'expression'+(i/3))
+					}
+				}
+			} else {
+				pFrame.toReturn_multival = []
 				pFrame.terminated = true
 			}
 		}
