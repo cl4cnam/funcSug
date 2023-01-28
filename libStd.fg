@@ -5,3 +5,35 @@
 {deffunc export (p_val p_extObj p_extVar)
 	{short (p_val p_extObj) (+ 'p_extObj.' $p_extVar '=p_val')}
 }
+
+{deffunc par_race __par
+	.var all
+	{foreach @all __par
+		$__par
+		.break all
+	}
+}
+
+{deffunc foreach_race (p_vari _expr)
+	.var all
+	{foreach @all $p_vari
+		$_expr
+		.break all
+	}
+}
+
+{deffunc restart (vari)
+	:set $vari 1
+}
+
+{deffunc togglePause (vari)
+	:set $vari 2
+}
+
+{deffunc pause (vari)
+	:set $vari 3
+}
+
+{deffunc resume (vari)
+	:set $vari 4
+}
