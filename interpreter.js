@@ -6,6 +6,12 @@ const frozenLiveboxSet = new Set()
 const cancellableFrameSet = new Set()
 const dynamicParallelSet = new Set()
 
+const BREAK = 0
+const RESTART = 1
+const TOGGLE_PAUSE = 2
+const PAUSE = 3
+const RESUME = 4
+
 // continuous
 //-----------
 let gs_prepContinuous = ''
@@ -656,7 +662,9 @@ const gDict_instructions = {
 	print: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
-			for (const val of pFrame.childReturnedMultivals.arg1) console.log(val)
+			for (const val of pFrame.childReturnedMultivals.arg1) {
+				console.log(val)
+			}
 			pFrame.toReturn_multival = []
 		}
 	},
@@ -1174,13 +1182,31 @@ const gDict_instructions = {
 			;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'undefined cancellor variable')
 			const l_livebox = l_namespace.get(lPARAM_variable.content)
 			if (l_livebox.precBeep) {
-				for (const ch of pFrame.childrenList) {
-					ch.getInstruction()
-					ch.instruction.canc(ch)
-				}
-				if (pFrame.childrenList.length==0) {
-					pFrame.terminated = true
-					pFrame.removeChildFromLeaflist()
+				const l_multival = l_livebox.getMultival()
+				;;     $__ErrorChecking(pFrame, l_multival.length > 1, 'multiple value for cancellor variable')
+				if (l_multival.length===0 || ! l_multival[0]) {
+					for (const ch of pFrame.childrenList) {
+						ch.getInstruction()
+						ch.instruction.canc(ch)
+					}
+					if (pFrame.childrenList.length==0) {
+						pFrame.terminated = true
+						pFrame.removeChildFromLeaflist()
+					}
+				} else if (l_multival[0] === 1) {
+					for (const ch of pFrame.childrenList) {
+						ch.getInstruction()
+						ch.instruction.canc(ch)
+					}
+					if (pFrame.childrenList.length==0) {
+						pFrame.terminated = true
+						const l_parent = pFrame.parent
+						const l_expr = pFrame.code
+						pFrame.removeChildFromLeaflist()
+						l_parent.addChild(l_expr, 'restart')
+					}
+				} else if (l_multival[0] > 1) {
+					this.setPause(pFrame, l_multival[0])
 				}
 				l_livebox.currBeep = false
 			}
@@ -1241,6 +1267,28 @@ function Instruction(ps_codeWord) {
 	this.exec = gDict_instructions[ps_codeWord].exec
 	this.activ = gDict_instructions[ps_codeWord].activ
 	this.canc = gDict_instructions[ps_codeWord].canc
+	
+	this.setPause = function(pFrame, valPause) {
+		switch (valPause) {
+			case TOGGLE_PAUSE:
+				if (pFrame.suspended) {
+					this.setPause(pFrame, RESUME)
+				} else {
+					this.setPause(pFrame, PAUSE)
+				}
+				return;
+			case PAUSE:
+				pFrame.suspended = true
+				break;
+			case RESUME:
+				pFrame.suspended = false
+				break;
+		}
+		for (const ch of pFrame.childrenList) {
+			ch.getInstruction()
+			ch.instruction.setPause(ch, valPause)
+		}
+	}
 	
 	if (! this.canc) {
 		this.canc = function(pFrame) {
@@ -1527,7 +1575,19 @@ Frame.prototype.toString = function() {
 }
 
 Frame.prototype.injectParametersWithValues = function(param, args, fct) {
-	if (typeof param === 'string') {
+	if (typeof param === 'string' && (param.startsWith('p__') || param.startsWith('__'))) {
+		makeNewVariable(this, param)
+		const l_namespace = this.namespace
+		const l_livebox = l_namespace.get(param)
+		l_livebox.currBip = true
+		l_livebox.currBeep = true
+		l_livebox.currMultival = []
+		// set values of args
+		//-------------------
+		for (let i=0; i<args.length; i++) {
+			l_livebox.currMultival.push(...args[i].map(    val => ({frame:this, val:val})    )   )
+		}
+	} else if (typeof param === 'string') {
 		makeNewVariable(this, param)
 		const l_namespace = this.namespace
 		const l_livebox = l_namespace.get(param)
@@ -1581,8 +1641,9 @@ Frame.prototype.addChild = function(expr, reason, namespaceParent) {
 		const childFrame = new Frame(expr)
 		childFrame.reason = reason
 		childFrame.namespaceParent = namespaceParent
+		childFrame.suspended = this.suspended
 		
-		condLog(4, '- - - ->new frame', expr.text)
+		condLog(4, '- - - ->new frame', expr.text, reason, childFrame.serialNumber, this.serialNumber)
 		
 		// globalFrameTree
 		//========================
@@ -1656,16 +1717,13 @@ Frame.prototype.getInstruction = function() {
 			let lInstruction_firstTry = new Instruction(this.code.content[0].content)
 			if (lInstruction_firstTry.nbArg===undefined) lInstruction_firstTry = undefined
 			
-			if (lInstruction_firstTry===undefined && l_content[0].type==='identifier') {
-				this.code = toCallExpression(this.code)
-			}
 			if (this.code.exprLabel) {
 				this.code = toCancellableExpression(this.code)
 			}
 			if (this.code.multLabel) {
 				dynamicParallelSet.add(this)
 			}
-			if ( ['lambda', 'while', 'foreach', 'repeat'].includes(this.code.content[0]?.content) ) {
+			if ( ['lambda', 'while', 'foreach', 'foreach_race', 'repeat'].includes(this.code.content[0]?.content) ) {
 				this.code = getSeqInserted(this.code, 2)
 			} else if (this.code.content[0]?.content === 'if') {
 				this.code = getSeqInserted(this.code, 2, 'else')
@@ -1674,6 +1732,9 @@ Frame.prototype.getInstruction = function() {
 			}
 			if (this.code.content[0].content === 'cancellableExec') {
 				cancellableFrameSet.add(this)
+			}
+			if (lInstruction_firstTry===undefined && l_content[0].type==='identifier') {
+				this.code = toCallExpression(this.code)
 			}
 		}
 		
@@ -1685,7 +1746,7 @@ Frame.prototype.getInstruction = function() {
 		if (typeof l_content !== 'string' && typeof l_content !== 'number') {
 			;;     $__ErrorChecking(this, typeof l_content[0].content !== 'string', 'instruction code cannot be multiple')
 			;;     $__ErrorChecking(this, typeof lInstruction.nbArg === 'number' && l_content.length !== lInstruction.nbArg+1, 'wrong number of arguments')
-			;;     $__ErrorChecking(this, typeof lInstruction.nbArg !== 'number' && ! lInstruction.nbArg(l_content.length-1), 'invalid number of arguments')
+			;;     $__ErrorChecking(this, typeof lInstruction.nbArg !== 'number' && ! lInstruction.nbArg(l_content.length-1), 'invalid number of arguments', this)
 			
 			;;     $$$__BugChecking(! (l_content instanceof Array), 'expression not array', new Error().lineNumber)
 			;;     $$$__BugChecking(l_content.length === 0, 'exec empty array', new Error().lineNumber)
@@ -1881,6 +1942,7 @@ function runBurst() {
 			dynamicParFrame.instruction.activ(dynamicParFrame)
 		}
 		for (const leaf of [...globalFrameTree.leafList]) {
+			if (leaf.suspended) continue
 			leaf.getInstruction()
 			leaf.instruction.exec(leaf, leaf.code.content)
 			if (leaf.terminated) leaf.removeChildFromLeaflist()
