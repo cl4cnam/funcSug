@@ -1422,7 +1422,7 @@ function peg$parse(input, options) {
 	input = input.replaceAll(/([A-Za-z_]+)[.]([0-9A-Za-z_]+) <-- /g, '%setToNamespace $$$1 $2 ')
 	input = input.replaceAll(/[$]([A-Za-z_]+)[.]([0-9A-Za-z_]+)[.]([0-9A-Za-z_]+)/g, ':getFromNamespace :getFromNamespace $$$1 $2 $3')
 	input = input.replaceAll(/[$]([A-Za-z_]+)[.]([0-9A-Za-z_]+)/g, ':getFromNamespace $$$1 $2')
-	input = input.replaceAll(/[{]deffunc ([A-Za-z_]+) /g, '.var $1 :set $1 {lambda ')
+	input = input.replaceAll(/[{]deffunc ([A-Za-z_]+) /g, '.var $1 :set $1 {lambda ') // '}}'
 	input = input.replaceAll(/.var\s+([A-Za-z_]+) <-- /g, '.var $1 :set $1 ')
 	input = input.replaceAll('$_', '.evalget _')
 	input = input.replaceAll(/\n(\s*)(#?)(.*)<--(.*)(?=\n)/g, '\n$1$2[ $3 <- $4 ]')
