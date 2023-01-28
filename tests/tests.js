@@ -1091,6 +1091,142 @@ w
 
 {line: new Error().lineNumber, code:`
 	{seq
+		{deffunc par_race __par
+			.var all
+			{foreach @all __par
+				$__par
+				.break all
+			}
+		}
+		{par_race
+			{seq
+				.var a
+				.var b
+				.print 'KO'
+			}
+			{seq
+				.print 'OK'
+			}
+		}
+	}
+`, result: `
+OK
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		{deffunc foreach_race (p_vari _expr)
+			.var all
+			{foreach @all $p_vari
+				$_expr
+				.break all
+			}
+		}
+		.var value <-- (par 1 2)
+		{foreach_race value {seq
+			{if [$value = 1]
+				.var a
+				.var b
+			}
+			.print $value
+		}}
+	}
+`, result: `
+2
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		{deffunc foreach_race (p_vari _expr)
+			.var all
+			{foreach @all $p_vari
+				$_expr
+				.break all
+			}
+		}
+		.var value <-- (par 1 2)
+		{foreach_race value
+			{if [$value = 1]
+				.var a
+				.var b
+			}
+			.print $value
+		}
+	}
+`, result: `
+2
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var theSeq
+		.var togglePause <-- 2
+		{par
+			{seq @theSeq
+				.print 'A1'
+				.print 'A2'
+				.print 'A3'
+				.print 'A4'
+				.print 'A5'
+				.print 'A6'
+				.print 'A7'
+			}
+			{seq
+				.print 'B1'
+				theSeq <-- $togglePause
+				.print 'Binter1'
+				.print 'Binter2'
+				.print 'Binter3'
+				.print 'Binter4'
+				.print 'Binter5'
+				theSeq <-- $togglePause
+			}
+		}
+	}
+`, result: `
+B1
+A1
+A2
+Binter1
+Binter2
+Binter3
+Binter4
+Binter5
+A3
+A4
+A5
+A6
+A7
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var theSeq
+		{par
+			{seq @theSeq
+				.print 'A1'
+				.print 'A2'
+				.print 'A3'
+			}
+			{seq
+				.print 'B1'
+				.print 'B2'
+				theSeq <-- 1
+			}
+		}
+	}
+`, result: `
+B1
+A1
+B2
+A2
+A1
+A2
+A3
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
 		.var a <-- 3
 		.var suppl
 		{par
