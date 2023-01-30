@@ -1486,6 +1486,7 @@ function getSeqInsertedForMatch(pExpression) {
 			],
 			'{seq\n' + lArray_content.map(elt=>elt.text).join('\n') + '\n}'
 		)
+		lExpr_seq.location = pExpression.location
 		pExpression.content.splice(lIndex_keyword1+2, lIndex_keyword2 - lIndex_keyword1 -2, lExpr_seq)
 		
 		lIndex_keyword1 += 3
@@ -1539,6 +1540,8 @@ function getSeqInserted(pExpression, pn_pos, ps_keyword) {
 			pExpression.exprLabel,
 			pExpression.cancelExpression,
 		)
+		lExpr_seq1.location = pExpression.location
+		lExpression.location = pExpression.location
 		return lExpression
 	}
 }
