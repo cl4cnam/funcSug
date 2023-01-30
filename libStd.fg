@@ -22,18 +22,18 @@
 	}
 }
 
-{deffunc restart (vari)
-	:set $vari 1
+{deffunc restart (p_vari)
+	:set $p_vari 1
 }
 
-{deffunc togglePause (vari)
-	:set $vari 2
+{deffunc togglePause (p_vari)
+	:set $p_vari 2
 }
 
-{deffunc pause (vari)
-	:set $vari 3
+{deffunc pause (p_vari)
+	:set $p_vari 3
 }
 
-{deffunc resume (vari)
-	:set $vari 4
+{deffunc resume (p_vari)
+	:set $p_vari 4
 }
