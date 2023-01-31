@@ -88,7 +88,7 @@ let f_location
 const localLog = console.debug
 const localGroup = console.group
 const localGroupEnd = console.groupEnd
-const g_debug = 0.5
+const g_debug = 0
 const condLog = function (debugLevel, ...param) {
 	if (g_debug >= debugLevel) localLog(...param)
 }
