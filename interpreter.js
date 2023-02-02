@@ -12,6 +12,8 @@ const TOGGLE_PAUSE = 2
 const PAUSE = 3
 const RESUME = 4
 
+let stop
+
 // continuous
 //-----------
 let gs_prepContinuous = ''
@@ -88,7 +90,7 @@ let f_location
 const localLog = console.debug
 const localGroup = console.group
 const localGroupEnd = console.groupEnd
-const g_debug = 0
+const g_debug = 0.5
 const condLog = function (debugLevel, ...param) {
 	if (g_debug >= debugLevel) localLog(...param)
 }
@@ -806,7 +808,7 @@ const gDict_instructions = {
 				// get variable
 				//-------------
 				const l_namespace = getNamespace(pFrame, label)
-				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'get undefined variable')
+				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'get undefined variable', pFrame)
 				const l_livebox = l_namespace.get(label)
 				// get value
 				//----------
@@ -1898,6 +1900,12 @@ function Tree(p_root) {
 	this.someLeafHasPropertyTrue = function(ps_property) {
 		return this.leafList.some(elt=>elt[ps_property])
 	}
+
+	this.someLeafHasConditionTrue = function(ps_condition) {
+		//~ console.log('someLeafHasPropertyTrue', this.leafList, ps_property)
+		return this.leafList.some(elt=>eval(ps_condition))
+	}
+
 	
 	this.setPropertyTrueForAllLeaf = function(ps_property) {
 		for (const leaf of this.leafList) {
@@ -1914,6 +1922,7 @@ function Tree(p_root) {
 //===================================================================================================
 
 function runBurst() {
+	if (stop) return
 	g_superInstantNumber += 1
 	//~ localLog('====> SuperInstant:', g_superInstantNumber)
 	;;        condLogGroup(1, '====> SuperInstant:', g_superInstantNumber)
@@ -1922,13 +1931,16 @@ function runBurst() {
 	globalFrameTree.setPropertyTrueForAllLeaf('awake')
 	let cpt2 = 0
 	let precedent_stillAwake = true
-	let stillAwake = globalFrameTree.someLeafHasPropertyTrue('awake' )
+	//~ let stillAwake = globalFrameTree.someLeafHasPropertyTrue('awake' )
+	let stillAwake = globalFrameTree.someLeafHasConditionTrue('! elt.suspended && elt.awake' )
 	while ( precedent_stillAwake || stillAwake ) {
 		cpt2 += 1
-		if (cpt2==250 && g_debug > 0) console.warn('!!! soon INFINITE LOOP ?? !!!')
-		if (cpt2==500 && g_debug > 0) {
+		if (cpt2==500 && g_debug > 0) console.warn('!!! soon INFINITE LOOP ?? !!!')
+		if (cpt2==1000 && g_debug > 0) {
 			console.warn('!!! INFINITE LOOP ?? !!!', globalFrameTree, namespaceSet)
-			break
+			console.warn(precedent_stillAwake, stillAwake)
+			stop = true
+			throw 'err'
 		}
 		// exec 1 microinstant
 		//====================
@@ -1989,8 +2001,8 @@ function runBurst() {
 		}
 		
 		precedent_stillAwake = stillAwake
-		stillAwake = globalFrameTree.someLeafHasPropertyTrue('awake' )
-		
+		//~ stillAwake = globalFrameTree.someLeafHasPropertyTrue('awake' )
+		stillAwake = globalFrameTree.someLeafHasConditionTrue('! elt.suspended && elt.awake' )
 		;;        condLogGroupEnd(3, '------> MicroInstant', 'END')
 	}
 	;;        condLogGroupEnd(1, '====> SuperInstant:', 'END')
