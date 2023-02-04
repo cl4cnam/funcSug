@@ -1009,6 +1009,16 @@ w
 
 {line: new Error().lineNumber, code:`
 	{seq
+		.var n <-- !Namespace
+		n.a <-- 53
+		.print :await n.a beep
+	}
+`, result: `
+53
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
 		{repeat 0
 			.print 77
 		}
