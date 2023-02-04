@@ -1,4 +1,5 @@
 {
+	let indentationCount = 0
 	function Expression(type, content, text, exprLabel, cancelExpression, multLabel) {
 		this.type = type
 		this.content = content
@@ -11,6 +12,7 @@
 	input = input.replaceAll(/&([A-Za-z_]+)/g, 'call $$$1')
 	input = input.replaceAll(/([A-Za-z_]+)[.]([0-9A-Za-z_]+)[.]([0-9A-Za-z_]+) <-- /g, '%setToNamespace :getFromNamespace $$$1 $2 $3 ')
 	input = input.replaceAll(/([A-Za-z_]+)[.]([0-9A-Za-z_]+) <-- /g, '%setToNamespace $$$1 $2 ')
+	input = input.replaceAll(/:await\s+([A-Za-z_]+)[.]([0-9A-Za-z_]+)/g, '%awaitInNamespace $$$1 $2 ')
 	input = input.replaceAll(/[$]([A-Za-z_]+)[.]([0-9A-Za-z_]+)[.]([0-9A-Za-z_]+)/g, ':getFromNamespace :getFromNamespace $$$1 $2 $3')
 	input = input.replaceAll(/[$]([A-Za-z_]+)[.]([0-9A-Za-z_]+)/g, ':getFromNamespace $$$1 $2')
 	input = input.replaceAll(/[{]deffunc ([A-Za-z_]+) /g, '.var $1 :set $1 {lambda ') // '}}'
@@ -35,7 +37,7 @@ expression
 	/ "[" __ startExpr:expression expr:WSexpression* __ "]" { return new Expression('expression', [startExpr].concat(expr), text() ) }
 	/ "{" __ startExpr:expression exprLabel:exprLabel? multLabel:multLabel? expr:WSexpression* __ "}" cancelExpression:cancelExpression? { return new Expression('expression', [startExpr].concat(expr), text(), exprLabel, cancelExpression, multLabel ) }
 	/ number / string / name
-	/ expression0 / expression1 / expression2 / expression3 / expression4 / expressionEmpty
+	/ expression0 / expression1 / expression2 / expression3 / expression4 / expressionBlock1 / expressionEmpty
 
 cancelExpression
 	= __ "~" __ expr:expression { return expr; }
@@ -58,6 +60,9 @@ expression3
 expression4
 	= "$" expr:expression { return new Expression('expression', [new Expression('identifier', 'get', 'get'), expr], text()) }
 
+expressionBlock1
+	= "|" e1:expression exprLabel:exprLabel? " "* newline INDENT multLabel:multLabel? startExpr:expression restExpr:(newline SAMEDENT expression " "*)* DEDENT { return new Expression('expression', [e1,startExpr].concat(restExpr), text(), exprLabel, null, multLabel ) }
+
 expressionEmpty
 	= "(" spac:__ ")" { return new Expression('expression', [], text()) }
 
@@ -73,28 +78,47 @@ name
 simpleName
 	= n:[A-Za-z_=+*/<>-]+ { return new Expression('identifier', n.join(""), n.join("")) }
 
-__
+__ "optSpaces"
 	= (comment / singleSpace / newline)*
 
-spaces
+spaces "spaces"
 	= (comment / singleSpace / newline)+
 
-comment
+comment "comment"
 	= "#" [^\n\r]* newline
 
-singleSpace
+singleSpace "singleSpace"
 	= [ \t]
 
-whiteSpace
+whiteSpace "whiteSpace"
 	= [ \t\n\r]+
 
-newline
+newline "newline"
 	= [\n\r]
 
-number
-	= digits:("-"?[0-9]+) { return new Expression('number', parseInt((digits[0] || '') + digits[1].join(""), 10), (digits[0] || '') + digits[1].join("")) }
+number "number"
+	= digits:("-"?[0-9]+([.][0-9]+)?) {
+		return new Expression(
+			'number',
+			parseFloat(  text()   ),
+			text()
+		)
+	}
 
-string
-	= '"' content:[^"]* '"' { return new Expression('string', content.join(""), '"'+content.join("")+'"' ) }
-	/ "'" content:[^']* "'" { return new Expression('string', content.join(""), "'"+content.join("")+"'" ) }
-	/ '`' content:[^`]* '`' { return new Expression('string', content.join(""), '`'+content.join("")+'`' ) }
+string "string"
+	= '"' content:[^"]* '"' { return new Expression('string', content.join(""), text() ) }
+	/ "'" content:[^']* "'" { return new Expression('string', content.join(""), text() ) }
+	/ '`' content:[^`]* '`' { return new Expression('string', content.join(""), text() ) }
+
+// inspired by https://github.com/Kantouzin/python-pegjs
+SAMEDENT
+	= tabs:tabs &{return tabs.length == indentationCount} {}
+
+INDENT
+	= tabs:tabs &{return tabs.length == indentationCount + 1} {indentationCount += 1}
+
+DEDENT
+	= tabs:tabs &{return tabs.length == indentationCount - 1} {indentationCount -= 1}
+
+tabs "tabs"
+	= '\t'*
