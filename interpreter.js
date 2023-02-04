@@ -630,6 +630,42 @@ const gDict_instructions = {
 	},
 	//===========================================================
 	
+	awaitInNamespace: { // await <namespace> <variable> <type>
+		nbArg:3,
+		exec: function(pFrame, p_content) {
+			const lPARAM_namespace = p_content[1]
+			const lPARAM_variable = p_content[2]
+			const lPARAM_type = p_content[3]
+			
+			if (pFrame.instrPointer==1) {
+				pFrame.addChild(lPARAM_namespace, 'namespace')
+				pFrame.addChild(lPARAM_variable, 'awaitedVariable')
+			} else {
+				const l_argsNamespace = pFrame.childReturnedMultivals.namespace
+				const l_argsLabel = pFrame.childReturnedMultivals.awaitedVariable
+				;;     $__ErrorChecking(pFrame, l_argsNamespace.length>1, 'multiple namespace (awaitNamespace)')
+				;;     $__ErrorChecking(pFrame, l_argsLabel.length>1, 'multiple awaited variable')
+				for (const label of l_argsLabel) {
+					const l_namespace = l_argsNamespace[0]
+					;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'undefined awaited variable')
+					const l_livebox = l_namespace.get(label)
+					if (l_livebox.precBip && lPARAM_type.content=='bip') {
+						pFrame.toReturn_multival.push(...l_livebox.getMultival())
+						pFrame.awake = true
+					} else if (l_livebox.precBeep && lPARAM_type.content=='beep') {
+						pFrame.toReturn_multival.push(...l_livebox.getMultival())
+						l_livebox.currBeep = false
+						pFrame.awake = true
+					} else {
+						pFrame.awake = false
+					}
+					if (pFrame.awake) pFrame.terminated = true
+				}
+			}
+		}
+	},
+	//===========================================================
+	
 	awaitBool: { // 'awaitBool' <condition>
 		nbArg:1,
 		exec: function(pFrame, p_content) {
