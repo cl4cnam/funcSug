@@ -16,6 +16,8 @@
 .print '.....> STEP2'
 :await clickButton beep
 .print '.....> STEP3'
+:awaitDomeventBip 'mousedown' '#theButton2'
+.print '.....> STEP4'
 #.print :await edit beep
 .print :randomIntBetween 0 31
 #(&displayNewMessageIn 'Hello!' 'body')
@@ -27,7 +29,7 @@
 .print .existsCssSelector '#xyz'
 .print .existsCssSelector 'body'
 %setCssProperty 'theButton' 'background-color' '#c0ffff'
-.print '.....> STEP4'
+.print '.....> STEP5'
 #.print %awaitNewChoice 'remove' 'body' (par 'un' 'deux')
 .print %awaitNewChoice 'keep' 'body' (par 'un' 'deux')
 .print .awaitChoice 'p.display.other'
