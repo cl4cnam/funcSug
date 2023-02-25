@@ -13,6 +13,7 @@ const PAUSE = 3
 const RESUME = 4
 
 let stop
+let timeout0 = false
 
 // continuous
 //-----------
@@ -649,7 +650,9 @@ const gDict_instructions = {
 					const l_namespace = l_argsNamespace[0]
 					;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'undefined awaited variable')
 					const l_livebox = l_namespace.get(label)
-					if (l_livebox.precBip && lPARAM_type.content=='bip') {
+					if (l_livebox === undefined) {
+						pFrame.awake = false
+					} else if (l_livebox.precBip && lPARAM_type.content=='bip') {
 						pFrame.toReturn_multival.push(...l_livebox.getMultival())
 						pFrame.awake = true
 					} else if (l_livebox.precBeep && lPARAM_type.content=='beep') {
@@ -713,6 +716,24 @@ const gDict_instructions = {
 		postExec: function(pFrame, p_content) {
 			const lMap_newNamespace = makeNewDetachedNamespace(pFrame)
 			pFrame.toReturn_multival = [lMap_newNamespace]
+		}
+	},
+	//===========================================================
+	
+	combineMicrostep: {
+		nbArg:0,
+		postExec: function(pFrame, p_content) {
+			timeout0 = false
+			pFrame.toReturn_multival = []
+		}
+	},
+	//===========================================================
+	
+	separateMicrostep: {
+		nbArg:0,
+		postExec: function(pFrame, p_content) {
+			timeout0 = true
+			pFrame.toReturn_multival = []
 		}
 	},
 	//===========================================================
@@ -864,11 +885,15 @@ const gDict_instructions = {
 					// get variable
 					//-------------
 					const l_livebox = l_namespace.get(label)
-					;;     $__ErrorChecking(pFrame, l_livebox === undefined, 'getFromNamespace this label does not exist in this namespace', [l_namespace, label])
+					//~ ;;     $__ErrorChecking(pFrame, l_livebox === undefined, 'getFromNamespace this label does not exist in this namespace', [l_namespace, label])
 					
 					// get value
 					//----------
-					pFrame.toReturn_multival.push(...l_livebox.getMultival())
+					if (l_livebox === undefined) {
+						pFrame.toReturn_multival.push(undefined)
+					} else {
+						pFrame.toReturn_multival.push(...l_livebox.getMultival())
+					}
 				}
 			}
 		}
@@ -1957,7 +1982,7 @@ function Tree(p_root) {
 //===================================================================================================
 //===================================================================================================
 
-function runBurst() {
+async function runBurst() {
 	if (stop) return
 	g_superInstantNumber += 1
 	//~ localLog('====> SuperInstant:', g_superInstantNumber)
@@ -2036,6 +2061,8 @@ function runBurst() {
 			requestAnimationFrame(raf_func)
 		}
 		
+		if (timeout0) await new Promise( resolve => {setTimeout(resolve)} )
+		
 		precedent_stillAwake = stillAwake
 		//~ stillAwake = globalFrameTree.someLeafHasPropertyTrue('awake' )
 		stillAwake = globalFrameTree.someLeafHasConditionTrue('! elt.suspended && elt.awake' )
@@ -2050,7 +2077,8 @@ function exec(code) {
 	runBurst()
 }
 
-function execProg(progText, pf_location) {
+function execProg(progText, pf_location, pb_notTimeout0) {
+	timeout0 = ! pb_notTimeout0
 	f_location = pf_location
 	let progr
 	try {
