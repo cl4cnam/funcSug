@@ -1283,7 +1283,7 @@ async function main() {
 		try {
 			if (progTest.code!=='') {
 				let startTime = performance.now()
-				execProg(progTest.code)
+				execProg(progTest.code, undefined, true)
 				diff = performance.now() - startTime
 			}
 		} catch (err) {
