@@ -111,12 +111,13 @@ function $$$__BugChecking(pb_bugCondition, ps_message, pn_line, p_otherInfo, ps_
 	}
 }
 
-function $__ErrorChecking(pFrame, pb_errorCondition, ps_message, p_otherInfo, ps_messageForOtherInfo) {
+function $__ErrorChecking(pFrameOrCode, pb_errorCondition, ps_message, p_otherInfo, ps_messageForOtherInfo) {
 	if (pb_errorCondition) {
 		if (p_otherInfo!==undefined) console.warn(      ps_messageForOtherInfo, p_otherInfo      )
-		console.error('Error (funcSug): %c' + ps_message + '%c --IN-- %c' + expressionToString(pFrame.code), 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue')
+		const lExpr_code = (pFrameOrCode.constructor===Frame) ? pFrameOrCode.code : pFrameOrCode
+		console.error('Error (funcSug): %c' + ps_message + '%c --IN-- %c' + expressionToString(lExpr_code), 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue')
 		throw '-- END OF ERROR --'
-		//~ throw 'Error (prog): ' + ps_message + ' --IN--' + expressionToString(pFrame.code)
+		//~ throw 'Error (prog): ' + ps_message + ' --IN--' + expressionToString(lExpr_code)
 	}
 }
 
@@ -1455,18 +1456,20 @@ function Instruction(ps_codeWord) {
 }
 
 function toCallExpression(pExpression_oldCode) {
+	const lExpression_get = new Expression(
+		'expression',
+		[
+			new Expression('identifier', 'get', 'get'),
+			pExpression_oldCode.content[0]
+		],
+		'get ' + pExpression_oldCode.content[0].content
+	)
+	lExpression_get.location = pExpression_oldCode.location
 	const lExpression = new Expression(
 		'expression',
 		[
 			new Expression('identifier', 'call', 'call'),
-			new Expression(
-				'expression',
-				[
-					new Expression('identifier', 'get', 'get'),
-					pExpression_oldCode.content[0]
-				],
-				'get ' + pExpression_oldCode.content[0].content
-			),
+			lExpression_get,
 			...pExpression_oldCode.content.filter((elt, ind)=>(ind>0))
 		],
 		pExpression_oldCode.text,
@@ -1522,6 +1525,7 @@ function toNotcancellableExpression(pExpression_oldCode) {
 		null,
 		null
 	)
+	lExpression.location = pExpression_oldCode.location
 	return lExpression
 }
 
@@ -1829,7 +1833,7 @@ Frame.prototype.getInstruction = function() {
 			let lExpr_prec = null
 			for (const expr of l_content) {
 				ls_currLine = expr.location.start.line
-				;;     $__ErrorChecking(this, ls_currLine == ln_precLine && expr.content[0]?.text !== 'set', 'two elements of sequence on the same line: "'+lExpr_prec?.text+'" and "'+expr?.text+'"')
+				;;     $__ErrorChecking(lExpr_prec, ls_currLine == ln_precLine && expr.content[0]?.text !== 'set', 'two elements of sequence on the same line: "'+lExpr_prec?.text+'" and "'+expr?.text+'"')
 				ln_precLine = ls_currLine
 				lExpr_prec = expr
 			}
