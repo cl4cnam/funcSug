@@ -8,6 +8,7 @@ Each **super-step** is divided into **micro-step(s)**.
 
 The program is executed using a **Frame Tree** (**FT**).
 The concept of **Frame Tree** is just an extension of the concept of Frame Stack (more commonly known as Call Stack).
+In place of a linear Frame stack, funcSug uses a Frame Stack (called **Frame Tree**) that has a tree structure.
 
 Each frame contains:
 
