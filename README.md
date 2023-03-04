@@ -4,7 +4,10 @@ This is a new concurrent programming language (in progress, but it already works
 
 The goal of the language is to enable a better structure of code, that is, a more natural and more readable structure.
 
-In this language, you can write
+## Features
+
+### Parallel construct
+You can write
 ```
 {par
     <parallelBranch1>
@@ -13,7 +16,21 @@ In this language, you can write
 ```
 to execute ```parallelBranch1``` and ```parallelBranch2``` concurrently.
 
-### Get a taste of the language
+### Interruptible sequence
+You can interrupt (`.break`), pause (`.pause`), resume (`.resume`) or restart (`.restart`) a block. For example:
+```
+{par
+    {seq @myBlock
+        <instruction1>
+        <instruction2>
+    }
+    {seq
+        .break myBlock
+    }
+}
+```
+
+## Get a taste of the language
 See [the 'Guess the Number' code](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg)
 and [test it](https://cl4cnam.github.io/Guess_the_number/guessTheNumber.html).
 
@@ -27,13 +44,13 @@ Don't look too hard at my syntax (I intend to change it into a pythonic syntax).
 - In ['Guess the Number'](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg), ```gameCourse``` is just a function that returns only when the player has found the number. At that moment, ```gameCourse``` returns the number of steps.
 - In ['Breakout'](https://github.com/cl4cnam/breakout/blob/main/breakout.fg), ```lifeOfBrick``` is just a function that returns only when the brick is broken. The same goes for the ```lifeOfBall``` function.
 
-### Note
+## Note
 
-For now, this language has no syntax highlighting, but if you choose that of zephir (or nsis, powershell, ruby), it can be pleasant.
+This language has [syntax highlighting for Geany](https://github.com/cl4cnam/funcSug/tree/main/tools/forGeany); otherwise, with Geany, if you choose that of zephir (or nsis, powershell, ruby), it can be pleasant.
 
 The file ```parser.js``` has been generated online from the file ```funcSug.peggyjs``` on the site https://peggyjs.org/online.html with "parser variable" set to "peg".
 
-### Use
+## Use
 
 In your ```myProgram.html```, in the end of the body element, include the lines:
 ```
@@ -47,7 +64,7 @@ In your ```myProgram.html```, in the end of the body element, include the lines:
 ```
 Write your code in the file ```myProgram.fg```.
 
-### Syntax elements
+## Syntax elements
 
 In many language, a function call is expressed by adding parentheses at right:
 ```functionName(arg1, ..., argN)```.<br>
@@ -69,7 +86,7 @@ To get the value of a variable, precede it by the '$' sign'.
 In any expression, you can insert ``` @label ``` just after the function name to label the expression (This is useful for the ```break``` instruction).
 This 'label' must be a declared variable.
 
-### A few instructions/expressions (loose description)
+## A few instructions/expressions (loose description)
 
 ```.print value``` writes ```value``` onto the console.
 
@@ -105,7 +122,7 @@ This 'label' must be a declared variable.
 
 ```{deffunc functionName parameterList instruction1 ... instructionN}``` defines the custom function ```functionName```.
 
-```{short (variable1 ... variableN) jsString}``` executes the code in ```jsString``` (in which ```variable1 ... variableN``` can be used).
+```{js (variable1 ... variableN) jsString}``` executes the code in ```jsString``` (in which ```variable1 ... variableN``` can be used).
 
 ```:displayNewMessageIn text cssSelector``` displays a new message ```text``` into the DOM element identified by ```cssSelector```.
 
