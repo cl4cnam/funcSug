@@ -1,6 +1,7 @@
 # **funcSug**
 
 This is a new concurrent programming language (in progress, but it already works) loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) of Jean-Ferdy Susini.
+It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles.
 
 The goal of the language is to enable a better structure of code, that is, a more natural and more readable structure.
 
@@ -27,6 +28,14 @@ You can interrupt (`.break`), pause (`.pause`), resume (`.resume`) or restart (`
     {seq
         .break myBlock
     }
+}
+```
+### Reaction to a change of a variable
+You can react to a change of a variable, for example, like this:
+```
+{seq
+    :await myVariable beep
+    <whatToDoInThisCase>
 }
 ```
 
