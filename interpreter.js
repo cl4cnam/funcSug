@@ -1,5 +1,35 @@
 'use strict'
 
+// inspired by https://gist.github.com/eyecatchup/d0e1fb062343d45fbb5800dd0dc3d4d9
+function wrapListener(pFunction_listener) {
+	if (!pFunction_listener.wrapped) {
+		pFunction_listener.wrapped = function () {
+			try{
+				pFunction_listener.apply(this, arguments)
+			} catch(err) {
+				console.error('JavaScript Error at line ' + (err.lineNumber - 13) + ' in this listener (' + pFunction_listener.evtType + '): ' + pFunction_listener.toString())
+				//~ console.error('JavaScript Error (location): ', pFunction_listener.location)
+				throw err
+			}
+		}
+	}
+}
+
+const addEventListener_orig = EventTarget.prototype.addEventListener
+EventTarget.prototype.addEventListener = function (ps_evtType, pFunction_listener, options, location) {
+	pFunction_listener.location = (new Error()).stack
+	pFunction_listener.evtType = ps_evtType
+	wrapListener(pFunction_listener)
+	addEventListener_orig.call(this, ps_evtType, pFunction_listener.wrapped, options)
+}
+
+const removeEventListener_orig = EventTarget.prototype.removeEventListener
+EventTarget.prototype.removeEventListener = function (ps_evtType, pFunction_listener, options) {
+	removeEventListener_orig.call(this, ps_evtType, pFunction_listener.wrapped || pFunction_listener, options)
+}
+
+
+
 const namespaceSet = new Set()
 const cancellationSet = new Set()
 const frozenLiveboxSet = new Set()
@@ -425,6 +455,7 @@ const gDict_instructions = {
 					cptArg += 1
 				}
 				ls_jsStringToExecute += l_arg_jsStringToExecute[0]
+				//~ ls_jsStringToExecute += '\n//# sourceURL=ext' +  + '.js'
 				
 				// cancellation preparation
 				//=========================
@@ -432,7 +463,8 @@ const gDict_instructions = {
 				const l_cancelObj={
 					externalObjects: lList_saveExternals,
 					pathOfExecution: pFrame.pathOfExecution,
-					execCancel: ls_jsStringForCancellation
+					execCancel: ls_jsStringForCancellation,
+					code: pFrame.code
 				}
 				if(ls_jsStringForCancellation !== '') cancellationSet.add(l_cancelObj)
 				
@@ -440,11 +472,19 @@ const gDict_instructions = {
 				//======
 				let promises = []
 				for (const argmts of l_theCombinations) {
+					const lFunction = new Function(ls_jsStringToExecute)
+					lFunction.location = pFrame.code.location
 					promises.push(
 						new Promise(
-							(resolve,reject) => {       (new Function(ls_jsStringToExecute))(resolve,reject,lList_saveExternals,prep_goAssign(pFrame),...argmts)    }
+							//~ (resolve,reject) => {       (new Function(ls_jsStringToExecute))(resolve,reject,lList_saveExternals,prep_goAssign(pFrame),...argmts)    }
+							(resolve,reject) => {       lFunction(resolve,reject,lList_saveExternals,prep_goAssign(pFrame),...argmts)    }
 						)
 					)
+					promises[promises.length-1].catch(err=>{
+						console.warn('Text where Error is', ls_jsStringToExecute)
+						console.error('Error (Js in funcSug): %c' + '"ext" instruction' + '%c --IN-- %c' + expressionToString(pFrame.code), 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue')
+						throw err
+					})
 					promises[promises.length-1].then(res => {
 						l_outputLivebox.currMultival.push({frame:pFrame, val:res})
 						l_outputLivebox.precMultival.push(res) // useful ?
@@ -522,7 +562,13 @@ const gDict_instructions = {
 				//======
 				pFrame.toReturn_multival = []
 				for (const argmts of l_theCombinations) {
-					pFrame.toReturn_multival.push(   (new Function(ls_jsStringToExecute))(...argmts)   )
+					try {
+						pFrame.toReturn_multival.push(   (new Function(ls_jsStringToExecute))(...argmts)   )
+					} catch (err) {
+						console.warn('Text where Error is', ls_jsStringToExecute)
+						console.error('Error (Js in funcSug): %c' + '"short" instruction' + '%c --IN-- %c' + expressionToString(pFrame.code), 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue')
+						throw err
+					}
 				}
 				pFrame.terminated = true
 			}
@@ -596,6 +642,14 @@ const gDict_instructions = {
 			} else {
 				pFrame.awake = false
 			}
+		}
+	},
+	//===========================================================
+	
+	awaitForever: { // awaitForever
+		nbArg:0,
+		exec: function(pFrame, p_content) {
+			pFrame.awake = false
 		}
 	},
 	//===========================================================
@@ -1188,6 +1242,19 @@ const gDict_instructions = {
 	},
 	//===========================================================
 	
+	'whileTrue': { // 'whileTrue' <expression> // = loop
+		nbArg:1,
+		exec: function(pFrame, p_content) {
+			pFrame.addChild(p_content[1], 'whileBody')
+			//~ if (pFrame.instrPointer%2==1) {
+				//~ ;;     $$$__BugChecking(p_content[1]===undefined, 'p_content[1]===undefined', new Error().lineNumber)
+			//~ } else {
+				//~ pFrame.addChild(p_content[1], 'whileBody')
+			//~ }
+		}
+	},
+	//===========================================================
+	
 	'while': { // 'while' <condition> <expression> // = repeatIf
 		nbArg:2,
 		exec: function(pFrame, p_content) {
@@ -1248,16 +1315,7 @@ const gDict_instructions = {
 			if (l_livebox.precBeep) {
 				const l_multival = l_livebox.getMultival()
 				;;     $__ErrorChecking(pFrame, l_multival.length > 1, 'multiple value for cancellor variable')
-				if (l_multival.length===0 || ! l_multival[0]) {
-					for (const ch of pFrame.childrenList) {
-						ch.getInstruction()
-						ch.instruction.canc(ch)
-					}
-					if (pFrame.childrenList.length==0) {
-						pFrame.terminated = true
-						pFrame.removeChildFromLeaflist()
-					}
-				} else if (l_multival[0] === 1) {
+				if (l_multival.length===1 && l_multival[0] === 1) {
 					for (const ch of pFrame.childrenList) {
 						ch.getInstruction()
 						ch.instruction.canc(ch)
@@ -1269,8 +1327,17 @@ const gDict_instructions = {
 						pFrame.removeChildFromLeaflist()
 						l_parent.addChild(l_expr, 'restart')
 					}
-				} else if (l_multival[0] > 1) {
+				} else if (l_multival.length===1 && l_multival[0] > 1) {
 					this.setPause(pFrame, l_multival[0])
+				} else {
+					for (const ch of pFrame.childrenList) {
+						ch.getInstruction()
+						ch.instruction.canc(ch)
+					}
+					if (pFrame.childrenList.length==0) {
+						pFrame.terminated = true
+						pFrame.removeChildFromLeaflist()
+					}
 				}
 				l_livebox.currBeep = false
 			}
@@ -1312,6 +1379,10 @@ const gDict_instructions = {
 
 gDict_instructions.break = gDict_instructions.bip
 gDict_instructions.mix = gDict_instructions.par
+gDict_instructions.syncjs = gDict_instructions.short
+gDict_instructions.js = gDict_instructions.short
+gDict_instructions.whileTrueAwaitFrame = gDict_instructions.continuous
+gDict_instructions.foreachPar = gDict_instructions.foreach
 
 //===================================================================================================
 //
@@ -1386,6 +1457,12 @@ function Instruction(ps_codeWord) {
 								const lPromise = new Promise(
 									(resolve,reject) => {       (new Function(ls_jsStringToExecute))(resolve,reject,extObj)    }
 								)
+								lPromise.catch(err=>{
+									console.warn('Text where Error is', ls_jsStringToExecute)
+									console.error('Error (Js in funcSug): %c' + 'Cancellation of fungSug block (deep)' + '%c --IN-- %c' + expressionToString(cancelElt.code), 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue')
+									console.error('Error (Js in funcSug): %c' + 'Cancellation of fungSug block (superficial)' + '%c --IN-- %c' + expressionToString(pFrame.code), 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue')
+									throw err
+								})
 							}
 						}
 						cancellationSet.delete(cancelElt)
@@ -1598,8 +1675,9 @@ function getSeqInserted(pExpression, pn_pos, ps_keyword) {
 		const lExpression = new Expression(
 			'expression',
 			[
-				pExpression.content[0],
-				pExpression.content[1],
+				//~ pExpression.content[0],
+				//~ pExpression.content[1],
+				...pExpression.content.slice(0, pn_pos),
 				lExpr_seq1,
 				...l_rest2
 			],
@@ -1795,6 +1873,8 @@ Frame.prototype.getInstruction = function() {
 			}
 			if ( ['lambda', 'while', 'foreach', 'foreach_race', 'repeat'].includes(this.code.content[0]?.content) ) {
 				this.code = getSeqInserted(this.code, 2)
+			} else if (this.code.content[0]?.content === 'whileTrue') {
+				this.code = getSeqInserted(this.code, 1)
 			} else if (this.code.content[0]?.content === 'if') {
 				this.code = getSeqInserted(this.code, 2, 'else')
 			} else if (this.code.content[0]?.content === 'match') {
@@ -2052,10 +2132,18 @@ async function runBurst() {
 			const raf_func = function raf_func(timestamp) {
 				cpt3 += 1
 				const delta = (old_timestamp) ? timestamp - old_timestamp : 0
-				for (const [key, fct_frame] of continuousActionDict.send) fct_frame.fct(key, delta, send)
-				for (const [key, fct_frame] of continuousActionDict.adapt) fct_frame.fct(key, delta, continuousEvents, prep_goAssign(fct_frame.frame))
-				for (const [key, fct_frame] of continuousActionDict.play) fct_frame.fct(key, delta)
-				for (const [key, fct_frame] of continuousActionDict.emit) fct_frame.fct(key, delta)
+				for (const [key, fct_frame] of continuousActionDict.send) {
+					if (!fct_frame.frame.suspended) fct_frame.fct(key, delta, send)
+				}
+				for (const [key, fct_frame] of continuousActionDict.adapt) {
+					if (!fct_frame.frame.suspended) fct_frame.fct(key, delta, continuousEvents, prep_goAssign(fct_frame.frame))
+				}
+				for (const [key, fct_frame] of continuousActionDict.play) {
+					if (!fct_frame.frame.suspended) fct_frame.fct(key, delta)
+				}
+				for (const [key, fct_frame] of continuousActionDict.emit) {
+					if (!fct_frame.frame.suspended) fct_frame.fct(key, delta)
+				}
 				if (!continuousActionEmpty && (g_debug <= 0.5 || cpt3 < 500)) requestAnimationFrame(raf_func)
 				//~ if (continuousActionEmpty && cpt3 < 1) requestAnimationFrame(raf_func)
 				//~ else localLog('---STOP')
