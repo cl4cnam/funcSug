@@ -779,6 +779,19 @@ OK
 
 {line: new Error().lineNumber, code:`
 	{seq
+		.var thePar
+		{par @thePar
+			!awaitForever
+			.break thePar
+		}
+		.print 54
+	}
+`, result: `
+54
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
 		.var theLoop
 		.var a
 		:set a 0
