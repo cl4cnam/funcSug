@@ -168,9 +168,9 @@
 			output(evt)
 		};
 		lElt.addEventListener(p_domevt, l_react)
-		SAVES.push({elt:lElt, react:l_react})
+		SAVES.push({elt:lElt, react:l_react, domevtType:p_domevt})
 	` $p_evtSug `
-		SAVE.elt.removeEventListener(p_domevt, SAVE.react)
+		SAVE.elt.removeEventListener(SAVE.domevtType, SAVE.react)
 	`}
 }
 
@@ -200,6 +200,19 @@
 	`}
 }
 
+{deffunc whileTrueAwaitDom_translate (p_elt p_evtDOM p_evtSug)
+	{ext (p_elt p_evtDOM p_evtSug) `
+		const l_react = function(evt) {
+			goAssign(p_evtSug, evt)
+		}
+		p_elt.addEventListener(p_evtDOM, l_react)
+		SAVES.push({elt:p_elt, react:l_react, evtDOM:p_evtDOM})
+	` dummy `
+		SAVE.elt.removeEventListener(SAVE.evtDOM, SAVE.react)
+	`}
+	!awaitForever
+}
+
 {deffunc listener (p_target p_evtDOM p_sToExecute)
 	{ext (p_target p_evtDOM) (+ `
 		const l_react = function(evt) {
@@ -210,6 +223,19 @@
 	`) dummy `
 		SAVE.elt.removeEventListener(SAVE.evtDOM, SAVE.react)
 	`}
+}
+
+{deffunc whileTrueAwaitDom_js (p_target p_evtDOM p_sToExecute)
+	{ext (p_target p_evtDOM) (+ `
+		const l_react = function(evt) {
+			` $p_sToExecute `
+		}
+		p_target.addEventListener(p_evtDOM, l_react)
+		SAVES.push({elt:p_target, react:l_react, evtDOM:p_evtDOM})
+	`) dummy `
+		SAVE.elt.removeEventListener(SAVE.evtDOM, SAVE.react)
+	`}
+	!awaitForever
 }
 
 {deffunc listenOnce (p_elt p_evtDOM p_evtSug)
@@ -224,6 +250,12 @@
 		//~ console.log('DELETE')
 		SAVE.elt.removeEventListener(SAVE.evtDOM, SAVE.react)
 	`}
+}
+
+{deffunc awaitDOMevtBip (p_elt p_evtDOM)
+	.var evtSug
+	%listenOnce $p_elt $p_evtDOM evtSug
+	:await evtSug bip
 }
 
 {deffunc awaitDOMevtBeep (p_elt p_evtDOM)
