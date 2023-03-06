@@ -30,7 +30,7 @@ Promise.all(scriptPromises).then((values)=>{
 			}
 		}
 		const completeText = '{seq \n' + l_texts.join('\n') + '\n }'
-		execProg(completeText, f_getLocation)
+		execProg(completeText, f_getLocation, true)
 	})
 })
 //~ Promise.allSettled(scriptPromises).then((values)=>{
