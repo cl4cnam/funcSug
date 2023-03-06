@@ -792,6 +792,18 @@ OK
 
 {line: new Error().lineNumber, code:`
 	{seq
+		.var thePar
+		.print {par @thePar
+			!awaitForever
+			:set thePar {short () 'return {returnValue: 92}'}
+		}
+	}
+`, result: `
+92
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
 		.var theLoop
 		.var a
 		:set a 0
