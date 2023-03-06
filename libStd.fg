@@ -9,17 +9,23 @@
 {deffunc par_race __par
 	.var all
 	{foreach @all __par
-		$__par
-		.break all
+		.var retVal
+		:set retVal $__par
+		:breakReturn all $retVal
 	}
 }
 
 {deffunc foreach_race (p_vari _expr)
 	.var all
 	{foreach @all $p_vari
-		$_expr
-		.break all
+		.var retVal
+		:set retVal $_expr
+		:breakReturn all $retVal
 	}
+}
+
+{deffunc breakReturn (p_vari p_valRet)
+	:set $p_vari {short (p_valRet) `return {returnValue: p_valRet}`}
 }
 
 {deffunc restart (p_vari)
