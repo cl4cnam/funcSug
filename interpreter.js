@@ -1330,6 +1330,9 @@ const gDict_instructions = {
 				} else if (l_multival.length===1 && l_multival[0] > 1) {
 					this.setPause(pFrame, l_multival[0])
 				} else {
+					if (l_multival.length===1 && l_multival[0]?.returnValue) {
+						pFrame.toReturn_multival = [l_multival[0].returnValue]
+					}
 					for (const ch of pFrame.childrenList) {
 						ch.getInstruction()
 						ch.instruction.canc(ch)
@@ -1383,6 +1386,7 @@ gDict_instructions.syncjs = gDict_instructions.short
 gDict_instructions.js = gDict_instructions.short
 gDict_instructions.whileTrueAwaitFrame = gDict_instructions.continuous
 gDict_instructions.foreachPar = gDict_instructions.foreach
+gDict_instructions.splitMicrostep = gDict_instructions.separateMicrostep
 
 //===================================================================================================
 //
