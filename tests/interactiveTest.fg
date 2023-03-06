@@ -33,4 +33,15 @@
 #.print %awaitNewChoice 'remove' 'body' (par 'un' 'deux')
 .print %awaitNewChoice 'keep' 'body' (par 'un' 'deux')
 .print .awaitChoice 'p.display.other'
+.print '.....> STEP6'
+.var thePar
+.print {par @thePar
+	!awaitForever
+	:breakReturn thePar '*** Step 6 ***'
+}
+.print '.....> STEP7'
+.print {par_race
+	!awaitForever
+	'*** Step 7 ***'
+}
 .print '.....> END'
