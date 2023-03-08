@@ -67,7 +67,7 @@ function send(type, val) {
 function prep_goAssign(pFrame_) {
 	return function goAssign(ps_variable, p_val, pFrame = pFrame_) {
 		const l_namespace = getNamespace(pFrame, ps_variable)
-		;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'set undefined variable')
+		;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'set undefined variable (for goAssign) "' + ps_variable + '"')
 		const l_livebox = l_namespace.get(ps_variable)
 		l_livebox.setval(pFrame, [p_val], true)
 		runBurst()
@@ -823,11 +823,11 @@ const gDict_instructions = {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			for (const label of pFrame.childReturnedMultivals.arg1) {
-				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'freeze underscore variable')
+				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'freeze underscore variable "' + label + '"')
 				// get variable
 				//-------------
 				const l_namespace = getNamespace(pFrame, label)
-				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'freeze undefined variable')
+				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'freeze undefined variable "' + label + '"')
 				const l_livebox = l_namespace.get(label)
 				
 				frozenLiveboxSet.add(l_livebox)
@@ -841,11 +841,11 @@ const gDict_instructions = {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			for (const label of pFrame.childReturnedMultivals.arg1) {
-				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'unfreeze underscore variable')
+				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'unfreeze underscore variable "' + label + '"')
 				// get variable
 				//-------------
 				const l_namespace = getNamespace(pFrame, label)
-				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'unfreeze undefined variable')
+				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'unfreeze undefined variable "' + label + '"')
 				const l_livebox = l_namespace.get(label)
 				
 				frozenLiveboxSet.delete(l_livebox)
@@ -859,11 +859,11 @@ const gDict_instructions = {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			for (const label of pFrame.childReturnedMultivals.arg1) {
-				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'next underscore variable')
+				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'next underscore variable "' + label + '"')
 				// get variable
 				//-------------
 				const l_namespace = getNamespace(pFrame, label)
-				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'next undefined variable')
+				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'next undefined variable "' + label + '"')
 				const l_livebox = l_namespace.get(label)
 				
 				l_livebox.precMultival = l_livebox.currMultival.map(elt=>elt.val)
@@ -880,11 +880,11 @@ const gDict_instructions = {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			for (const label of pFrame.childReturnedMultivals.arg1) {
-				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable')
+				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable "' + label + '"')
 				// get variable
 				//-------------
 				const l_namespace = getNamespace(pFrame, label)
-				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'aggregsum undefined variable')
+				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'aggregsum undefined variable "' + label + '"')
 				const l_livebox = l_namespace.get(label)
 				
 				l_livebox.setval(pFrame, l_livebox.getMultival().reduce((x, y) => x+y, 0))
@@ -898,11 +898,11 @@ const gDict_instructions = {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			for (const label of pFrame.childReturnedMultivals.arg1) {
-				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable')
+				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable "' + label + '"')
 				// get variable
 				//-------------
 				const l_namespace = getNamespace(pFrame, label)
-				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'aggregprod undefined variable')
+				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'aggregprod undefined variable "' + label + '"')
 				const l_livebox = l_namespace.get(label)
 				
 				l_livebox.setval(pFrame, l_livebox.getMultival().reduce((x, y) => x*y, 1))
@@ -916,11 +916,11 @@ const gDict_instructions = {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			for (const label of pFrame.childReturnedMultivals.arg1) {
-				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable')
+				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable "' + label + '"')
 				// get variable
 				//-------------
 				const l_namespace = getNamespace(pFrame, label)
-				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'get undefined variable', pFrame)
+				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'get undefined variable "' + label + '"', pFrame)
 				const l_livebox = l_namespace.get(label)
 				// get value
 				//----------
@@ -959,11 +959,11 @@ const gDict_instructions = {
 		nbArg:1,
 		exec: function(pFrame, p_content) {
 			if (pFrame.instrPointer==1) {
-				;;     $__ErrorChecking(pFrame, typeof p_content[1].content !== 'string' || p_content[1].content[0]!=='_' , 'evalget non underscore variable')
+				;;     $__ErrorChecking(pFrame, typeof p_content[1].content !== 'string' || p_content[1].content[0]!=='_' , 'evalget non underscore variable "' + p_content[1] + '"')
 				// get variable
 				//-------------
 				const l_namespace = getNamespace(pFrame, p_content[1].content)
-				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'evalget undefined variable')
+				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'evalget undefined variable "' + p_content[1] + '"')
 				const l_livebox = l_namespace.get(p_content[1].content)
 				// get value
 				//----------
@@ -1018,7 +1018,7 @@ const gDict_instructions = {
 			const l_firstargResult = pFrame.childReturnedMultivals.arg1
 			for (const label of l_firstargResult) {
 				const l_namespace = getNamespace(pFrame, label)
-				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'bip undefined variable')
+				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'bip undefined variable "' + label + '"')
 				const l_livebox = l_namespace.get(label)
 				l_livebox.currBip = true
 				l_livebox.currBeep = true
@@ -1034,7 +1034,7 @@ const gDict_instructions = {
 			const l_firstargResult = pFrame.childReturnedMultivals.arg1
 			for (const label of l_firstargResult) {
 				const l_namespace = getNamespace(pFrame, label)
-				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'isBip undefined variable')
+				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'isBip undefined variable "' + label + '"')
 				const l_livebox = l_namespace.get(label)
 				pFrame.toReturn_multival.push(l_livebox.precBip)
 			}
@@ -1057,7 +1057,7 @@ const gDict_instructions = {
 			const l_firstargResult = pFrame.childReturnedMultivals.arg1
 			for (const label of l_firstargResult) {
 				const l_namespace = getNamespace(pFrame, label)
-				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'isBeep undefined variable')
+				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'isBeep undefined variable "' + label + '"')
 				const l_livebox = l_namespace.get(label)
 				pFrame.toReturn_multival.push(l_livebox.precBeep)
 			}
@@ -1071,7 +1071,7 @@ const gDict_instructions = {
 			const l_firstargResult = pFrame.childReturnedMultivals.arg1
 			for (const label of l_firstargResult) {
 				const l_namespace = getNamespace(pFrame, label)
-				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'stopBeep undefined variable')
+				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'stopBeep undefined variable "' + label + '"')
 				const l_livebox = l_namespace.get(label)
 				l_livebox.currBeep = false
 			}
@@ -1087,7 +1087,7 @@ const gDict_instructions = {
 			const l_secondargResult = pFrame.childReturnedMultivals.arg2
 			for (const label of l_firstargResult) {
 				const l_namespace = getNamespace(pFrame, label)
-				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'set undefined variable')
+				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'set undefined variable "' + label + '"')
 				const l_livebox = l_namespace.get(label)
 				l_livebox.setval(pFrame, l_secondargResult, true)
 			}
@@ -1128,7 +1128,7 @@ const gDict_instructions = {
 				const l_secondargResult = p_content[2]
 				for (const label of l_firstargResult) {
 					const l_namespace = getNamespace(pFrame, label)
-					;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'set undefined variable')
+					;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'set undefined variable (for spawn) "' + label + '"')
 					const l_livebox = l_namespace.get(label)
 					l_livebox.setval(pFrame, {expr:l_secondargResult,frame:pFrame}, false)
 				}
