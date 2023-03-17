@@ -22,3 +22,62 @@
 		` svgElt}
 		:await svgElt beep
 }
+
+#====================================
+# Input functions
+#====================================
+
+{deffunc whileTrue_dragAndDropSvg (p_selectorSVG p_selectorToDrop p_evtGrab p_evtDrag p_evtDrop)
+	.var movement
+	.var wholeTreatment
+	.var sugPointermove
+	.var sugPointerup
+
+	.var svgElement <-- {js (p_selectorSVG) `return document.querySelector(p_selectorSVG)`}
+	.var toDrop <-- {js (svgElement p_selectorToDrop) `svgElement.toDrop = document.querySelector(p_selectorToDrop); return svgElement.toDrop`}
+	
+	{par @wholeTreatment
+		{whileTrueAwaitDom_translate $svgElement 'pointermove' sugPointermove}
+		{whileTrueAwaitDom_translate $svgElement 'pointerup' sugPointerup}
+		{whileTrue
+			.var evtPointerdown <-- :awaitDomeventBeep 'pointerdown' $p_selectorToDrop
+			.bip $p_evtGrab
+			#~ .print 'down'
+			{js (toDrop evtPointerdown svgElement) `
+				toDrop.setPointerCapture(evtPointerdown.pointerId)
+				toDrop.data_origX = evtPointerdown.clientX
+				toDrop.data_origY = evtPointerdown.clientY
+				
+				const svgCtm = svgElement.getScreenCTM()
+				const parentCtm = toDrop.parentNode.getScreenCTM()
+				const eltMatrix = toDrop.transform.baseVal.consolidate().matrix
+				svgElement.appendChild(toDrop)
+				toDrop.matrix_orig = svgCtm.inverse().multiply(  parentCtm.multiply(eltMatrix)  )
+				toDrop.transform.baseVal.getItem(0).setMatrix(toDrop.matrix_orig)
+				
+				toDrop.setAttributeNS(null, 'pointer-events', 'none')
+			`}
+			{par @movement
+				{whileTrueAwaitDom_js $svgElement 'pointermove' `
+					p_target.toDrop.deltaX = evt.clientX - p_target.toDrop.data_origX
+					p_target.toDrop.deltaY = evt.clientY - p_target.toDrop.data_origY
+					const translateMatrix = p_target.createSVGMatrix().translate(p_target.toDrop.deltaX,p_target.toDrop.deltaY)
+					const matrix_trans = translateMatrix.multiply(p_target.toDrop.matrix_orig)
+					p_target.toDrop.transform.baseVal.getItem(0).setMatrix(matrix_trans)
+				`}
+				{seq
+					:await sugPointermove bip
+					#~ .print '------dragging'
+					.bip $p_evtDrag
+					.var evtUp <-- :await sugPointerup bip
+					#~ .print '------dropped'
+					:set $p_evtDrop {js (evtUp) `return evtUp.target`}
+					{js (toDrop) `
+						toDrop.setAttributeNS(null, 'pointer-events', 'all')
+					`}
+					.break movement
+				}
+			}
+		}
+	}
+}
