@@ -416,6 +416,15 @@ three
 
 {line: new Error().lineNumber, code:`
 	{seq
+		.print .listToPar :short () 'return [5,6]'
+	}
+`, result: `
+	5
+	6
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
 		.var a <-- 2
 		.var b <-- 5
 		.print :short (a b) 'return (b+1)*(a+3)'
@@ -547,7 +556,7 @@ three
 	{seq
 		.var box
 		:set box !Namespace
-		box.a <-- 34
+		box:a <-- 34
 		.print :getFromNamespace $box a
 	}
 `, result: `
@@ -559,8 +568,8 @@ three
 		.var box
 		:set box !Namespace
 		%setToNamespace $box internBox !Namespace
-		%setToNamespace $box.internBox a 56
-		.print :getFromNamespace $box.internBox a
+		%setToNamespace $box:internBox a 56
+		.print :getFromNamespace $box:internBox a
 	}
 `, result: `
 56
@@ -571,8 +580,8 @@ three
 		.var box
 		:set box !Namespace
 		%setToNamespace $box internBox !Namespace
-		%setToNamespace $box.internBox a 56
-		.print $box.internBox.a
+		%setToNamespace $box:internBox a 56
+		.print $box:internBox:a
 	}
 `, result: `
 56
@@ -583,8 +592,8 @@ three
 		.var box
 		:set box !Namespace
 		%setToNamespace $box internBox !Namespace
-		box.internBox.a <-- 56
-		.print $box.internBox.a
+		box:internBox:a <-- 56
+		.print $box:internBox:a
 	}
 `, result: `
 56
@@ -634,7 +643,7 @@ three
 {line: new Error().lineNumber, code:`
 	{seq
 		{deffunc test parame
-			.print $parame.1
+			.print $parame:1
 		}
 		(test 34 57)
 	}
@@ -968,8 +977,8 @@ w
 {line: new Error().lineNumber, code:`
 	{seq
 		.var nm <-- !Namespace
-		nm.a <-- (par 4 7)
-		.print $nm.a
+		nm:a <-- (par 4 7)
+		.print $nm:a
 	}
 `, result: `
 4
@@ -1035,8 +1044,8 @@ w
 {line: new Error().lineNumber, code:`
 	{seq
 		.var n <-- !Namespace
-		n.a <-- 53
-		.print :await n.a beep
+		n:a <-- 53
+		.print :await n:a beep
 	}
 `, result: `
 53
@@ -1049,6 +1058,17 @@ w
 		}
 	}
 `, result: `
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var w <-- {short () 'return window'}
+		#.print :getFromObject $w document
+		%setToObject $w aa 45
+		.print :getFromObject $w aa
+	}
+`, result: `
+	45
 `,},
 
 {line: new Error().lineNumber, code:`

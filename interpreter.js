@@ -348,7 +348,7 @@ const gDict_instructions = {
 			} else if (pFrame.instrPointer==2) {
 				pFrame.lambda = pFrame.childReturnedMultivals.calledFunction
 				;;     $__ErrorChecking(pFrame, pFrame.lambda.length!==1, 'multiple lambdas')
-				;;     $__ErrorChecking(pFrame, pFrame.lambda.some(elt=>(elt.type!=='lambda')), 'not lambda')
+				;;     $__ErrorChecking(pFrame, pFrame.lambda.some(elt=>(elt.type!=='lambda')), 'not lambda', pFrame.lambda)
 				;;     $__ErrorChecking(pFrame, typeof pFrame.lambda[0].param.content !== 'string' && pFrame.lambda.some(elt=>   (   elt.param.content.length !== p_content.length-2   )   ), 'arguments number differs from parameters number')
 				const l_params = pFrame.lambda[0].param.content
 				if (p_content.length==3 && p_content[2].content[0] == '*') {
@@ -408,6 +408,7 @@ const gDict_instructions = {
 				for (let i=0;i<l_inputContent.length;i++) {
 					;;     $$$__BugChecking(l_inputContent[i]===undefined, 'l_inputContent[i]===undefined', new Error().lineNumber)
 					const lExpr_inputProg = peg.parse('.get ' + l_inputContent[i].content)
+					lExpr_inputProg.content.location = pFrame.code.location
 					pFrame.addChild(lExpr_inputProg.content, 'input' + i)
 				}
 				// jsStringToExecute
@@ -448,6 +449,11 @@ const gDict_instructions = {
 					const error=arguments[1]
 					const SAVES=arguments[2]
 					const goAssign=arguments[3]
+					const goBreak=arguments[3]
+					const goBip=arguments[3]
+					const sugAssign=arguments[3]
+					const sugBreak=arguments[3]
+					const sugBip=arguments[3]
 				`
 				let cptArg = 4
 				for (const vari of l_inputContent) {
@@ -526,6 +532,7 @@ const gDict_instructions = {
 				for (let i=0;i<l_inputContent.length;i++) {
 					;;     $$$__BugChecking(l_inputContent[i]===undefined, 'l_inputContent[i]===undefined', new Error().lineNumber)
 					const lExpr_inputProg = peg.parse('.get ' + l_inputContent[i].content)
+					lExpr_inputProg.content.location = pFrame.code.location
 					pFrame.addChild(lExpr_inputProg.content, 'input' + i)
 				}
 				// jsStringToExecute
@@ -589,6 +596,7 @@ const gDict_instructions = {
 				//------
 				;;     $__ErrorChecking(pFrame, lPARAM_key.type!=='identifier', 'lPARAM_key not an identifier', lPARAM_type)
 				const lExpr_key = peg.parse('.get ' + lPARAM_key.content)
+				lExpr_key.content.location = pFrame.code.location
 				pFrame.addChild(lExpr_key.content, 'key')
 				
 				// jsStringToExecute
@@ -615,7 +623,7 @@ const gDict_instructions = {
 				ls_jsStringToExecute += ';const ' + lPARAM_key.content + '=arguments[0]\n'
 				ls_jsStringToExecute += 'const delta=arguments[1]\n'
 				if (lPARAM_type.content === 'send') ls_jsStringToExecute += 'const send=arguments[2]\n'
-				if (lPARAM_type.content === 'adapt') ls_jsStringToExecute += 'const events=arguments[2]\nconst goAssign=arguments[3]\nconst goBreak=arguments[3]\nconst goBip=arguments[3]\n'
+				if (lPARAM_type.content === 'adapt') ls_jsStringToExecute += 'const events=arguments[2]\nconst goAssign=arguments[3]\nconst goBreak=arguments[3]\nconst goBip=arguments[3]\nconst sugAssign=arguments[3]\nconst sugBreak=arguments[3]\nconst sugBip=arguments[3]\n'
 				ls_jsStringToExecute += l_arg_jsStringToExecute[0]
 				
 				// cancellation preparation
@@ -1004,6 +1012,8 @@ const gDict_instructions = {
 	'randomIntBetween': { operExec: (min, max) =>  Math.floor( (max-min+1)*Math.random()+min )  },
 	'lengthOf': { singleExec: x => x.length },
 	'isString': { singleExec: x => (typeof x === 'string') },
+	'getFromObject': { operExec: (x, y) => x[y] },
+	'setToObject': { operExec3: (x, y, z) => (x[y] = z) },
 	//===========================================================
 	
 	'notCancellable': {
@@ -1401,6 +1411,7 @@ function Instruction(ps_codeWord) {
 	this.nbArg = gDict_instructions[ps_codeWord].nbArg
 	this.singleExec = gDict_instructions[ps_codeWord].singleExec
 	this.operExec = gDict_instructions[ps_codeWord].operExec
+	this.operExec3 = gDict_instructions[ps_codeWord].operExec3
 	this.cumulExec = gDict_instructions[ps_codeWord].cumulExec
 	this.postExec = gDict_instructions[ps_codeWord].postExec
 	this.exec = gDict_instructions[ps_codeWord].exec
@@ -1494,6 +1505,22 @@ function Instruction(ps_codeWord) {
 			for (const arg1 of l_firstargResult) {
 				for (const arg2 of l_secondargResult) {
 					pFrame.toReturn_multival.push(this.operExec(arg1, arg2))
+				}
+			}
+		}
+	}
+	
+	if (this.operExec3) {
+		this.nbArg = 3
+		this.postExec = function(pFrame, p_content) {
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
+			const l_secondargResult = pFrame.childReturnedMultivals.arg2
+			const l_thirdargResult = pFrame.childReturnedMultivals.arg3
+			for (const arg1 of l_firstargResult) {
+				for (const arg2 of l_secondargResult) {
+					for (const arg3 of l_thirdargResult) {
+						pFrame.toReturn_multival.push(this.operExec3(arg1, arg2, arg3))
+					}
 				}
 			}
 		}

@@ -28,6 +28,17 @@
 	:set $p_vari {short (p_valRet) `return {returnValue: p_valRet}`}
 }
 
+{deffunc whileTrue_dependsOn (p_varParList _expr)
+	{whileTrue
+		.var all
+		{foreach @all p_varParList
+			:await $p_varParList beep
+			.break all
+		}
+		$_expr
+	}
+}
+
 {deffunc restart (p_vari)
 	:set $p_vari 1
 }

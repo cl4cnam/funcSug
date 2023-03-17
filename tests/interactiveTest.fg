@@ -44,4 +44,21 @@
 	!awaitForever
 	'*** Step 7 ***'
 }
+.print '.....> STEP8'
+.var c
+.var theParB
+{par @theParB
+	.var a <-- 2
+	.var b <-- 3
+	{whileTrue_dependsOn (par a b)
+		c <-- :* $a $b
+	}
+	{whileTrue
+		:await c beep
+		{if [$c > 1]
+			.print (+ 'c (=6): ' $c)
+			.break theParB
+		}
+	}
+}
 .print '.....> END'
