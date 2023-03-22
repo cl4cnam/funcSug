@@ -48,6 +48,8 @@ You may also want to have a look at:
 and [test it](https://cl4cnam.github.io/breakout/breakout.html).
 - [the 'Mini Sweet' code](https://github.com/cl4cnam/miniSweet/blob/main/miniSweet.fg)
 and [test it](https://cl4cnam.github.io/miniSweet/miniSweet.html).
+- [the 'Aquarium' code](https://github.com/cl4cnam/aquarium/blob/main/aquarium.fg)
+and [test it](https://cl4cnam.github.io/aquarium/aquarium.html).
 
 Don't look too hard at my syntax (I intend to change it into a pythonic syntax). Look instead at the [global structure of the code](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg): One cannot follow this structure in usual programming language.
 - In ['Guess the Number'](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg), ```gameCourse``` is just a function that returns only when the player has found the number. At that moment, ```gameCourse``` returns the number of steps.
@@ -109,6 +111,8 @@ This 'label' must be a declared variable.
 
 ```$variableName``` returns the value of ```variableName```.
 
+```true``` and ```false``` returns the boolean value 'true' and 'false' respectively.
+
 ```[value1 + value2]``` returns the sum/concatenation of the two values (also for `-`,`*`,`/`,`mod`).
 
 ```[value1 < value2]``` returns the truth value of ```value1 < value2``` (also for `<=`,`=`,`/=`, `and`, `or`).
@@ -122,8 +126,6 @@ This 'label' must be a declared variable.
 ```{seq expression1 ... expressionN}``` executes the expressions in sequence and returns the value of the last.
 
 ```{par expression1 ... expressionN}``` executes the expressions in parallel.
-
-```{mix expression1 ... expressionN}``` executes the expressions in parallel but variable values does not split.
 
 ```.break label``` interrupts the execution of the expression labelled by ```label```.
 
@@ -141,4 +143,4 @@ This 'label' must be a declared variable.
 
 ```.awaitClickBeep cssSelector``` awaits a click from user in the DOM element identified by ```cssSelector```.
 
-In progress.
+Work in progress.
