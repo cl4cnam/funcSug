@@ -121,7 +121,7 @@ let f_location
 const localLog = console.debug
 const localGroup = console.group
 const localGroupEnd = console.groupEnd
-const g_debug = 0.5
+let g_debug = 0
 const condLog = function (debugLevel, ...param) {
 	if (g_debug >= debugLevel) localLog(...param)
 }
@@ -650,6 +650,17 @@ const gDict_instructions = {
 			} else {
 				pFrame.awake = false
 			}
+		}
+	},
+	//===========================================================
+	
+	setDebug: { // setDebug <level>
+		nbArg:1,
+		postExec: function(pFrame, p_content) {
+			for (const val of pFrame.childReturnedMultivals.arg1) {
+				g_debug = val
+			}
+			pFrame.toReturn_multival = []
 		}
 	},
 	//===========================================================
