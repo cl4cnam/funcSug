@@ -17,6 +17,8 @@ You can write
 ```
 to execute ```parallelBranch1``` and ```parallelBranch2``` concurrently.
 
+You can also add a branch dynamically.
+
 ### Interruptible sequence
 You can interrupt (`.break`), pause (`.pause`), resume (`.resume`) or restart (`.restart`) a block. For example:
 ```
