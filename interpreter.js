@@ -174,7 +174,7 @@ function expressionToString(expr) {
 
 function cartesianProduct(...p_arrays) { // inspired by https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
 	if (p_arrays.length==0) return [[]]
-	if (p_arrays.length==1) return p_arrays
+	if (p_arrays.length==1) return p_arrays[0].map(elt=>[elt])
 	return p_arrays.reduce(
 		(previousResult, currentArray) => previousResult.flatMap(
 			previousResultElt => currentArray.map(
