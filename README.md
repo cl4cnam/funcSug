@@ -5,6 +5,8 @@ It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured
 
 The goal of the language is to enable a better structure of code, that is, a more natural and more readable structure.
 
+For now, it's just a quick and dirty interpreter but it works enough to be appreciated.
+
 ## Features
 
 ### Parallel construct
