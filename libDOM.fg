@@ -83,7 +83,7 @@
 {deffunc addCssClassTo (p_class p_selector)
 #        -------------
 	{short (p_class p_selector) `
-		const lElt_anchor = document.querySelector(p_selector)
+		const lElt_anchor = (p_selector instanceof Element) ? p_selector : document.querySelector(p_selector)
 		if (lElt_anchor===null) console.log("ERROR !!! libDOM.fs/addCssClassTo '" + p_selector + "' selector references no element!")
 		lElt_anchor.classList.add(p_class)
 	`}
@@ -92,7 +92,7 @@
 {deffunc DelCssClassFrom (p_class p_selector)
 #        ---------------
 	{short (p_class p_selector) `
-		const lElt_anchor = document.querySelector(p_selector)
+		const lElt_anchor = (p_selector instanceof Element) ? p_selector : document.querySelector(p_selector)
 		if (lElt_anchor===null) console.log("ERROR !!! libDOM.fs/addCssClassTo '" + p_selector + "' selector references no element!")
 		lElt_anchor.classList.remove(p_class)
 	`}
@@ -118,11 +118,18 @@
 #        -------------------
 	.var elt
 	{ext (p_message p_idAnchor) `
-		const lList_idAnchor = p_idAnchor.split('/')
-		const ls_idAnchor = lList_idAnchor[0]
-		const ls_class = (lList_idAnchor.length>1) ? lList_idAnchor[1] : 'other'
-		const lElt_anchor = document.querySelector(ls_idAnchor)
-		if (lElt_anchor===null) console.log("ERROR !!! libDOM.fg/displayNewMessageIn '" + ls_idAnchor + "' selector references no element!")
+		let ls_class
+		let lElt_anchor
+		if (p_idAnchor instanceof Element) {
+			ls_class = 'other'
+			lElt_anchor = p_idAnchor
+		} else {
+			const lList_idAnchor = p_idAnchor.split('/')
+			const ls_idAnchor = lList_idAnchor[0]
+			ls_class = (lList_idAnchor.length>1) ? lList_idAnchor[1] : 'other'
+			lElt_anchor = document.querySelector(ls_idAnchor)
+			if (lElt_anchor===null) console.log("ERROR !!! libDOM.fg/displayNewMessageIn '" + ls_idAnchor + "' selector references no element!")
+		}
 		const lElt = document.createElement('p')
 		lElt.classList.add('display')
 		lElt.classList.add(ls_class)
