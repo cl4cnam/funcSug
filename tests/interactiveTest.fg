@@ -12,7 +12,7 @@
 #.print (&awaitHumanText)
 :getClick '#theButton' clickButton
 .print '.....> STEP1'
-.print .awaitFileText 'interactiveTest.fg'
+.print :awaitFileContent 'interactiveTest.fg' 'text'
 .print '.....> STEP2'
 :await clickButton beep
 .print '.....> STEP3'
@@ -61,4 +61,7 @@
 		}
 	}
 }
+.print '.....> STEP8'
+.var imBlob <-- :awaitFileContent 'giraffe.jpg' 'blob'
+:displayImageIn $imBlob '#theImage'
 .print '.....> END'
