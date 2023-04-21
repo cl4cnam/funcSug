@@ -780,6 +780,7 @@ const gDict_instructions = {
 			for (const val of pFrame.childReturnedMultivals.arg1) {
 				console.log(val)
 			}
+			if (pFrame.childReturnedMultivals.arg1.length === 0) console.log('No value')
 			pFrame.toReturn_multival = []
 		}
 	},
