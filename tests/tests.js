@@ -16,6 +16,7 @@ const lesTests = [
 	.print :+ 2 .print 4
 `, result: `
 4
+No value
 `,},
 
 {line: new Error().lineNumber, code:`
