@@ -159,6 +159,20 @@
 	:await elt beep
 }
 
+{deffunc displayImageIn (p_image p_idAnchor)
+#        ----------------
+	.var elt
+	{ext (p_image p_idAnchor) `
+		const lElt_anchor = (p_idAnchor instanceof Element) ? p_idAnchor : document.querySelector(p_idAnchor)
+		if (lElt_anchor===null) console.log("ERROR !!! libDOM.fs/displayImageIn '" + p_idAnchor + "' selector references no element!")
+		lElt_anchor.src = URL.createObjectURL(p_image)
+		//~ lElt_anchor.innerHTML = p_message
+		lElt_anchor.scrollIntoView()
+		output(lElt_anchor)
+	` elt}
+	:await elt beep
+}
+
 #====================================
 # Input functions
 #====================================
@@ -372,16 +386,16 @@
 # File functions
 #====================================
 
-{deffunc getFileText (p_filePath p_evtContent)
+{deffunc getFileContent (p_filePath p_type p_evtContent)
 #        -----------
-	{ext (p_filePath) `
-		fetch(p_filePath).then(response=>output(response.text()))
+	{ext (p_filePath p_type) `
+		fetch(p_filePath).then(response=>output(response[p_type]()))
 	` $p_evtContent}
 }
 
-{deffunc awaitFileText (p_filePath)
+{deffunc awaitFileContent (p_filePath p_type)
 #        -------------
 	.var content
-	:getFileText $p_filePath content
+	%getFileContent $p_filePath $p_type content
 	:await content beep
 }
