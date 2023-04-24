@@ -15,12 +15,53 @@
 	}
 }
 
+{deffunc par_race2 __par
+	.var all
+	.varmul retValMul
+	{foreach @all __par
+		:set retValMul $__par
+		{if [.multiplicity $retValMul = 2]
+			:breakReturn all $retValMul
+		}
+	}
+}
+
+{deffunc par_race_mult __par
+	.var all
+	.varmul retValMul
+	.var mult
+	{foreach @all __par
+		.var result
+		:set result $__par
+		{if [.get __par_N = 0]
+			mult <-- $result
+		else
+			:set retValMul $result
+			{if [.multiplicity $retValMul = $mult]
+				:breakReturn all $retValMul
+			}
+		}
+	}
+}
+
 {deffunc foreach_race (p_vari _expr)
 	.var all
 	{foreach @all $p_vari
 		.var retVal
 		:set retVal $_expr
 		:breakReturn all $retVal
+	}
+}
+
+{deffunc foreach_race_mult (p_vari p_mult _expr)
+	.var all
+	.varmul retValMul
+	.var mult
+	{foreach @all $p_vari
+		:set retValMul $_expr
+		{if [.multiplicity $retValMul = $p_mult]
+			:breakReturn all $retValMul
+		}
 	}
 }
 
