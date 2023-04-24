@@ -900,7 +900,7 @@ const gDict_instructions = {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			for (const label of pFrame.childReturnedMultivals.arg1) {
-				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable "' + label + '"')
+				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable (aggregsum) "' + label + '"')
 				// get variable
 				//-------------
 				const l_namespace = getNamespace(pFrame, label)
@@ -918,7 +918,7 @@ const gDict_instructions = {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			for (const label of pFrame.childReturnedMultivals.arg1) {
-				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable "' + label + '"')
+				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable (aggregprod) "' + label + '"')
 				// get variable
 				//-------------
 				const l_namespace = getNamespace(pFrame, label)
@@ -936,7 +936,7 @@ const gDict_instructions = {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
 			for (const label of pFrame.childReturnedMultivals.arg1) {
-				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' , 'get underscore variable "' + label + '"')
+				;;     $__ErrorChecking(pFrame, typeof label === 'string' && label[0]==='_' && label.slice(-2)!=='_N' , 'get underscore variable "' + label + '"')
 				// get variable
 				//-------------
 				const l_namespace = getNamespace(pFrame, label)
@@ -1009,20 +1009,22 @@ const gDict_instructions = {
 	'-': { operExec: (x, y) => x - y},
 	'*': { cumulExec: (x, y) => x * y},
 	'/': { operExec: (x, y) => x / y},
-	'<': { operExec: (x, y) => x < y},
-	'<=': { operExec: (x, y) => x <= y},
-	'>': { operExec: (x, y) => x > y},
-	'>=': { operExec: (x, y) => x >= y},
-	'=': { operExec: (x, y) => x == y},
-	'/=': { operExec: (x, y) => x != y},
+	'<': { andExec: (x, y) => x < y},
+	'<=': { andExec: (x, y) => x <= y},
+	'>': { andExec: (x, y) => x > y},
+	'>=': { andExec: (x, y) => x >= y},
+	'=': { andExec: (x, y) => x == y},
+	'/=': { andExec: (x, y) => x != y},
 	'mod': { operExec: (x, y) => x % y},
-	'and': { operExec: (x, y) => x && y},
-	'or': { operExec: (x, y) => x || y},
+	'and': { cumulExec: (x, y) => x && y},
+	'or': { cumulExec: (x, y) => x || y},
 	'not': { singleExec: x => !x },
 	'sin': { singleExec: x => Math.sin(x) },
 	'cos': { singleExec: x => Math.cos(x) },
 	'randomIntBetween': { operExec: (min, max) =>  Math.floor( (max-min+1)*Math.random()+min )  },
+	'shuffle': { singleExec: x => x.sort(()=>Math.random()-0.5) },
 	'lengthOf': { singleExec: x => x.length },
+	'typeOf': { singleExec: x => (typeof x) },
 	'isString': { singleExec: x => (typeof x === 'string') },
 	'getFromObject': { operExec: (x, y) => x[y] },
 	'setToObject': { operExec3: (x, y, z) => (x[y] = z) },
@@ -1069,6 +1071,33 @@ const gDict_instructions = {
 		postExec: function(pFrame, p_content) {
 			const l_firstargResult = pFrame.childReturnedMultivals.arg1
 			pFrame.toReturn_multival.push(...l_firstargResult[0])
+		}
+	},
+	//===========================================================
+	
+	first: {
+		nbArg:1,
+		postExec: function(pFrame, p_content) {
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
+			pFrame.toReturn_multival.push(l_firstargResult[0])
+		}
+	},
+	//===========================================================
+	
+	rest: {
+		nbArg:1,
+		postExec: function(pFrame, p_content) {
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
+			pFrame.toReturn_multival.push(...l_firstargResult.slice(1))
+		}
+	},
+	//===========================================================
+	
+	multiplicity: {
+		nbArg:1,
+		postExec: function(pFrame, p_content) {
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
+			pFrame.toReturn_multival.push(l_firstargResult.length)
 		}
 	},
 	//===========================================================
@@ -1336,7 +1365,7 @@ const gDict_instructions = {
 			const l_livebox = l_namespace.get(lPARAM_variable.content)
 			if (l_livebox.precBeep) {
 				const l_multival = l_livebox.getMultival()
-				;;     $__ErrorChecking(pFrame, l_multival.length > 1, 'multiple value for cancellor variable')
+				;;     $__ErrorChecking(pFrame, l_multival.length > 1 && ! l_multival[0]?.returnValue, 'multiple value for cancellor variable')
 				if (l_multival.length===1 && l_multival[0] === 1) {
 					for (const ch of pFrame.childrenList) {
 						ch.getInstruction()
@@ -1352,8 +1381,8 @@ const gDict_instructions = {
 				} else if (l_multival.length===1 && l_multival[0] > 1) {
 					this.setPause(pFrame, l_multival[0])
 				} else {
-					if (l_multival.length===1 && l_multival[0]?.returnValue) {
-						pFrame.toReturn_multival = [l_multival[0].returnValue]
+					if (l_multival[0]?.returnValue) {
+						pFrame.toReturn_multival = l_multival.map(elt=>elt.returnValue)
 					}
 					for (const ch of pFrame.childrenList) {
 						ch.getInstruction()
@@ -1425,6 +1454,7 @@ function Instruction(ps_codeWord) {
 	this.operExec = gDict_instructions[ps_codeWord].operExec
 	this.operExec3 = gDict_instructions[ps_codeWord].operExec3
 	this.cumulExec = gDict_instructions[ps_codeWord].cumulExec
+	this.andExec = gDict_instructions[ps_codeWord].andExec
 	this.postExec = gDict_instructions[ps_codeWord].postExec
 	this.exec = gDict_instructions[ps_codeWord].exec
 	this.activ = gDict_instructions[ps_codeWord].activ
@@ -1553,6 +1583,27 @@ function Instruction(ps_codeWord) {
 					comb.reduce(
 						(previousValue, currentValue) => this.cumulExec(previousValue, currentValue)
 					)
+				)
+			}
+		}
+	}
+	
+	if (this.andExec) {
+		this.nbArg = (n=> (n>=2) )
+		this.postExec = function(pFrame, p_content) {
+			// get args
+			//==========
+			const l_argsResults = []
+			for (let i=0;i<p_content.length-1;i++) {
+				l_argsResults[i] = pFrame.childReturnedMultivals['arg'+(i+1)]
+			}
+			const l_theCombinations = cartesianProduct(...l_argsResults)
+			for (const comb of l_theCombinations) {
+				pFrame.toReturn_multival.push(
+					comb.every( (value, index, arr) => {
+						if (index == arr.length - 1) return true
+						return this.andExec(value, arr[index+1])
+					})
 				)
 			}
 		}
@@ -1914,7 +1965,9 @@ Frame.prototype.getInstruction = function() {
 			if (this.code.multLabel) {
 				dynamicParallelSet.add(this)
 			}
-			if ( ['lambda', 'while', 'foreach', 'foreach_race', 'repeat'].includes(this.code.content[0]?.content) ) {
+			if ( ['foreach_race_mult'].includes(this.code.content[0]?.content) ) {
+				this.code = getSeqInserted(this.code, 3)
+			} else if ( ['lambda', 'while', 'foreach', 'foreach_race', 'repeat'].includes(this.code.content[0]?.content) ) {
 				this.code = getSeqInserted(this.code, 2)
 			} else if (this.code.content[0]?.content === 'whileTrue') {
 				this.code = getSeqInserted(this.code, 1)
