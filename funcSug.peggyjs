@@ -20,14 +20,14 @@
 	input = input.replaceAll(/([A-Za-z_]+)[.]([0-9A-Za-z_]+) <-- /g, '%setToObject $$$1 $2 ')
 	input = input.replaceAll(/[$]([A-Za-z_]+)[.]([0-9A-Za-z_]+)[.]([0-9A-Za-z_]+)/g, ':getFromObject :getFromObject $$$1 $2 $3')
 	input = input.replaceAll(/[$]([A-Za-z_]+)[.]([0-9A-Za-z_]+)/g, ':getFromObject $$$1 $2')
-	input = input.replaceAll(/[{]deffunc ([A-Za-z_]+) /g, '.var $1 :set $1 {lambda ') // '}}'
+	input = input.replaceAll(/[{]deffunc ([A-Za-z_][0-9A-Za-z_]*) /g, '.var $1 :set $1 {lambda ') // '}}'
 	input = input.replaceAll(/.var\s+([A-Za-z_]+) <-- /g, '.var $1 :set $1 ')
 	input = input.replaceAll('$_', '.evalget _')
 	input = input.replaceAll(/\n(\s*)(#?)(.*)<--(.*)(?=\n)/g, '\n$1$2[ $3 <- $4 ]')
-	input = input.replaceAll(/([A-Za-z_]+)\s*<-\s*\[\s*\+\s*/g, '$1 <- [ $$$1 + ')
-	input = input.replaceAll(/([A-Za-z_]+)\s*<-\s*\[\s*\*\s*/g, '$1 <- [ $$$1 * ')
-	input = input.replaceAll(/([A-Za-z_]+)\s*<-\s*\[\s*\-\s*/g, '$1 <- [ $$$1 - ')
-	input = input.replaceAll(/([A-Za-z_]+)\s*<-\s*\[\s*\/\s*/g, '$1 <- [ $$$1 / ')
+	input = input.replaceAll(/([A-Za-z_][0-9A-Za-z_]*)\s*<-\s*\[\s*\+\s*/g, '$1 <- [ $$$1 + ')
+	input = input.replaceAll(/([A-Za-z_][0-9A-Za-z_]*)\s*<-\s*\[\s*\*\s*/g, '$1 <- [ $$$1 * ')
+	input = input.replaceAll(/([A-Za-z_][0-9A-Za-z_]*)\s*<-\s*\[\s*\-\s*/g, '$1 <- [ $$$1 - ')
+	input = input.replaceAll(/([A-Za-z_][0-9A-Za-z_]*)\s*<-\s*\[\s*\/\s*/g, '$1 <- [ $$$1 / ')
 	input = input.replaceAll('<-', ' set ')
 }
 
@@ -72,16 +72,19 @@ expressionEmpty
 	= "(" spac:__ ")" { return new Expression('expression', [], text()) }
 
 exprLabel
-	= spaces "@" n:[A-Za-z_]+ { return n.join("") }
+	= spaces "@" n:$([A-Za-z_][0-9A-Za-z_]*) { return n }
 
 multLabel
-	= spaces "*" n:[A-Za-z_]+ { return n.join("") }
+	= spaces "*" n:$([A-Za-z_][0-9A-Za-z_]*) { return n }
 
 name
-	= simpleName
+	= n:(simpleName / simpleOper) { return new Expression('identifier', n, n) }
 
 simpleName
-	= n:[A-Za-z_=+*/<>-]+ { return new Expression('identifier', n.join(""), n.join("")) }
+	= $([A-Za-z_][0-9A-Za-z_]*)
+
+simpleOper
+	= $([=+*/<>-][_=+*/<>-]*)
 
 __ "optSpaces"
 	= (comment / singleSpace / newline)*
