@@ -128,10 +128,29 @@ No value
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var a
-		# a <-- 0
+		.var a3
+		# a3 <-- 0
 	}
 `, result: `
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a <-- ((23 56 76))
+		.print .first $a
+	}
+`, result: `
+	23
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a <-- ((23 56 76))
+		.print .rest $a
+	}
+`, result: `
+	56
+	76
 `,},
 
 {line: new Error().lineNumber, code:`
@@ -208,16 +227,16 @@ three
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.varmul a
-		a <-- 0
-		a <-- 1
-		.freeze a
+		.varmul a5
+		a5 <-- 0
+		a5 <-- 1
+		.freeze a5
 		{par
-			a <-- [+1]
-			a <-- [+2]
+			a5 <-- [+1]
+			a5 <-- [+2]
 		}
-		.next a
-		.print $a
+		.next a5
+		.print $a5
 	}
 `, result: `
 2
@@ -527,8 +546,8 @@ three
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var qwerty
-		{seq @qwerty
+		.var qwerty3
+		{seq @qwerty3
 			.var boite
 			:set boite !Namespace
 		}
@@ -789,10 +808,10 @@ OK
 
 {line: new Error().lineNumber, code:`
 	{seq
-		.var thePar
-		{par @thePar
+		.var thePar5
+		{par @thePar5
 			!awaitForever
-			.break thePar
+			.break thePar5
 		}
 		.print 54
 	}
@@ -1284,14 +1303,14 @@ A3
 {line: new Error().lineNumber, code:`
 	{seq
 		.var a <-- 3
-		.var suppl
+		.var suppl7
 		{par
-			*suppl
+			*suppl7
 			{while [$a > 0]
 				.print $a
 				a <-- [- 1]
 			}
-			{spawn suppl
+			{spawn suppl7
 				.print 'Hello!'
 			}
 		}
@@ -1301,6 +1320,37 @@ Hello!
 3
 2
 1
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		{deffunc breakReturn (p_vari p_valRet)
+			:set $p_vari {short (p_valRet) 'return {returnValue: p_valRet}'}
+		}
+		{deffunc foreach_race_mult (p_vari p_mult _expr)
+			.var all
+			.varmul retValMul
+			.var mult
+			{foreach @all $p_vari
+				:set retValMul $_expr
+				{if [.multiplicity $retValMul = $p_mult]
+					:breakReturn all $retValMul
+				}
+			}
+		}
+		#.setDebug 5
+		.var a <-- ((2 3 4))
+		.print {foreach_race_mult a 2
+			{if [$a = 3]
+				!awaitForever
+			else
+				$a
+			}
+		}
+	}
+`, result: `
+	2
+	4
 `,},
 
 
