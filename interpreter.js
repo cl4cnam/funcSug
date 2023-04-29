@@ -1365,7 +1365,7 @@ const gDict_instructions = {
 			const l_livebox = l_namespace.get(lPARAM_variable.content)
 			if (l_livebox.precBeep) {
 				const l_multival = l_livebox.getMultival()
-				;;     $__ErrorChecking(pFrame, l_multival.length > 1 && ! l_multival[0]?.returnValue, 'multiple value for cancellor variable')
+				;;     $__ErrorChecking(pFrame, l_multival.length > 1 && l_multival[0]?.returnValue === undefined, 'multiple value for cancellor variable')
 				if (l_multival.length===1 && l_multival[0] === 1) {
 					for (const ch of pFrame.childrenList) {
 						ch.getInstruction()
