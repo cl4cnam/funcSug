@@ -932,6 +932,18 @@ const gDict_instructions = {
 	},
 	//===========================================================
 	
+	allEqual: {
+		nbArg:1,
+		postExec: function(pFrame, p_content) {
+			const result = pFrame.childReturnedMultivals.arg1.every( (value, index, arr) => {
+				if (index == arr.length - 1) return true
+				return value == arr[index+1]
+			})
+			pFrame.toReturn_multival.push(result)
+		}
+	},
+	//===========================================================
+	
 	get: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
@@ -1075,6 +1087,15 @@ const gDict_instructions = {
 	},
 	//===========================================================
 	
+	parToList: {
+		nbArg:1,
+		postExec: function(pFrame, p_content) {
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
+			pFrame.toReturn_multival = [l_firstargResult]
+		}
+	},
+	//===========================================================
+	
 	first: {
 		nbArg:1,
 		postExec: function(pFrame, p_content) {
@@ -1098,6 +1119,27 @@ const gDict_instructions = {
 		postExec: function(pFrame, p_content) {
 			const l_firstargResult = pFrame.childReturnedMultivals.arg1
 			pFrame.toReturn_multival.push(l_firstargResult.length)
+		}
+	},
+	//===========================================================
+	
+	isNovalue: {
+		nbArg:1,
+		postExec: function(pFrame, p_content) {
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
+			pFrame.toReturn_multival = [l_firstargResult.length == 0]
+		}
+	},
+	//===========================================================
+	
+	valuesFrom: {
+		nbArg:3,
+		postExec: function(pFrame, p_content) {
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
+			const l_secondargResult = pFrame.childReturnedMultivals.arg2
+			;;     $__ErrorChecking(pFrame, l_secondargResult.length != 1 || l_secondargResult[0] != 'butNotFrom', '"butNotFrom" missing')
+			const l_thirdResult = pFrame.childReturnedMultivals.arg3
+			pFrame.toReturn_multival = l_firstargResult.filter( val => ! l_thirdResult.includes(val) )
 		}
 	},
 	//===========================================================
@@ -1191,7 +1233,7 @@ const gDict_instructions = {
 	//===========================================================
 	
 	par: {
-		nbArg: (n=> (n>=1) ),
+		nbArg: (n=> (n>=0) ),
 		activ: function(pFrame) {
 			const lPARAM_variable = pFrame.code.multLabel
 			const l_namespace = getNamespace(pFrame, lPARAM_variable)
@@ -1438,6 +1480,7 @@ gDict_instructions.js = gDict_instructions.short
 gDict_instructions.whileTrueAwaitFrame = gDict_instructions.continuous
 gDict_instructions.foreachPar = gDict_instructions.foreach
 gDict_instructions.splitMicrostep = gDict_instructions.separateMicrostep
+gDict_instructions.isEmpty = gDict_instructions.isNovalue
 
 //===================================================================================================
 //
