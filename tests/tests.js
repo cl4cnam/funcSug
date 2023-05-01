@@ -21,6 +21,57 @@ No value
 
 {line: new Error().lineNumber, code:`
 	{seq
+		.print .allEqual ((5 4 4))
+		.print .allEqual ((4 4 4))
+	}
+`, result: `
+	false
+	true
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.print .parToList ((5 4 49))
+	}
+`, result: `
+	5,4,49
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.print (( ))
+	}
+`, result: `
+	No value
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.print .isNovalue (( ))
+	}
+`, result: `
+	true
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.print .isNovalue ((5))
+	}
+`, result: `
+	false
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.print %valuesFrom ((3 4 5)) butNotFrom ((3 6))
+	}
+`, result: `
+	4
+	5
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
 		.print 34
 		.print 56
 	}
