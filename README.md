@@ -1,7 +1,7 @@
 # **funcSug**
 
 This is a new concurrent programming language (in progress, but it already works) loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) of Jean-Ferdy Susini.
-It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles.
+It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles. It doesn't use OS threads.
 
 The goal of the language is to enable a better structure of code, that is, a more natural and more readable structure.
 
