@@ -10,6 +10,8 @@ For now, it's just a quick and dirty interpreter but it works enough to be appre
 ## Features
 
 ### Parallel construct
+> Beware that this is just a logical parallelism.
+
 You can write
 ```
 {par
