@@ -59,8 +59,8 @@ and [test it](https://cl4cnam.github.io/miniSweet/miniSweet.html).
 and [test it](https://cl4cnam.github.io/aquarium/aquarium.html).
 
 Don't look too hard at my syntax (I intend to change it into a pythonic syntax). Look instead at the [global structure of the code](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg): One cannot follow this structure in usual programming language.
-- In ['Guess the Number'](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg), ```gameCourse``` is just a function that returns only when the player has found the number. At that moment, ```gameCourse``` returns the number of steps.
-- In ['Breakout'](https://github.com/cl4cnam/breakout/blob/main/breakout.fg), ```lifeOfBrick``` is just a function that returns only when the brick is broken. The same goes for the ```lifeOfBall``` function.
+- In ['Guess the Number'](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg), ```gameCourse``` is just a function. The line just after the call of ```gameCourse``` is executed only when the player has found the number, that is only when ```gameCourse``` has returned, just like any classical function call.
+- In ['Breakout'](https://github.com/cl4cnam/breakout/blob/main/breakout.fg), ```lifeOfBrick``` is just a function. The line just after the call of ```lifeOfBrick``` is executed only when the brick is broken. The same goes for the ```lifeOfBall``` function.
 
 ## Note
 
