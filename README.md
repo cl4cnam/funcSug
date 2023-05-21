@@ -62,6 +62,8 @@ Don't look too hard at my syntax (I intend to change it into a pythonic syntax).
 - In ['Guess the Number'](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg), ```gameCourse``` is just a function. The line just after the call of ```gameCourse``` is executed only when the player has found the number, that is only when ```gameCourse``` has returned, just like any classical function call.
 - In ['Breakout'](https://github.com/cl4cnam/breakout/blob/main/breakout.fg), ```lifeOfBrick``` is just a function. The line just after the call of ```lifeOfBrick``` is executed only when the brick is broken. The same goes for the ```lifeOfBall``` function.
 
+You can also test snippets [here](https://cl4cnam.github.io/FuncSugREPL/repl.html).
+
 ## Note
 
 This language has [syntax highlighting for Geany](https://github.com/cl4cnam/funcSug/tree/main/tools/forGeany); otherwise, with Geany, if you choose that of zephir (or nsis, powershell, ruby), it can be pleasant.
