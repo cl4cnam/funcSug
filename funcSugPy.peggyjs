@@ -1,0 +1,404 @@
+{
+	let indentationCount = 0
+	let indentationStack = []
+	function toIdentifier(p_stringName_or_identifier) {
+		if (p_stringName_or_identifier instanceof Expression) return p_stringName_or_identifier
+		return new Expression('identifier', p_stringName_or_identifier, p_stringName_or_identifier)
+	}
+	function toExpression(ps_name, pArrayExpression, pExprLabel, pCancelExpr, pMultLabel) {
+		return new Expression(
+			'expression',
+			[toIdentifier(ps_name)].concat(pArrayExpression.flat()),
+			text(),
+			pExprLabel,
+			pCancelExpr,
+			pMultLabel
+		)
+	}
+	function Expression(type, content, text, exprLabel, cancelExpression, multLabel) {
+		this.type = type
+		this.content = content
+		this.text = text
+		this.exprLabel = exprLabel
+		this.cancelExpression = cancelExpression
+		this.multLabel = multLabel
+		this.location = location()
+	}
+}
+
+start
+	= program
+
+program
+	= optSpaces expr:expression optSpaces { return new Expression('program', expr, expr.text) }
+
+expression
+	= seqExpr / parExpr / ifExpr / loopExpr / defAllparamExpr / defExpr / blockCallExpr / matchExpr / spawnExpr / jsExpr
+	/ whileTrue_dependsOn_Expr
+	/ echoExpr / awaitInnamespaceBxpExpr / awaitBxpExpr / directExpr
+	/ varmulExpr / varExpr / specialAssignmentExpr / namespaceAssignment2Expr / namespaceAssignmentExpr / assignmentExpr
+	/ flatExpression
+
+flatExpression
+	= logicSumExpr
+
+directExpr
+	= op:('break'/'restart'/'pause'/'resume') flatSpaces n:simpleName { return toExpression(op, [toIdentifier(n)]) }
+
+awaitInnamespaceBxpExpr
+	= 'await' bxp:('Bip'/'Beep') flatSpaces n:simpleName ':' n2:simpleName {
+		return toExpression('awaitInNamespace', [toExpression( 'get', [toIdentifier(n)] ), toIdentifier(n2), toIdentifier(bxp.toLowerCase())])
+	}
+
+awaitBxpExpr
+	= 'await' bxp:('Bip'/'Beep') flatSpaces  n:simpleName { return toExpression('await', [toIdentifier(n), toIdentifier(bxp.toLowerCase())]) }
+
+echoExpr
+	= 'echo' flatSpaces expr:expression { return toExpression('print', [expr]) }
+
+simpleExpression
+	= '(' __ expr:flatExpression __ ')' {return expr}
+	/ string / parListExpr / listExpr / number / boolean
+	/ (n:name ':' n2:(name/number) ':' n3:(name/number) {
+		return toExpression('getFromNamespace', [toExpression('getFromNamespace', [toExpression('get', [n]), n2]), n3])
+	})
+	/ (n:name ':' n2:(name/number) {
+		return toExpression('getFromNamespace', [toExpression('get', [n]), n2])
+	})
+	/ callExpr
+	/ (n:name {
+		const oper = (n.content[0] === '_') ? 'evalget' : 'get'
+		return toExpression(oper, [n])
+	})
+
+varmulExpr
+	= 'varmul' flatSpaces expr1:simpleName expr2:(__ ':=' __ @expression)? {
+		if (expr2 === null) return toExpression('varmul', [toIdentifier(expr1)])
+		else return [
+			toExpression('varmul', [toIdentifier(expr1)]),
+			toExpression('set', [toIdentifier(expr1), expr2])
+		]
+	}
+
+varExpr
+	= 'var' flatSpaces expr1:simpleName expr2:(__ ':=' __ @expression)? {
+		if (expr2 === null) return toExpression('var', [toIdentifier(expr1)])
+		else return [
+			toExpression('var', [toIdentifier(expr1)]),
+			toExpression('set', [toIdentifier(expr1), expr2])
+		]
+	}
+
+specialAssignmentExpr
+	= n:simpleName __ op:[-+*/] '=' __ expr:expression {
+		return toExpression(
+			'set', 
+			[
+				toIdentifier(n),
+				toExpression(
+					op,
+					[
+						toExpression( 'get', [toIdentifier(n)] ),
+						expr
+					]
+				)
+			]
+		)
+	}
+
+namespaceAssignment2Expr
+	= n:simpleName ':' n2:simpleName ':' n3:simpleName __ ':=' __ expr:expression {
+		return toExpression('setToNamespace', [toExpression('getFromNamespace', [toExpression('get', [toIdentifier(n)]), toIdentifier(n2)]), toIdentifier(n3), expr])
+	}
+
+namespaceAssignmentExpr
+	= n:simpleName ':' n2:simpleName __ ':=' __ expr:expression {
+		return toExpression('setToNamespace', [toExpression('get', [toIdentifier(n)]), toIdentifier(n2), expr])
+	}
+
+assignmentExpr
+	= n:simpleName __ ':=' __ expr:expression { return toExpression('set', [toIdentifier(n), expr]) }
+
+blockCallExpr
+	= 'blockCall' i:natNumber flatSpaces n:simpleName exprs:(flatSpaces @flatExpression)|i| __ ':' exprLabel:(flatSpaces '@' @simpleName)? bl:BLOCK {
+		return toExpression(n, exprs.concat(bl), exprLabel)
+	}
+
+callExpr
+	= n:simpleName __ '(' __ exprs:flatExpression|.., __ "," __| __ ')' {
+		const l_callExpr = toExpression(n, exprs)
+		if (n === 'seq') l_callExpr.seqFunction = true
+		return l_callExpr
+	}
+
+listExpr
+	= '[' __ exprs:flatExpression|.., __ "," __| __ ']' { return  new Expression('expression', exprs.flat(), text()) }
+
+parListExpr
+	= '|' __ exprs:flatExpression|.., __ "," __| __ '|' { return  toExpression('par', exprs) }
+
+seqExpr
+	= 'seq:' exprLabel:(flatSpaces '@' @simpleName)? bl:BLOCK blCanceled:(newline SAMEDENT 'onBreak:' @BLOCK)? {
+		return toExpression('seq', bl, exprLabel, blCanceled ? toExpression('seq', blCanceled) : undefined)
+	}
+
+parExpr
+	= op:('par'/'mix')
+		inside:(flatSpaces 'inside' flatSpaces @simpleName)?
+		exit:(flatSpaces 'exitAfter' flatSpaces @number flatSpaces 'finished')?
+		suppl:(flatSpaces 'supplBranchBy' flatSpaces @simpleName)?
+		':'
+		exprLabel:(flatSpaces '@' @simpleName)?
+		bl:BLOCK blCanceled:(newline SAMEDENT 'onBreak:' @BLOCK)?
+	{
+		if (inside && exit) {
+			return toExpression(
+				'foreach_race_mult',
+				[toIdentifier(inside), exit].concat(bl),
+				exprLabel || undefined,
+				blCanceled ? toExpression('seq', blCanceled) : undefined,
+				suppl || undefined
+			)
+		} else if (inside) {
+			return toExpression(
+				'foreach',
+				[toIdentifier(inside)].concat(bl),
+				exprLabel || undefined,
+				blCanceled ? toExpression('seq', blCanceled) : undefined,
+				suppl || undefined
+			)
+		} else if (exit) {
+			return toExpression(
+				'par_race_mult',
+				[toIdentifier(exit)].concat(bl),
+				//[
+				//	toExpression('par', [exit].concat(bl))
+				//],
+				exprLabel || undefined,
+				blCanceled ? toExpression('seq', blCanceled) : undefined,
+				suppl || undefined
+			)
+		}
+		return toExpression(
+			op, bl, exprLabel || undefined,
+			blCanceled ? toExpression('seq', blCanceled) : undefined,
+			suppl || undefined
+		)
+	}
+
+ifExpr
+	= 'if' flatSpaces expr:flatExpression __ ':' blYes:BLOCK blNo:(newline SAMEDENT 'else:' @BLOCK)? {
+		if (blNo === null) return toExpression('if', [expr,blYes])
+		else return toExpression('if', [expr,blYes,toIdentifier('else'),blNo])
+	}
+
+loopExpr
+	= op:('while'/'repeat') flatSpaces expr:flatExpression __ ':' exprLabel:(flatSpaces '@' @simpleName)? bl:BLOCK blCanceled:(newline SAMEDENT 'onBreak:' @BLOCK)? {
+		return toExpression(op, [expr].concat(bl), exprLabel, blCanceled ? toExpression('seq', blCanceled) : undefined)
+	}
+
+spawnExpr
+	= 'spawn' flatSpaces n:simpleName __ ':' bl:BLOCK {
+		return toExpression('spawn', [toIdentifier(n)].concat(bl))
+	}
+
+jsExpr
+	= 'js' __ '(' __ exprs:simpleName|.., __ "," __| __ ')' __ ':'
+		newline jslines:$jsline|1..,newline|
+	{
+		return toExpression(
+			'short', [
+				new Expression( 'expression', exprs.map(elt=>toIdentifier(elt)), text() ),
+				new Expression('string', jslines, jslines )
+			]
+		)
+	}
+
+matchExpr
+	= 'match' flatSpaces expr:flatExpression __ ':' exprLabel:(flatSpaces '@' @simpleName)? newline INDENT cases:caseExpr|1..,newline SAMEDENT| {
+		return toExpression('match', [expr, ...cases].flat(), exprLabel)
+	}
+
+caseExpr
+	= 'case' flatSpaces expr:flatExpression __ ':' bl:BLOCK {return [toIdentifier('case'), expr, ...bl]}
+
+defAllparamExpr
+	= 'def' flatSpaces n:simpleName __ '(' __ ':' param:simpleName __ ')' ':' bl:BLOCK  {
+		return [
+			toExpression('var', [toIdentifier(n)]),
+			toExpression('set', [
+				toIdentifier(n),
+				toExpression('lambda', [
+					toIdentifier(param),
+					...bl
+				])
+			])
+		]
+	}
+
+defExpr
+	= 'def' flatSpaces n:simpleName __ '(' __ exprs:simpleName|.., __ "," __| __ ')' ':' bl:BLOCK  {
+		return [
+			toExpression('var', [toIdentifier(n)]),
+			toExpression('set', [
+				toIdentifier(n),
+				toExpression('lambda', [
+					new Expression( 'expression', exprs.map(elt=>toIdentifier(elt)), text() ),
+					...bl
+				])
+			])
+		]
+	}
+
+whileTrue_dependsOn_Expr
+	= 'whileTrue_dependsOn' __ exprs:simpleName|.., __ "," __| ':' bl:BLOCK  {
+		return toExpression(
+			'whileTrue_dependsOn',
+			[
+				toExpression('par', [exprs.map(elt=>toIdentifier(elt))]),
+				toExpression('seq', bl)
+			]
+		)
+	}
+
+powerExpr
+	= expr1:simpleExpression expr2:(__ "**" __ @simpleExpression)? {
+		if (expr2 === null) return expr1
+		else return toExpression('**', [expr1,expr2])
+	}
+
+productExpr
+	= expr1:powerExpr exprs:(__ ('*' / '/') __ powerExpr)* {
+		return exprs.reduce(
+			(acc, elt) => toExpression( elt[1], [acc,elt[3]] ),
+			expr1
+		)
+	}
+
+sumExpr
+	= expr1:productExpr exprs:(__ ('+' / '-') __ productExpr)* {
+		return exprs.reduce(
+			(acc, elt) => toExpression( elt[1], [acc,elt[3]] ),
+			expr1
+		)
+	}
+
+comparExpr
+	= expr1:sumExpr expr2:(__ ('<=' / '>=' / '!=' / '<' / '>' / '=') __ sumExpr)? {
+		if (expr2 === null) return expr1
+		else return toExpression((expr2[1]=='!=')?'/=':expr2[1], [expr1,expr2[3]])
+	}
+
+simpleBoolExpr
+	= comparExpr / boolean
+
+logicNotExpr
+	= 'not' flatSpaces b:simpleBoolExpr {
+		return toExpression('not', [b])
+	}
+
+logicProdExpr
+	= expr1:(logicNotExpr/simpleBoolExpr) expr2:(flatSpaces "and" flatSpaces @(logicNotExpr/simpleBoolExpr))? {
+		if (expr2 === null) return expr1
+		else return toExpression('and', [expr1,expr2])
+	}
+
+logicSumExpr
+	= expr1:logicProdExpr expr2:(flatSpaces "or" flatSpaces @logicProdExpr)? {
+		if (expr2 === null) return expr1
+		else return toExpression('or', [expr1,expr2])
+	}
+
+// inspired by https://github.com/Kantouzin/python-pegjs
+BLOCK
+	= whiteLine*
+	newline INDENT startExpr:(comment/expression)
+	restExpr:(whiteLine* newline SAMEDENT @(comment/expression))*
+	 & (newline DEDENT)
+	{ return [startExpr].concat(restExpr.flat()).filter(elt=>(elt!==null)) }
+
+SAMEDENT
+	= tabs:tabs &{return tabs.length == indentationCount} {}
+
+INDENT
+	= tabs:tabs &{return tabs.length == indentationCount + 1} {
+		indentationStack.push(indentationCount)
+		indentationCount += 1
+	}
+
+DEDENT
+	= tabs:tabs {indentationCount = indentationStack.pop()}
+
+name
+	= n:(simpleName / simpleOper) { return toIdentifier(n) }
+
+simpleName "simple_name"
+	= nonUnderscoreSimpleName / underscoreSimpleName
+
+nonUnderscoreSimpleName "non_underscore_simple_name"
+	= $([A-Za-z][0-9A-Za-z_]*)
+
+underscoreSimpleName "underscore_simple_name"
+	= $("_" [A-Za-z_][0-9A-Za-z_]*)
+
+simpleOper "simple_operator"
+	= $([=+*/<>-][_=+*/<>-]*)
+
+__ "flat_optional_spaces"
+	= (comment / singleSpace)*
+
+optSpaces "optional_spaces"
+	= (comment / singleSpace / newline)*
+
+flatSpaces "flat_space(s)"
+	= (comment / singleSpace)+
+
+spaces "space(s)"
+	= (comment / singleSpace / newline)+
+
+comment "comment"
+	= (commentSharp / commentDoubleSlash) {return null}
+
+commentSharp "sharp_comment"
+	= "#" [^\n\r]* &newline
+
+commentDoubleSlash "slash_comment"
+	= "//" [^\n\r]* &newline
+
+singleSpace "single_space"
+	= [ \t]
+
+whiteSpace "white_space"
+	= [ \t\n\r]+
+
+newline "newline"
+	= [\n\r]
+
+whiteLine "white_line"
+	= newline [ \t]* &newline
+
+boolean "boolean"
+	= b:('true' / 'false') { return toIdentifier(b) }
+
+number "number"
+	= digits:("-"?[0-9]+([.][0-9]+)?) {
+		return new Expression(
+			'number',
+			parseFloat(  text()   ),
+			text()
+		)
+	}
+
+natNumber
+	= [0-9]+ {return parseInt( text() )}
+
+string "string"
+	= '"' content:[^"]* '"' { return new Expression('string', content.join(""), text() ) }
+	/ "'" content:[^']* "'" { return new Expression('string', content.join(""), text() ) }
+	/ '`' content:[^`]* '`' { return new Expression('string', content.join(""), text() ) }
+
+jsline "js_line_without_tab"
+	= tabs:tabs & {return tabs.length > indentationCount} t:$[^\t\n]*
+
+tabs "tabulations"
+	= '\t'*
