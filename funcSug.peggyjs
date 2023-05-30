@@ -1,5 +1,16 @@
 {
 	let indentationCount = 0
+	function toIdentifier(p_stringName_or_identifier) {
+		if (p_stringName_or_identifier instanceof Expression) return p_stringName_or_identifier
+		return new Expression('identifier', p_stringName_or_identifier, p_stringName_or_identifier)
+	}
+	function toExpression(ps_name, pArrayExpression) {
+		return new Expression(
+			'expression',
+			[toIdentifier(ps_name)].concat(pArrayExpression),
+			text()
+		)
+	}
 	function Expression(type, content, text, exprLabel, cancelExpression, multLabel) {
 		this.type = type
 		this.content = content
@@ -9,8 +20,6 @@
 		this.multLabel = multLabel
 		this.location = location()
 	}
-	input = input.replaceAll(/&([A-Za-z_][0-9A-Za-z_]*)/g, 'call $$$1')
-	input = input.replaceAll(/[(][(]([^\n]*?)[)][)]/g, '(par $1)')
 	input = input.replaceAll(/([A-Za-z_][0-9A-Za-z_]*)[:]([0-9A-Za-z_]+)[:]([0-9A-Za-z_]+) <-- /g, '%setToNamespace :getFromNamespace $$$1 $2 $3 ')
 	input = input.replaceAll(/([A-Za-z_][0-9A-Za-z_]*)[:]([0-9A-Za-z_]+) <-- /g, '%setToNamespace $$$1 $2 ')
 	input = input.replaceAll(/:await\s+([A-Za-z_][0-9A-Za-z_]*)[:]([0-9A-Za-z_]+)/g, '%awaitInNamespace $$$1 $2 ')
@@ -20,9 +29,7 @@
 	input = input.replaceAll(/([A-Za-z_][0-9A-Za-z_]*)[.]([0-9A-Za-z_]+) <-- /g, '%setToObject $$$1 $2 ')
 	input = input.replaceAll(/[$]([A-Za-z_][0-9A-Za-z_]*)[.]([0-9A-Za-z_]+)[.]([0-9A-Za-z_]+)/g, ':getFromObject :getFromObject $$$1 $2 $3')
 	input = input.replaceAll(/[$]([A-Za-z_][0-9A-Za-z_]*)[.]([0-9A-Za-z_]+)/g, ':getFromObject $$$1 $2')
-	input = input.replaceAll(/[{]deffunc ([A-Za-z_][0-9A-Za-z_]*) /g, '.var $1 :set $1 {lambda ') // '}}'
 	input = input.replaceAll(/.var\s+([A-Za-z_][0-9A-Za-z_]*) <-- /g, '.var $1 :set $1 ')
-	input = input.replaceAll('$_', '.evalget _')
 	input = input.replaceAll(/\n(\s*)(#?)(.*)<--(.*)(?=\n)/g, '\n$1$2[ $3 <- $4 ]')
 	input = input.replaceAll(/([A-Za-z_][0-9A-Za-z_]*)\s*<-\s*\[\s*\+\s*/g, '$1 <- [ $$$1 + ')
 	input = input.replaceAll(/([A-Za-z_][0-9A-Za-z_]*)\s*<-\s*\[\s*\*\s*/g, '$1 <- [ $$$1 * ')
@@ -37,33 +44,59 @@ start
 program
 	= __ expr:expression __ { return new Expression('program', expr, expr.text) }
 
+// expression (or array of expression)
 expression
-	= "(" __ startExpr:expression expr:WSexpression* __ ")" { return new Expression('expression', [startExpr].concat(expr), text() ) }
-	/ "[" __ startExpr:expression expr:WSexpression* __ "]" { return new Expression('expression', [startExpr].concat(expr), text() ) }
-	/ "{" __ startExpr:expression exprLabel:exprLabel? multLabel:multLabel? expr:WSexpression* __ "}" cancelExpression:cancelExpression? { return new Expression('expression', [startExpr].concat(expr), text(), exprLabel, cancelExpression, multLabel ) }
+	= expressionDeffunc
+	/ "((" __ exprs:expressionStar __ "))" { return toExpression('par', exprs.flat()) }
+	/ "(&" n:name __ exprs:expressionStar __ ")" { return toExpression( 'call', [toExpression('get', [n])].concat(exprs.flat()) ) }
+	/ "(" __ exprs:expressionPlus __ ")" { return new Expression('expression', exprs.flat(), text() ) }
+	/ "[" __ exprs:expressionPlus __ "]" { return new Expression('expression', exprs.flat(), text() ) }
+	/ "{" __ startExpr:expression exprLabel:exprLabel? multLabel:multLabel? exprs:WSexpression* __ "}" cancelExpression:cancelExpression? { return new Expression('expression', [startExpr].concat(exprs.flat()), text(), exprLabel, cancelExpression, multLabel ) }
 	/ number / string / name
-	/ expression0 / expression1 / expression2 / expression3 / expression4 / expressionBlock1 / expressionEmpty
+	/ expression0 / expression1 / expression2 / expression3 / expression4 / expression5
+	/ expressionBlock1 / expressionEmpty
 
 cancelExpression
 	= __ "~" __ expr:expression { return expr; }
+
+expressionStar
+	= expression|..,spaces|
+
+expressionPlus
+	= expression|1..,spaces|
 
 WSexpression
 	= spaces expr:expression { return expr; }
 
 expression0
-	= "!" n:name { return new Expression('expression', [n], text()) }
+	= "!" n:name { return toExpression(n, []) }
 
 expression1
-	= "." n:name spaces e1:expression { return new Expression('expression', [n, e1], text()) }
+	= "." n:name spaces e1:expression { return toExpression(n, [e1]) }
 
 expression2
-	= ":" n:name spaces e1:expression spaces e2:expression { return new Expression('expression', [n, e1, e2], text()) }
+	= ":" n:name spaces e1:expression spaces e2:expression { return toExpression(n, [e1, e2]) }
 
 expression3
-	= "%" n:name spaces e1:expression spaces e2:expression spaces e3:expression { return new Expression('expression', [n, e1, e2, e3], text()) }
+	= "%" n:name spaces e1:expression spaces e2:expression spaces e3:expression { return toExpression(n, [e1, e2, e3]) }
 
 expression4
-	= "$" expr:expression { return new Expression('expression', [new Expression('identifier', 'get', 'get'), expr], text()) }
+	= "$" n:underscoreSimpleName { return toExpression('evalget', [toIdentifier(n)]) }
+
+expression5
+	= "$" expr:expression { return toExpression('get', [expr]) }
+
+expressionDeffunc
+	= "{" ("deffunc"/"defFunc") spaces n:name spaces exprs:expressionPlus __ "}"
+		{
+			return [
+				toExpression('var', [n]),
+				toExpression('set', [
+					n,
+					toExpression('lambda', exprs.flat())
+				])
+			]
+		}
 
 expressionBlock1
 	= "|" e1:expression exprLabel:exprLabel? " "* newline INDENT multLabel:multLabel? startExpr:expression restExpr:(newline SAMEDENT expression " "*)* DEDENT { return new Expression('expression', [e1,startExpr].concat(restExpr), text(), exprLabel, null, multLabel ) }
@@ -78,10 +111,16 @@ multLabel
 	= spaces "*" n:$([A-Za-z_][0-9A-Za-z_]*) { return n }
 
 name
-	= n:(simpleName / simpleOper) { return new Expression('identifier', n, n) }
+	= n:(simpleName / simpleOper) { return toIdentifier(n) }
 
 simpleName
-	= $([A-Za-z_][0-9A-Za-z_]*)
+	= nonUnderscoreSimpleName / underscoreSimpleName
+
+nonUnderscoreSimpleName
+	= $([A-Za-z][0-9A-Za-z_]*)
+
+underscoreSimpleName
+	= $("_" [A-Za-z_][0-9A-Za-z_]*)
 
 simpleOper
 	= $([=+*/<>-][_=+*/<>-]*)
