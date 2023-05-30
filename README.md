@@ -48,7 +48,7 @@ You can react to a change of a variable, for example, like this:
 
 ## Get a taste of the language
 See [the 'Guess the Number' code](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg)
-and [test it](https://cl4cnam.github.io/Guess_the_number/guessTheNumber.html).
+and [test it](https://cl4cnam.github.io/Guess_the_number/guessTheNumber.html) (or see the [pythonic syntax](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumberPy.fg) and [test it](https://cl4cnam.github.io/Guess_the_number/guessTheNumberPy.html)).
 
 You may also want to have a look at:
 - [the 'Breakout' code](https://github.com/cl4cnam/breakout/blob/main/breakout.fg)
