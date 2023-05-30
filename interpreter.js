@@ -407,9 +407,12 @@ const gDict_instructions = {
 				;;     $__ErrorChecking(pFrame, lPARAM_inputExpression.type!=='expression', 'inputExpression not an expression')
 				for (let i=0;i<l_inputContent.length;i++) {
 					;;     $$$__BugChecking(l_inputContent[i]===undefined, 'l_inputContent[i]===undefined', new Error().lineNumber)
-					const lExpr_inputProg = peg.parse('.get ' + l_inputContent[i].content)
-					lExpr_inputProg.content.location = pFrame.code.location
-					pFrame.addChild(lExpr_inputProg.content, 'input' + i)
+					const lExpr_inputProg = new Expression('expression', [
+						new Expression('identifier', 'get', 'get'),
+						l_inputContent[i]
+					], '.get ' + l_inputContent[i].content)
+					lExpr_inputProg.location = pFrame.code.location
+					pFrame.addChild(lExpr_inputProg, 'input' + i)
 				}
 				// jsStringToExecute
 				//------------------
@@ -531,9 +534,12 @@ const gDict_instructions = {
 				;;     $__ErrorChecking(pFrame, lPARAM_inputExpression.type!=='expression', 'inputExpression not an expression')
 				for (let i=0;i<l_inputContent.length;i++) {
 					;;     $$$__BugChecking(l_inputContent[i]===undefined, 'l_inputContent[i]===undefined', new Error().lineNumber)
-					const lExpr_inputProg = peg.parse('.get ' + l_inputContent[i].content)
-					lExpr_inputProg.content.location = pFrame.code.location
-					pFrame.addChild(lExpr_inputProg.content, 'input' + i)
+					const lExpr_inputProg = new Expression('expression', [
+						new Expression('identifier', 'get', 'get'),
+						l_inputContent[i]
+					], '.get ' + l_inputContent[i].content)
+					lExpr_inputProg.location = pFrame.code.location
+					pFrame.addChild(lExpr_inputProg, 'input' + i)
 				}
 				// jsStringToExecute
 				//------------------
@@ -595,9 +601,12 @@ const gDict_instructions = {
 				// key
 				//------
 				;;     $__ErrorChecking(pFrame, lPARAM_key.type!=='identifier', 'lPARAM_key not an identifier', lPARAM_type)
-				const lExpr_key = peg.parse('.get ' + lPARAM_key.content)
-				lExpr_key.content.location = pFrame.code.location
-				pFrame.addChild(lExpr_key.content, 'key')
+				const lExpr_key = new Expression('expression', [
+					new Expression('identifier', 'get', 'get'),
+					lPARAM_key
+				], '.get ' + lPARAM_key.content)
+				lExpr_key.location = pFrame.code.location
+				pFrame.addChild(lExpr_key, 'key')
 				
 				// jsStringToExecute
 				//------------------
@@ -2028,6 +2037,7 @@ Frame.prototype.getInstruction = function() {
 		}
 		
 		const l_content = this.code.content
+		//~ if (l_content === undefined) localLog(this)
 		const lInstruction = new Instruction(l_content[0]?.content)
 		
 		// verif number of arg
@@ -2046,14 +2056,20 @@ Frame.prototype.getInstruction = function() {
 		
 		// verif each elt of sequence on its own line
 		//============================================
-		if (l_content[0].content === 'seq') {
+		if (l_content[0].content === 'seq' && ! this.code.seqFunction) {
 			let ln_precLine = -1
-			let ls_currLine = -1
+			let ln_currLine = -1
+			let ls_precSource
+			let ls_currSource
 			let lExpr_prec = null
 			for (const expr of l_content) {
-				ls_currLine = expr.location.start.line
-				;;     $__ErrorChecking(lExpr_prec, ls_currLine == ln_precLine && expr.content[0]?.text !== 'set', 'two elements of sequence on the same line: "'+lExpr_prec?.text+'" and "'+expr?.text+'"')
-				ln_precLine = ls_currLine
+				//~ localLog(expr)
+				ln_currLine = expr.location.start.line
+				ls_currSource = expr.location.source
+				//~ localLog(ls_precSource, ls_currSource)
+				;;     $__ErrorChecking(lExpr_prec, ln_currLine == ln_precLine && ls_currSource == ls_precSource && expr.content[0]?.text !== 'set', 'two elements of sequence on the same line: "'+lExpr_prec?.text+'" and "'+expr?.text+'"')
+				ln_precLine = ln_currLine
+				ls_precSource = ls_currSource
 				lExpr_prec = expr
 			}
 		}
@@ -2308,14 +2324,15 @@ function exec(code) {
 	runBurst()
 }
 
-function execProg(progText, pf_location, pb_notTimeout0) {
+function execProg(progText, pf_location, pb_notTimeout0, pParser) {
 	timeout0 = ! pb_notTimeout0
 	f_location = pf_location
 	let progr
 	try {
-		progr = peg.parse(progText)
+		progr = pParser.parse(progText)
 		Expression = progr.constructor
 	} catch (err) {
+		if (err.location === undefined) console.error(err)
 		const loc = err.location
 		const oldStartLine = loc.start.line
 		const startSource = (f_location) ? f_location(loc.start.line).source : loc.source
@@ -2324,4 +2341,11 @@ function execProg(progText, pf_location, pb_notTimeout0) {
 		throw err
 	}
 	exec(progr.content)
+}
+
+function execAST(pAST, pf_location, pb_notTimeout0) {
+	timeout0 = ! pb_notTimeout0
+	f_location = pf_location
+	Expression = pAST.constructor
+	exec(pAST.content)
 }
