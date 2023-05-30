@@ -1430,7 +1430,7 @@ async function main() {
 		try {
 			if (progTest.code!=='') {
 				let startTime = performance.now()
-				execProg(progTest.code, undefined, true)
+				execProg(progTest.code, undefined, true, peg)
 				diff = performance.now() - startTime
 			}
 		} catch (err) {
