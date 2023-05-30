@@ -1,3 +1,5 @@
+#!syntax:lispish
+
 {deffunc import (p_externalVariable)
 	{short () :+ 'return ' $p_externalVariable}
 }
