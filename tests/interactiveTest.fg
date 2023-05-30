@@ -1,3 +1,4 @@
+#!syntax:lispish
 .print '.....> TEST'
 .print ''
 .print {seq
