@@ -34,7 +34,7 @@ program
 
 expression
 	= seqExpr / parExpr / ifExpr / loopExpr / defAllparamExpr / defExpr / blockCallExpr / matchExpr / spawnExpr / jsExpr
-	/ whileTrue_dependsOn_Expr
+	/ whileTrue_dependsOn_Expr / whileTrueAwaitFrame_Expr
 	/ echoExpr / awaitInnamespaceBxpExpr / awaitBxpExpr / directExpr
 	/ varmulExpr / varExpr / specialAssignmentExpr / namespaceAssignment2Expr / namespaceAssignmentExpr / assignmentExpr
 	/ flatExpression
@@ -204,13 +204,26 @@ spawnExpr
 
 jsExpr
 	= 'js' __ '(' __ exprs:simpleName|.., __ "," __| __ ')' __ ':'
-		newline jslines:$jsline|1..,newline|
+		newline jslines:$(jsline/whiteLine)|1..,newline|
 	{
 		return toExpression(
 			'short', [
 				new Expression( 'expression', exprs.map(elt=>toIdentifier(elt)), text() ),
 				new Expression('string', jslines, jslines )
 			]
+		)
+	}
+
+whileTrueAwaitFrame_Expr
+	= 'whileTrueAwaitFrame' flatSpaces type:simpleName flatSpaces keyObj:simpleName __ ':' exprLabel:(flatSpaces '@' @simpleName)?
+		newline jslines:$(jsline/whiteLine)|1..,newline|
+	{
+		return toExpression(
+			'continuous', [
+				toIdentifier(type),
+				toIdentifier(keyObj),
+				new Expression('string', jslines, jslines )
+			], exprLabel
 		)
 	}
 
@@ -311,9 +324,9 @@ logicSumExpr
 
 // inspired by https://github.com/Kantouzin/python-pegjs
 BLOCK
-	= whiteLine*
+	= newWhiteLine*
 	newline INDENT startExpr:(comment/expression)
-	restExpr:(whiteLine* newline SAMEDENT @(comment/expression))*
+	restExpr:(newWhiteLine* newline SAMEDENT @(comment/expression))*
 	 & (newline DEDENT)
 	{ return [startExpr].concat(restExpr.flat()).filter(elt=>(elt!==null)) }
 
@@ -375,6 +388,9 @@ newline "newline"
 	= [\n\r]
 
 whiteLine "white_line"
+	= [ \t]* &newline
+
+newWhiteLine "new_white_line"
 	= newline [ \t]* &newline
 
 boolean "boolean"
@@ -398,7 +414,7 @@ string "string"
 	/ '`' content:[^`]* '`' { return new Expression('string', content.join(""), text() ) }
 
 jsline "js_line_without_tab"
-	= tabs:tabs & {return tabs.length > indentationCount} t:$[^\t\n]*
+	= tabs:tabs & {return tabs.length > indentationCount} t:$[^\t\n][^\n]*
 
 tabs "tabulations"
 	= '\t'*
