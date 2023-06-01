@@ -34,9 +34,9 @@ program
 
 expression
 	= seqExpr / parExpr / ifExpr / loopExpr / defAllparamExpr / defExpr / blockCallExpr / matchExpr / spawnExpr / jsExpr
-	/ whileTrue_dependsOn_Expr / whileTrueAwaitFrame_Expr
+	/ whileTrue_dependsOn_Expr / whileTrueAwaitFrame_Expr / whileTrueAwaitDom_Expr
 	/ echoExpr / awaitInnamespaceBxpExpr / awaitBxpExpr / directExpr
-	/ varmulExpr / varExpr / specialAssignmentExpr / namespaceAssignment2Expr / namespaceAssignmentExpr / assignmentExpr
+	/ varmulExpr / varExpr / specialAssignmentExpr / objectAssignment2Expr / objectAssignmentExpr / namespaceAssignment2Expr / namespaceAssignmentExpr / assignmentExpr
 	/ flatExpression
 
 flatExpression
@@ -62,8 +62,14 @@ simpleExpression
 	/ (n:name ':' n2:(name/number) ':' n3:(name/number) {
 		return toExpression('getFromNamespace', [toExpression('getFromNamespace', [toExpression('get', [n]), n2]), n3])
 	})
+	/ (n:name '.' n2:(name/number) '.' n3:(name/number) {
+		return toExpression('getFromObject', [toExpression('getFromObject', [toExpression('get', [n]), n2]), n3])
+	})
 	/ (n:name ':' n2:(name/number) {
 		return toExpression('getFromNamespace', [toExpression('get', [n]), n2])
+	})
+	/ (n:name '.' n2:(name/number) {
+		return toExpression('getFromObject', [toExpression('get', [n]), n2])
 	})
 	/ callExpr
 	/ (n:name {
@@ -111,9 +117,19 @@ namespaceAssignment2Expr
 		return toExpression('setToNamespace', [toExpression('getFromNamespace', [toExpression('get', [toIdentifier(n)]), toIdentifier(n2)]), toIdentifier(n3), expr])
 	}
 
+objectAssignment2Expr
+	= n:simpleName '.' n2:simpleName '.' n3:simpleName __ ':=' __ expr:expression {
+		return toExpression('setToObject', [toExpression('getFromObject', [toExpression('get', [toIdentifier(n)]), toIdentifier(n2)]), toIdentifier(n3), expr])
+	}
+
 namespaceAssignmentExpr
 	= n:simpleName ':' n2:simpleName __ ':=' __ expr:expression {
 		return toExpression('setToNamespace', [toExpression('get', [toIdentifier(n)]), toIdentifier(n2), expr])
+	}
+
+objectAssignmentExpr
+	= n:simpleName '.' n2:simpleName __ ':=' __ expr:expression {
+		return toExpression('setToObject', [toExpression('get', [toIdentifier(n)]), toIdentifier(n2), expr])
 	}
 
 assignmentExpr
@@ -222,6 +238,19 @@ whileTrueAwaitFrame_Expr
 			'continuous', [
 				toIdentifier(type),
 				toIdentifier(keyObj),
+				new Expression('string', jslines, jslines )
+			], exprLabel
+		)
+	}
+
+whileTrueAwaitDom_Expr
+	= 'whileTrueAwaitDom_js' flatSpaces target:flatExpression flatSpaces evt:simpleName __ ':' exprLabel:(flatSpaces '@' @simpleName)?
+		newline jslines:$(jsline/whiteLine)|1..,newline|
+	{
+		return toExpression(
+			'whileTrueAwaitDom_js', [
+				target,
+				toIdentifier(evt),
 				new Expression('string', jslines, jslines )
 			], exprLabel
 		)
