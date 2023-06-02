@@ -136,7 +136,7 @@ assignmentExpr
 	= n:simpleName __ ':=' __ expr:expression { return toExpression('set', [toIdentifier(n), expr]) }
 
 blockCallExpr
-	= 'blockCall' i:natNumber flatSpaces n:simpleName exprs:(flatSpaces @flatExpression)|i| __ ':' exprLabel:(flatSpaces '@' @simpleName)? bl:BLOCK {
+	= 'blockCall' i:natNumber flatSpaces n:name exprs:(flatSpaces @flatExpression)|i| __ ':' exprLabel:(flatSpaces '@' @simpleName)? bl:BLOCK {
 		return toExpression(n, exprs.concat(bl), exprLabel)
 	}
 
