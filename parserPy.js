@@ -1805,7 +1805,7 @@ function peg$parse(input, options) {
       if (s2 !== peg$FAILED) {
         s3 = peg$parseflatSpaces();
         if (s3 !== peg$FAILED) {
-          s4 = peg$parsesimpleName();
+          s4 = peg$parsename();
           if (s4 !== peg$FAILED) {
             s5 = peg$currPos;
             s6 = [];
