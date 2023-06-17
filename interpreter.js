@@ -332,7 +332,11 @@ const gDict_instructions = {
 					pFrame.valCnt = ln_valCnt
 				}
 			} else {
-				pFrame.toReturn_multival = []
+				for (const key in pFrame.childReturnedMultivals) {
+					if (key.startsWith('expressionToExecute')) {
+						pFrame.toReturn_multival.push(...pFrame.childReturnedMultivals[key])
+					}
+				}
 				pFrame.terminated = true
 			}
 		}
@@ -1198,6 +1202,21 @@ const gDict_instructions = {
 	},
 	//===========================================================
 	
+	break: { // generate(evt, 0)
+		nbArg:1,
+		postExec: function(pFrame, p_content) {
+			const l_firstargResult = pFrame.childReturnedMultivals.arg1
+			for (const label of l_firstargResult) {
+				const l_namespace = getNamespace(pFrame, label)
+				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'set undefined variable "' + label + '"')
+				const l_livebox = l_namespace.get(label)
+				l_livebox.setval(pFrame, [0], true)
+			}
+			pFrame.toReturn_multival = []
+		}
+	},
+	//===========================================================
+	
 	setToNamespace: { // setToNamespace <namespace> <var> <value>
 		nbArg:3,
 		postExec: function(pFrame, p_content) {
@@ -1237,6 +1256,40 @@ const gDict_instructions = {
 				pFrame.toReturn_multival = []
 				pFrame.terminated = true
 			}
+		}
+	},
+	//===========================================================
+	
+	disableCancelFor: {
+		nbArg:1,
+		postExec: function(pFrame, p_content) {
+			//~ console.warn('---> disableCancelFor')
+			for (const label of pFrame.childReturnedMultivals.arg1) {
+				const l_namespace = getNamespace(pFrame, label)
+				;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'get undefined variable "' + label + '"', pFrame)
+				const l_livebox = l_namespace.get(label)
+				l_livebox.setval(pFrame, [{disablecancelFrame: pFrame.parent}], true)
+			}
+			//~ pFrame.parent.disableCancel = true
+			pFrame.terminated = true
+		}
+	},
+	//===========================================================
+	
+	disableCancel: {
+		nbArg:0,
+		exec: function(pFrame, p_content) {
+			pFrame.parent.disableCancel = true
+			pFrame.terminated = true
+		}
+	},
+	//===========================================================
+	
+	enableCancel: {
+		nbArg:0,
+		exec: function(pFrame, p_content) {
+			pFrame.parent.disableCancel = false
+			pFrame.terminated = true
 		}
 	},
 	//===========================================================
@@ -1416,11 +1469,13 @@ const gDict_instructions = {
 			const l_livebox = l_namespace.get(lPARAM_variable.content)
 			if (l_livebox.precBeep) {
 				const l_multival = l_livebox.getMultival()
+				//~ console.warn('l_multival', l_multival, lPARAM_variable.content, pFrame)
 				;;     $__ErrorChecking(pFrame, l_multival.length > 1 && l_multival[0]?.returnValue === undefined, 'multiple value for cancellor variable')
 				if (l_multival.length===1 && l_multival[0] === 1) {
 					for (const ch of pFrame.childrenList) {
 						ch.getInstruction()
-						ch.instruction.canc(ch)
+						//~ console.warn('pFrame.frameList_notCancellable (restart)', pFrame.frameList_notCancellable)
+						ch.instruction.canc(ch, pFrame.frameList_notCancellable)
 					}
 					if (pFrame.childrenList.length==0) {
 						pFrame.terminated = true
@@ -1431,13 +1486,18 @@ const gDict_instructions = {
 					}
 				} else if (l_multival.length===1 && l_multival[0] > 1) {
 					this.setPause(pFrame, l_multival[0])
+				} else if (l_multival[0]?.disablecancelFrame) {
+					pFrame.frameList_notCancellable ||= []
+					pFrame.frameList_notCancellable.push(l_multival[0].disablecancelFrame)
+					//~ console.warn('pFrame.frameList_notCancellable (constr)', pFrame.frameList_notCancellable)
 				} else {
 					if (l_multival[0]?.returnValue) {
 						pFrame.toReturn_multival = l_multival.map(elt=>elt.returnValue)
 					}
 					for (const ch of pFrame.childrenList) {
 						ch.getInstruction()
-						ch.instruction.canc(ch)
+						//~ console.warn('pFrame.frameList_notCancellable (breakReturn)', pFrame.frameList_notCancellable)
+						ch.instruction.canc(ch, pFrame.frameList_notCancellable)
 					}
 					if (pFrame.childrenList.length==0) {
 						pFrame.terminated = true
@@ -1482,7 +1542,7 @@ const gDict_instructions = {
 	},
 }
 
-gDict_instructions.break = gDict_instructions.bip
+//~ gDict_instructions.break = gDict_instructions.bip
 gDict_instructions.mix = gDict_instructions.par
 gDict_instructions.syncjs = gDict_instructions.short
 gDict_instructions.js = gDict_instructions.short
@@ -1535,10 +1595,13 @@ function Instruction(ps_codeWord) {
 	}
 	
 	if (! this.canc) {
-		this.canc = function(pFrame) {
+		this.canc = function(pFrame, pFrameList_notCancellable) {
+			if (pFrame.disableCancel) return
+			//~ console.warn('pFrameList_notCancellable (gen)', pFrameList_notCancellable)
+			if (pFrameList_notCancellable?.includes(pFrame)) return
 			for (const ch of [...pFrame.childrenList]) {
 				ch.getInstruction()
-				ch.instruction.canc(ch)
+				ch.instruction.canc(ch, pFrameList_notCancellable)
 			}
 			if (pFrame.code.cancelExpression) {
 				const l_namespaceParent = (pFrame?.parent?.code?.content[0]?.content === 'cancellableExec') ? pFrame.parent.parent : pFrame.parent
