@@ -33,7 +33,8 @@ program
 	= optSpaces expr:expression optSpaces { return new Expression('program', expr, expr.text) }
 
 expression
-	= seqExpr / parExpr / ifExpr / loopExpr / defAllparamExpr / defExpr / blockCallExpr / matchExpr / spawnExpr / jsExpr
+	// = seqExpr / parExpr / ifExpr / loopExpr / defAllparamExpr / defExpr / blockCallExpr / matchExpr / spawnExpr / jsExpr / selectExpr
+	= seqExpr / parExpr / ifExpr / loopExpr / defAllparamExpr / defExpr / blockCallExpr / matchExpr / spawnExpr / jsExpr / prepareFrameExpr
 	/ whileTrue_dependsOn_Expr / whileTrueAwaitFrame_Expr / whileTrueAwaitDom_Expr
 	/ echoExpr / awaitInnamespaceBxpExpr / awaitBxpExpr / directExpr
 	/ varmulExpr / varExpr / specialAssignmentExpr / objectAssignment2Expr / objectAssignmentExpr / namespaceAssignment2Expr / namespaceAssignmentExpr / assignmentExpr
@@ -154,13 +155,19 @@ parListExpr
 	= '|' __ exprs:flatExpression|.., __ "," __| __ '|' { return  toExpression('par', exprs) }
 
 seqExpr
-	= 'seq:' exprLabel:(flatSpaces '@' @simpleName)? bl:BLOCK blCanceled:(newline SAMEDENT 'onBreak:' @BLOCK)? {
+	= ('seq:'/'sequence:') exprLabel:(flatSpaces '@' @simpleName)? bl:BLOCK blCanceled:(newline SAMEDENT 'onBreak:' @BLOCK)? {
 		return toExpression('seq', bl, exprLabel, blCanceled ? toExpression('seq', blCanceled) : undefined)
 	}
 
+//selectExpr
+//	= 'select' flatSpaces @number:
+//	
+//selectBranch
+//	= 'choose' 
+
 parExpr
-	= op:('par'/'mix')
-		inside:(flatSpaces 'inside' flatSpaces @simpleName)?
+	= op:('parallel'/'par'/'mix')
+		inside:(flatSpaces ('inside'/'forEachValueOf') flatSpaces @simpleName)?
 		exit:(flatSpaces 'exitAfter' flatSpaces @number flatSpaces 'finished')?
 		suppl:(flatSpaces 'supplBranchBy' flatSpaces @simpleName)?
 		':'
@@ -196,7 +203,7 @@ parExpr
 			)
 		}
 		return toExpression(
-			op, bl, exprLabel || undefined,
+			op.slice(0,3), bl, exprLabel || undefined,
 			blCanceled ? toExpression('seq', blCanceled) : undefined,
 			suppl || undefined
 		)
@@ -230,8 +237,19 @@ jsExpr
 		)
 	}
 
+prepareFrameExpr
+	= 'prepareFrame_js:'
+		newline jslines:$(jsline/whiteLine)|1..,newline|
+	{
+		return toExpression(
+			'prepContinuous', [
+				new Expression('string', jslines, jslines )
+			]
+		)
+	}
+
 whileTrueAwaitFrame_Expr
-	= 'whileTrueAwaitFrame' flatSpaces type:simpleName flatSpaces keyObj:simpleName __ ':' exprLabel:(flatSpaces '@' @simpleName)?
+	= 'whileTrueAwaitFrame_js' flatSpaces type:simpleName flatSpaces keyObj:simpleName __ ':' exprLabel:(flatSpaces '@' @simpleName)?
 		newline jslines:$(jsline/whiteLine)|1..,newline|
 	{
 		return toExpression(
@@ -421,6 +439,7 @@ whiteLine "white_line"
 
 newWhiteLine "new_white_line"
 	= newline [ \t]* &newline
+	/ newline [ \t]* comment
 
 boolean "boolean"
 	= b:('true' / 'false') { return toIdentifier(b) }
