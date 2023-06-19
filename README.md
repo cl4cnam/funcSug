@@ -1,10 +1,9 @@
 
 # **FuncSug**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![logo](https://github.com/cl4cnam/funcSug/assets/40176886/2d4c08b3-6f96-4acd-b993-b9bbe0df6b91)
 
-This is a new concurrent programming language (in progress, but it already works) loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) of Jean-Ferdy Susini.
-It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles. It doesn't use OS threads.
+This is a new programming language. Its goal is to enable a specific better **structure of code** (that is, a more natural and more readable structure): **the concurrent way**. If you're curious, you can read the [breakout example code](https://github.com/cl4cnam/breakout/blob/main/breakoutPy.fg).
 
-The goal of the language is to enable a better structure of code, that is, a more natural and more readable structure.
+It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) of Jean-Ferdy Susini. It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles. It doesn't use OS threads.
 
 For now, it's just a quick and dirty interpreter but it works enough to be appreciated.
 
