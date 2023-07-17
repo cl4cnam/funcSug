@@ -44,6 +44,7 @@ const RESUME = 4
 
 let stop
 let timeout0 = false
+let frameFunction = undefined
 
 // continuous
 //-----------
@@ -651,12 +652,18 @@ const gDict_instructions = {
 				
 				// exec
 				//======
-				addContinuousAction(
-					lPARAM_type.content,
-					pFrame.childReturnedMultivals.key[0],
-					new Function(ls_jsStringToExecute),
-					pFrame,
-				)
+				try {
+					addContinuousAction(
+						lPARAM_type.content,
+						pFrame.childReturnedMultivals.key[0],
+						new Function(ls_jsStringToExecute),
+						pFrame,
+					)
+				} catch(err) {
+					//~ console.warn('code text where the error is:', ls_jsStringToExecute)
+					console.error('Error (Js in funcSug): %c' + '"continuous" instruction' + '%c --IN-- %c' + expressionToString(pFrame.code), 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue')
+					throw err
+				}
 				pFrame.toReturn_multival = []
 				//~ pFrame.terminated = true
 				pFrame.awake = false
@@ -1181,6 +1188,17 @@ const gDict_instructions = {
 				const l_livebox = l_namespace.get(label)
 				l_livebox.currBeep = false
 			}
+			pFrame.toReturn_multival = []
+		}
+	},
+	//===========================================================
+	
+	registerFrameFunction: { // registerFrameFunction container label
+		nbArg:2,
+		postExec: function(pFrame, p_content) {
+			frameFunction = {}
+			frameFunction.container = pFrame.childReturnedMultivals.arg1[0]
+			frameFunction.label = pFrame.childReturnedMultivals.arg2[0]
 			pFrame.toReturn_multival = []
 		}
 	},
@@ -2350,25 +2368,29 @@ async function runBurst() {
 			const raf_func = function raf_func(timestamp) {
 				cpt3 += 1
 				const delta = (old_timestamp) ? timestamp - old_timestamp : 0
-				for (const [key, fct_frame] of continuousActionDict.send) {
-					if (!fct_frame.frame.suspended) fct_frame.fct(key, delta, send)
+				const kinds = ['send', 'adapt', 'play', 'emit']
+				const thirdParam = [send, continuousEvents, undefined, undefined]
+				const fourthParam = [undefined, prep_goAssign, undefined, undefined]
+				for (let i=0; i<4; i++) {
+					for (const [key, fct_frame] of continuousActionDict[kinds[i]]) {
+						try {
+							if (!fct_frame.frame.suspended) fct_frame.fct(key, delta, thirdParam[i], fourthParam[i]?.(fct_frame.frame))
+						} catch(err) {
+							console.error('Error (Js in funcSug): %c' + '"continuous" instruction' + '%c --IN-- %c' + expressionToString(fct_frame.frame.code), 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue')
+							throw err
+						}
+					}
 				}
-				for (const [key, fct_frame] of continuousActionDict.adapt) {
-					if (!fct_frame.frame.suspended) fct_frame.fct(key, delta, continuousEvents, prep_goAssign(fct_frame.frame))
-				}
-				for (const [key, fct_frame] of continuousActionDict.play) {
-					if (!fct_frame.frame.suspended) fct_frame.fct(key, delta)
-				}
-				for (const [key, fct_frame] of continuousActionDict.emit) {
-					if (!fct_frame.frame.suspended) fct_frame.fct(key, delta)
-				}
-				if (!continuousActionEmpty && (g_debug <= 0.5 || cpt3 < 500)) requestAnimationFrame(raf_func)
+				
+				if (!continuousActionEmpty && (g_debug <= 0.5 || cpt3 < 500) && !frameFunction) requestAnimationFrame(raf_func)
+				//~ if (!continuousActionEmpty && (g_debug <= 0.5 || cpt3 < 500) && frameFunction) frameFunction.container[frameFunction.label] = raf_func
 				//~ if (continuousActionEmpty && cpt3 < 1) requestAnimationFrame(raf_func)
 				//~ else localLog('---STOP')
 				clearContinuousEvents()
 				old_timestamp = timestamp
 			}
-			requestAnimationFrame(raf_func)
+			if (!frameFunction) requestAnimationFrame(raf_func)
+			if (frameFunction) frameFunction.container[frameFunction.label] = raf_func
 		}
 		
 		if (timeout0) await new Promise( resolve => {setTimeout(resolve)} )
