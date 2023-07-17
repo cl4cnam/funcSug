@@ -1,0 +1,68 @@
+#!syntax:lispish
+
+.var initIsFinished
+
+{deffunc setGameConfig (p_width p_height p_type)
+	.var readyGlobalGame
+	{ext (p_width p_height p_type) `
+		let globalGame
+		const behavior = {init:()=>{output(globalGame)}, preload:()=>{sugBip('initIsFinished')}, update:(phaserGame)=>{
+			phaserGame.updateList ||= []
+			for (const fun of phaserGame.updateList) {
+				fun(phaserGame, globalGame, fun.thisObject, fun.sugBreak)
+			}
+		},}
+		const phaserGame = new Phaser.Game(p_width, p_height, p_type, null, behavior)
+		globalGame = {phaserGame: phaserGame, behavior:behavior}
+		phaserGame.globalGame = globalGame
+	` readyGlobalGame}
+	:await readyGlobalGame beep
+	$readyGlobalGame
+}
+
+{deffunc awaitReadyForCreate (p_globalGame)
+	.var ready
+	:await initIsFinished beep
+	{ext (p_globalGame) `
+		p_globalGame.phaserGame.load.onLoadComplete.addOnce(()=>{
+			output(1)
+		})
+		p_globalGame.phaserGame.load.start()
+	` ready}
+	:await ready beep
+}
+
+{deffunc whileTrueAwaitUpdate_js (p_globalGame p_thisObject p_stringJsToExecute)
+	{ext (p_globalGame p_thisObject p_stringJsToExecute) `
+		const fun = new Function(
+			'"use strict"\n'
+			+ 'const phaserGame=arguments[0]\n'
+			+ 'const globalGame=arguments[1]\n'
+			+ 'const thisObject=arguments[2]\n'
+			+ 'const sugBreak=arguments[3]\n'
+			+ p_stringJsToExecute
+		)
+		fun.thisObject = p_thisObject
+		fun.sugBreak = sugBreak
+		p_globalGame.phaserGame.updateList ||= []
+		p_globalGame.phaserGame.updateList.push(fun)
+		SAVES.push({updateList: p_globalGame.phaserGame.updateList, fun: fun})
+	` dummy `
+		const l_index = SAVE.updateList.indexOf(SAVE.fun)
+		SAVE.updateList.splice(l_index, 1)
+	`}
+	!awaitForever
+}
+
+{deffunc whileTrueAwaitPhaser_translate (p_elt p_evtPhaser p_evtSug)
+	{ext (p_elt p_evtPhaser p_evtSug) `
+		const l_react = function(key) {
+			goAssign(p_evtSug, key)
+		}
+		p_elt.events[p_evtPhaser].add(l_react)
+		SAVES.push({elt:p_elt, react:l_react, evtPhaser:p_evtPhaser})
+	` dummy `
+		SAVE.elt.events[SAVE.evtPhaser].remove(SAVE.react)
+	`}
+	!awaitForever
+}
