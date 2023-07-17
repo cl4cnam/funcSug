@@ -1,7 +1,7 @@
 
 # **FuncSug**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![logo](https://github.com/cl4cnam/funcSug/assets/40176886/2d4c08b3-6f96-4acd-b993-b9bbe0df6b91)
 
-This is a new programming language. Its goal is to enable a specific better **structure of code** (that is, a more natural and more readable structure): **the concurrent way**. If you're curious, you can read the [breakout example code](https://github.com/cl4cnam/breakout/blob/main/breakoutPy.fg).
+This is a new programming language. Its goal is to enable a specific better **structure of code** (that is, a more natural and more readable structure): **the concurrent way**. If you're curious, you can read the ['Make Gems' example code](https://github.com/cl4cnam/make_gems/blob/main/makegemPhaserPy.fg) (This example uses [phaser_ce](https://github.com/photonstorm/phaser-ce)).
 
 It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) of Jean-Ferdy Susini. It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles. It doesn't use OS threads.
 
@@ -72,13 +72,29 @@ This language has [syntax highlighting for Geany](https://github.com/cl4cnam/fun
 
 The file ```parserPy.js``` has been generated online from the file ```funcSugPy.peggyjs``` on the site https://peggyjs.org/online.html with "parser variable" set to "pegPy".
 
-## Use
+## Use without phaser_ce
 
 In your ```myProgram.html```, in the end of the body element, include the lines:
 ```
   <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/libStd.fg" type="application/funcsug"></script>
   <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/libDOM.fg" type="application/funcsug"></script>
   <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/libDOMSVG.fg" type="application/funcsug"></script>
+  <script src="myProgram.fg" type="application/funcsug"></script>
+  <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/parser.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/parserPy.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/interpreter.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/DOMloader.js"></script>
+```
+Write your code in the file ```myProgram.fg```.
+
+## Use with phaser_ce
+
+In your ```myProgram.html```, in the end of the body element, include the lines:
+```
+  <script src="https://cdn.jsdelivr.net/gh/photonstorm/phaser-ce/build/phaser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/libStd.fg" type="application/funcsug"></script>
+  <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/libDOM.fg" type="application/funcsug"></script>
+  <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/libPhaser.fg" type="application/funcsug"></script>
   <script src="myProgram.fg" type="application/funcsug"></script>
   <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/parser.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/cl4cnam/funcSug/parserPy.js"></script>
