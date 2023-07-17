@@ -41,8 +41,8 @@ seq:
 ```
 
 ## Get a taste of the language
-See [the 'Breakout' code](https://github.com/cl4cnam/breakout/blob/main/breakoutPy.fg)
-and [test it](https://cl4cnam.github.io/breakout/breakoutPy.html).
+See [the 'Make Gems' code](https://github.com/cl4cnam/make_gems/blob/main/makegemPhaserPy.fg)
+and [test it](https://cl4cnam.github.io/make_gems/makegemPhaserPy.html).
 
 You may also want to have a look at:
 - [the 'Guess the Number' code](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumberPy.fg)
@@ -54,13 +54,13 @@ and [test it](https://cl4cnam.github.io/aquarium/aquariumPy.html).
 
 Look at the **global structure of the code**: One cannot follow this structure in usual programming language.
 
-Let's take, for example, [the 'Breakout' code](https://github.com/cl4cnam/breakout/blob/main/breakoutPy.fg):
+Let's take, for example, [the 'Make Gems' code](https://github.com/cl4cnam/make_gems/blob/main/makegemPhaserPy.fg):
 
-In this language, there is no need to build a brick object, just call a function ```lifeOfBrick```.
-You just run multiple ```lifeOfBrick```, a ```lifeOfBall``` and a ```lifeOfPaddle``` in parallel.
+In this language, there is no need to build a ball object, just call a function ```lifeOfBall```.
+You just run multiple ```lifeOfBall```, ```birthOfGem``` and a ```lifeOfPaddle``` in parallel.
 These functions do not build objects: they are just like any classical function.
-<br>(The line just after the call of ```lifeOfBrick``` is executed only when the brick is broken, that is only when ```lifeOfBrick``` has returned, just like any classical function call).<br>
-In the body of ```lifeOfBrick```, just code the various behaviors of the brick in parallel.
+<br>
+In the body of ```lifeOfPaddle```, just code the various behaviors of the ball in parallel.
 
 In ['Guess the Number'](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg), ```gameCourse``` is just a function. The line just after the call of ```gameCourse``` is executed only when the player has found the number, that is only when ```gameCourse``` has returned, just like any classical function call.
 
