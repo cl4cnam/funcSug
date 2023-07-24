@@ -2098,7 +2098,7 @@ Frame.prototype.getInstruction = function() {
 			if (this.code.multLabel) {
 				dynamicParallelSet.add(this)
 			}
-			if ( ['foreach_race_mult'].includes(this.code.content[0]?.content) ) {
+			if ( ['foreach_race_mult', 'foreach_select_mult'].includes(this.code.content[0]?.content) ) {
 				this.code = getSeqInserted(this.code, 3)
 			} else if ( ['lambda', 'while', 'foreach', 'foreach_race', 'repeat'].includes(this.code.content[0]?.content) ) {
 				this.code = getSeqInserted(this.code, 2)
