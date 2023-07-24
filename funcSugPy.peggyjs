@@ -34,10 +34,12 @@ program
 
 expression
 	// = seqExpr / parExpr / ifExpr / loopExpr / defAllparamExpr / defExpr / blockCallExpr / matchExpr / spawnExpr / jsExpr / selectExpr
-	= seqExpr / parExpr / ifExpr / loopExpr / defAllparamExpr / defExpr / blockCallExpr / matchExpr / spawnExpr / jsExpr / prepareFrameExpr
+	= seqExpr / parSelectExpr / parExpr / ifExpr / loopExpr / defAllparamExpr / defExpr
+	/ blockCallExpr / matchExpr / spawnExpr / jsExpr / prepareFrameExpr
 	/ whileTrue_dependsOn_Expr / whileTrueAwaitFrame_Expr / whileTrueAwaitDom_Expr
 	/ echoExpr / awaitInnamespaceBxpExpr / awaitBxpExpr / directExpr
-	/ varmulExpr / varExpr / specialAssignmentExpr / objectAssignment2Expr / objectAssignmentExpr / namespaceAssignment2Expr / namespaceAssignmentExpr / assignmentExpr
+	/ varmulExpr / varExpr / specialAssignmentExpr / objectAssignment2Expr / objectAssignmentExpr
+	/ namespaceAssignment2Expr / namespaceAssignmentExpr / assignmentExpr
 	/ flatExpression
 
 flatExpression
@@ -164,6 +166,43 @@ seqExpr
 //	
 //selectBranch
 //	= 'choose' 
+
+selectExpr
+	= 'select:' blSelect:BLOCK blDo:(newline SAMEDENT 'do:' @BLOCK) {
+		return [
+			...blSelect,
+			toExpression('disableCancelFor', [toIdentifier('SUG_branch')]),
+			toExpression(  'set'  ,  [ toIdentifier('SUG_multReturn'), toIdentifier('false') ]  ),
+			...blDo,
+		]
+	}
+
+parSelectExpr
+	= 'parallelOfSelected'
+		inside:(flatSpaces ('inside'/'forEachValueOf') flatSpaces @simpleName)?
+		selectNumber:(flatSpaces 'select' flatSpaces @flatExpression)?
+		':'
+		exprLabel:(flatSpaces '@' @simpleName)?
+		newline INDENT selectExprs:selectExpr+
+		& (newline DEDENT)
+	{
+		if (inside) {
+			return toExpression(
+				'foreach_select_mult',
+				[toIdentifier(inside), selectNumber, selectExprs[0]].flat(),
+				exprLabel || undefined,
+			)
+		} else {
+			return toExpression(
+				'par_select_mult',
+				[
+					selectNumber,
+					selectExprs.map(selExpr=>   toExpression('seq', selExpr)  )
+				],
+				exprLabel || undefined,
+			)
+		}
+	}
 
 parExpr
 	= op:('parallel'/'par'/'mix')
