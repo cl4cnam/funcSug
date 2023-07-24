@@ -14,7 +14,7 @@ For now, it's just a quick and dirty interpreter but it works enough to be appre
 
 You can write
 ```
-par:
+parallel:
     <parallelBranch1>
     <parallelBranch2>
 ```
@@ -25,17 +25,17 @@ You can also add a branch dynamically.
 ### Interruptible sequence
 You can interrupt (`break`), pause (`pause`), resume (`resume`) or restart (`restart`) a block. For example:
 ```
-par:
-    seq: @myBlock
+parallel:
+    sequence: @myBlock
         <instruction1>
         <instruction2>
-    seq:
+    sequence:
         break myBlock
 ```
 ### Reaction to a change of a variable
 You can react to a change of a variable, for example, like this:
 ```
-seq:
+sequence:
     awaitBeep myVariable
     <whatToDoInThisCase>
 ```
