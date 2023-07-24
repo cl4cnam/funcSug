@@ -130,3 +130,30 @@
 		}
 	}
 }
+
+# select a branch with {seq .disableCancelFor SUG_branch :set SUG_multReturn false}
+{deffunc foreach_select_mult (p_vari p_mult _expr)
+	.var SUG_branch
+	.var SUG_analyse
+	.varmul SUG_multReturn
+	{par
+		{seq
+			{foreach $p_vari
+				.var result
+				:set result {evalget @SUG_branch _expr}
+				:set SUG_multReturn $result
+				$result
+			}
+			$SUG_multReturn
+		}
+		{seq @SUG_analyse
+			{whileTrue
+				:await SUG_multReturn beep
+				{if [.multiplicity $SUG_multReturn = $p_mult]
+					.break SUG_branch
+					.break SUG_analyse
+				}
+			}
+		}
+	}
+}
