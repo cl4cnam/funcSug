@@ -51,6 +51,8 @@ and [test it](https://cl4cnam.github.io/Guess_the_number/guessTheNumberPy.html).
 and [test it](https://cl4cnam.github.io/miniSweet/miniSweetPy.html).
 - [the 'Aquarium' code](https://github.com/cl4cnam/aquarium/blob/main/aquariumPy.fg)
 and [test it](https://cl4cnam.github.io/aquarium/aquariumPy.html).
+- [the 'Memory' code](https://github.com/cl4cnam/Memory/blob/main/memory.fg)
+and [test it](https://cl4cnam.github.io/Memory/memory.html).
 
 Look at the **global structure of the code**: One cannot follow this structure in usual programming language.
 
