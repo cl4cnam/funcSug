@@ -178,11 +178,12 @@ selectExpr
 	}
 
 parSelectExpr
-	= 'parallelOfSelected'
-		inside:(flatSpaces ('inside'/'forEachValueOf') flatSpaces @simpleName)?
-		selectNumber:(flatSpaces 'select' flatSpaces @flatExpression)?
+	= 'parallel('
+		inside:(__ ('inside'/'forEachValueOf') flatSpaces @simpleName __ ',')?
+		selectNumber:(__ 'select' flatSpaces @flatExpression __ ')')
 		':'
 		exprLabel:(flatSpaces '@' @simpleName)?
+		newWhiteLine*
 		newline INDENT selectExprs:selectExpr+
 		& (newline DEDENT)
 	{
