@@ -52,6 +52,7 @@
 		{seq
 			choiceText <-- :displayNewMessageIn $p_choice $p_around
 			response <-- .awaitClickBeep $choiceText
+			{js (choiceText) `choiceText.classList.add('chosen')`}
 			.break choicesPar
 		}
 		~{if [$p_type = 'remove']
