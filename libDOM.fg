@@ -12,10 +12,12 @@
 	{ext (p_idElt) `
 		const lElt = (p_idElt instanceof Element) ? p_idElt : document.querySelector(p_idElt)
 		if (lElt===null) console.log("ERROR !!! libDOM.fs/getClick '" + p_idElt + "' selector references no element!")
+		lElt.classList.remove('clicked')
 		lElt.disabled = false
 		const l_react = function(evt) {
 			evt.preventDefault()
 			lElt.removeEventListener('click', l_react)
+			lElt.classList.add('clicked')
 			lElt.disabled = true
 			const l_meaning = lElt.getAttribute('data-meaning')
 			if (l_meaning) output(l_meaning)
