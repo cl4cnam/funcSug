@@ -161,12 +161,6 @@ seqExpr
 		return toExpression('seq', bl, exprLabel, blCanceled ? toExpression('seq', blCanceled) : undefined)
 	}
 
-//selectExpr
-//	= 'select' flatSpaces @number:
-//	
-//selectBranch
-//	= 'choose' 
-
 selectExpr
 	= 'select:' blSelect:BLOCK blDo:(newline SAMEDENT 'do:' @BLOCK) {
 		return [
@@ -184,13 +178,15 @@ parSelectExpr
 		':'
 		exprLabel:(flatSpaces '@' @simpleName)?
 		newWhiteLine*
-		newline INDENT selectExprs:selectExpr+
+		newline INDENT selectExpr:(comment/selectExpr)
+		selectExprs:(newWhiteLine* newline SAMEDENT @(comment/selectExpr))*
 		& (newline DEDENT)
 	{
+		const listSelectExpr = [selectExpr].concat(selectExprs).filter(elt=>(elt!==null))
 		if (inside) {
 			return toExpression(
 				'foreach_select_mult',
-				[toIdentifier(inside), selectNumber, selectExprs[0]].flat(),
+				[toIdentifier(inside), selectNumber, listSelectExpr[0]].flat(),
 				exprLabel || undefined,
 			)
 		} else {
@@ -198,7 +194,7 @@ parSelectExpr
 				'par_select_mult',
 				[
 					selectNumber,
-					selectExprs.map(selExpr=>   toExpression('seq', selExpr)  )
+					listSelectExpr.map(selExpr=>   toExpression('seq', selExpr)  )
 				],
 				exprLabel || undefined,
 			)
