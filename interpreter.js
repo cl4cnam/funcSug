@@ -344,6 +344,54 @@ const gDict_instructions = {
 	},
 	//===========================================================
 	
+	foreachIn: { // foreachIn <variable> <multival <expressionToExecute>
+		nbArg:3,
+		exec: function(pFrame, p_content) {
+			const lPARAM_variable = p_content[1]
+			const lPARAM_multival = p_content[2]
+			const lPARAM_expressionToExecute = p_content[3]
+			;;     $__ErrorChecking(pFrame, lPARAM_expressionToExecute.type !== 'expression', 'expressionToExecute not an expression')
+			
+			if (pFrame.instrPointer==1) {
+				pFrame.addChild(lPARAM_variable, 'foreachVariable')
+				pFrame.addChild(lPARAM_multival, 'multival')
+			} else if (pFrame.instrPointer==2) {
+				const l_argsLabel = pFrame.childReturnedMultivals.foreachVariable
+				const l_multival = pFrame.childReturnedMultivals.multival
+				//~ const label = lPARAM_variable.content
+				for (const label of l_argsLabel) {
+					
+					// exec
+					//==========
+					let ln_valCnt = 0
+					for (const val of l_multival) {
+						const l_childFrame = pFrame.addChild(lPARAM_expressionToExecute, 'expressionToExecute'+ln_valCnt)
+						l_childFrame.injectParametersWithValues(
+							[new Expression('identifier', label, label)],
+							[[val]],
+							{frame:pFrame, foreach: true}
+						)
+						l_childFrame.injectParametersWithValues(
+							[new Expression('identifier', label+'_N', label+'_N')],
+							[[ln_valCnt]],
+							{frame:pFrame, foreach: true}
+						)
+						ln_valCnt += 1
+					}
+					pFrame.valCnt = ln_valCnt
+				}
+			} else {
+				for (const key in pFrame.childReturnedMultivals) {
+					if (key.startsWith('expressionToExecute')) {
+						pFrame.toReturn_multival.push(...pFrame.childReturnedMultivals[key])
+					}
+				}
+				pFrame.terminated = true
+			}
+		}
+	},
+	//===========================================================
+	
 	call: { // call <function> <param> ... <param>
 		nbArg: (n=> (n>=1) ),
 		exec: function(pFrame, p_content) {
@@ -2098,7 +2146,9 @@ Frame.prototype.getInstruction = function() {
 			if (this.code.multLabel) {
 				dynamicParallelSet.add(this)
 			}
-			if ( ['foreach_race_mult', 'foreach_select_mult'].includes(this.code.content[0]?.content) ) {
+			if ( ['foreachIn_select_mult'].includes(this.code.content[0]?.content) ) {
+				this.code = getSeqInserted(this.code, 4)
+			} else if ( ['foreach_race_mult', 'foreach_select_mult', 'foreachIn'].includes(this.code.content[0]?.content) ) {
 				this.code = getSeqInserted(this.code, 3)
 			} else if ( ['lambda', 'while', 'foreach', 'foreach_race', 'repeat'].includes(this.code.content[0]?.content) ) {
 				this.code = getSeqInserted(this.code, 2)
