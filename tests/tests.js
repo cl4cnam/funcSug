@@ -1071,6 +1071,33 @@ w
 {line: new Error().lineNumber, code:`
 	{seq
 		.var a <-- (par 4 7)
+		{foreachIn b $a {seq
+			.print $b
+		}}
+	}
+`, result: `
+4
+7
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a <-- (par 4 7)
+		{foreachIn b $a
+			.print $b
+			.print $b
+		}
+	}
+`, result: `
+4
+7
+4
+7
+`,},
+
+{line: new Error().lineNumber, code:`
+	{seq
+		.var a <-- (par 4 7)
 		{foreach a {seq
 			.print $a
 			.print $a_N
