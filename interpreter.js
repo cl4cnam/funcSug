@@ -211,6 +211,11 @@ function getNamespace(pFrame, label) {
 	if ( pFrame.historicParent ) return getNamespace(pFrame.namespaceParent || pFrame.historicParent, label)
 }
 
+function getLivebox(pFrame, label) {
+	const l_namespace = getNamespace(pFrame, label)
+	return l_namespace.get(label)
+}
+
 function Livebox(p_namespace, p_label, pb_split) {
 	this.lbNamespace = p_namespace
 	this.lbLabel = p_label
@@ -445,13 +450,14 @@ const gDict_instructions = {
 	},
 	//===========================================================
 	
-	ext: { // ext <inputExpression> <jsStringToExecute> <outputExpression> [<jsStringForCancellation>]
-		nbArg: (n=> (n==2 || n==3 || n==4) ),
+	ext: { // ext <inputExpression> <jsStringToExecute> <outputExpression> [<jsStringForCancellation>] [<jsStringForResume>]
+		nbArg: (n=> (2<=n && n<=5) ),
 		exec: function(pFrame, p_content) {
 			const lPARAM_inputExpression = p_content[1]
 			const lPARAM_jsStringToExecute = p_content[2]
 			const lPARAM_outputExpression = p_content[3]
-			const ls_jsStringForCancellation = (p_content.length==5) ? p_content[4].content : ''
+			const ls_jsStringForCancellation = (p_content.length>=5) ? p_content[4].content : ''
+			const ls_jsStringForResume = (p_content.length>=6) ? p_content[5].content : ''
 			const l_inputContent = lPARAM_inputExpression.content
 			
 			if (pFrame.instrPointer==1) {
@@ -526,6 +532,8 @@ const gDict_instructions = {
 					externalObjects: lList_saveExternals,
 					pathOfExecution: pFrame.pathOfExecution,
 					execCancel: ls_jsStringForCancellation,
+					execPause: ls_jsStringForCancellation,
+					execResume: ls_jsStringForResume,
 					code: pFrame.code
 				}
 				if(ls_jsStringForCancellation !== '') cancellationSet.add(l_cancelObj)
@@ -1541,7 +1549,7 @@ const gDict_instructions = {
 					for (const ch of pFrame.childrenList) {
 						ch.getInstruction()
 						//~ console.warn('pFrame.frameList_notCancellable (restart)', pFrame.frameList_notCancellable)
-						ch.instruction.canc(ch, pFrame.frameList_notCancellable)
+						ch.instruction.canc(ch, 'Cancel', pFrame.frameList_notCancellable)
 					}
 					if (pFrame.childrenList.length==0) {
 						pFrame.terminated = true
@@ -1563,7 +1571,7 @@ const gDict_instructions = {
 					for (const ch of pFrame.childrenList) {
 						ch.getInstruction()
 						//~ console.warn('pFrame.frameList_notCancellable (breakReturn)', pFrame.frameList_notCancellable)
-						ch.instruction.canc(ch, pFrame.frameList_notCancellable)
+						ch.instruction.canc(ch, 'Cancel', pFrame.frameList_notCancellable)
 					}
 					if (pFrame.childrenList.length==0) {
 						pFrame.terminated = true
@@ -1649,9 +1657,19 @@ function Instruction(ps_codeWord) {
 				return;
 			case PAUSE:
 				pFrame.suspended = true
+				for (const ch of pFrame.childrenList) {
+					ch.getInstruction()
+					//~ console.warn('pFrame.frameList_notCancellable (breakReturn)', pFrame.frameList_notCancellable)
+					ch.instruction.canc(ch, 'Pause', pFrame.frameList_notCancellable)
+				}
 				break;
 			case RESUME:
 				pFrame.suspended = false
+				for (const ch of pFrame.childrenList) {
+					ch.getInstruction()
+					//~ console.warn('pFrame.frameList_notCancellable (breakReturn)', pFrame.frameList_notCancellable)
+					ch.instruction.canc(ch, 'Resume', pFrame.frameList_notCancellable)
+				}
 				break;
 		}
 		for (const ch of pFrame.childrenList) {
@@ -1661,19 +1679,19 @@ function Instruction(ps_codeWord) {
 	}
 	
 	if (! this.canc) {
-		this.canc = function(pFrame, pFrameList_notCancellable) {
+		this.canc = function(pFrame, pType, pFrameList_notCancellable) {
 			if (pFrame.disableCancel) return
 			//~ console.warn('pFrameList_notCancellable (gen)', pFrameList_notCancellable)
 			if (pFrameList_notCancellable?.includes(pFrame)) return
 			for (const ch of [...pFrame.childrenList]) {
 				ch.getInstruction()
-				ch.instruction.canc(ch, pFrameList_notCancellable)
+				ch.instruction.canc(ch, pType, pFrameList_notCancellable)
 			}
-			if (pFrame.code.cancelExpression) {
+			if (pType=='Cancel' && pFrame.code.cancelExpression) {
 				const l_namespaceParent = (pFrame?.parent?.code?.content[0]?.content === 'cancellableExec') ? pFrame.parent.parent : pFrame.parent
 				mainFrame.addChild(toNotcancellableExpression(pFrame.code.cancelExpression), 'whenCanceled', l_namespaceParent)
 			}
-			if (pFrame.childrenList.length==0) {
+			if (pType=='Cancel' && pFrame.childrenList.length==0) {
 				pFrame.removeChildFromLeaflist()
 			}
 			cancellationSet.forEach(
@@ -1682,25 +1700,27 @@ function Instruction(ps_codeWord) {
 						if (cancelElt.externalObjects === 'continuous') {
 							delContinuousAction(cancelElt.type, cancelElt.key)
 						} else {
-							let ls_jsStringToExecute = cancelElt.execCancel
-							ls_jsStringToExecute = `
-								"use strict"
-								const output=arguments[0]
-								const error=arguments[1]
-								const SAVE=arguments[2]
-								const args=[...arguments]
-								args.shift(); args.shift(); args.shift();
-							` + ls_jsStringToExecute
-							for (const extObj of cancelElt.externalObjects) {
-								const lPromise = new Promise(
-									(resolve,reject) => {       (new Function(ls_jsStringToExecute))(resolve,reject,extObj)    }
-								)
-								lPromise.catch(err=>{
-									console.warn('Text where Error is', ls_jsStringToExecute)
-									console.error('Error (Js in funcSug): %c' + 'Cancellation of fungSug block (deep)' + '%c --IN-- %c' + expressionToString(cancelElt.code), 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue')
-									console.error('Error (Js in funcSug): %c' + 'Cancellation of fungSug block (superficial)' + '%c --IN-- %c' + expressionToString(pFrame.code), 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue')
-									throw err
-								})
+							let ls_jsStringToExecute = cancelElt['exec'+pType]
+							if (ls_jsStringToExecute != '') {
+								ls_jsStringToExecute = `
+									"use strict"
+									const output=arguments[0]
+									const error=arguments[1]
+									const SAVE=arguments[2]
+									const args=[...arguments]
+									args.shift(); args.shift(); args.shift();
+								` + ls_jsStringToExecute
+								for (const extObj of cancelElt.externalObjects) {
+									const lPromise = new Promise(
+										(resolve,reject) => {       (new Function(ls_jsStringToExecute))(resolve,reject,extObj)    }
+									)
+									lPromise.catch(err=>{
+										console.warn('Text where Error is', ls_jsStringToExecute)
+										console.error('Error (Js in funcSug): %c' + 'Cancellation of fungSug block (deep)' + '%c --IN-- %c' + expressionToString(cancelElt.code), 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue')
+										console.error('Error (Js in funcSug): %c' + 'Cancellation of fungSug block (superficial)' + '%c --IN-- %c' + expressionToString(pFrame.code), 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue', 'color: red', 'color: blue')
+										throw err
+									})
+								}
 							}
 						}
 						cancellationSet.delete(cancelElt)
