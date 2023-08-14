@@ -28,6 +28,9 @@
 	` $p_evtSug `
 		SAVE.elt.removeEventListener('click', SAVE.react)
 		SAVE.elt.disabled = true
+	` `
+		SAVE.elt.addEventListener('click', SAVE.react)
+		SAVE.elt.disabled = false
 	`}
 }
 
@@ -42,6 +45,47 @@
 #        --------------
 		.var evtSug
 		(&getClick $p_idElt evtSug)
+		:await evtSug beep
+}
+
+{deffunc getSelectedOption (p_idElt p_evtSug)
+#        --------
+	{ext (p_idElt) `
+		const lElt = (p_idElt instanceof Element) ? p_idElt : document.querySelector(p_idElt)
+		if (lElt===null) console.log("ERROR !!! libDOM.fs/getSelectedOption '" + p_idElt + "' selector references no element!")
+		lElt.classList.remove('selected')
+		lElt.disabled = false
+		const l_react = function(evt) {
+			if (evt.target instanceof HTMLOptionElement) {
+				evt.preventDefault()
+				lElt.removeEventListener('click', l_react)
+				lElt.classList.add('selected')
+				lElt.disabled = true
+				output(evt.target.value)
+			}
+		};
+		lElt.addEventListener('click', l_react)
+		SAVES.push({elt:lElt, react:l_react})
+	` $p_evtSug `
+		SAVE.elt.removeEventListener('click', SAVE.react)
+		SAVE.elt.disabled = true
+	` `
+		SAVE.elt.addEventListener('click', SAVE.react)
+		SAVE.elt.disabled = false
+	`}
+}
+
+{deffunc awaitSelectedOptionBip (p_idElt)
+#        -------------
+		.var evtSug
+		(&getSelectedOption $p_idElt evtSug)
+		:await evtSug bip
+}
+
+{deffunc awaitSelectedOptionBeep (p_idElt)
+#        --------------
+		.var evtSug
+		(&getSelectedOption $p_idElt evtSug)
 		:await evtSug beep
 }
 
