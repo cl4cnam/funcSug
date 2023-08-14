@@ -30,6 +30,7 @@
 
 {deffunc par_race_mult __par
 	.var all
+	.varmul nbBranches
 	.varmul retValMul
 	.var mult
 	{foreach @all __par
@@ -38,8 +39,9 @@
 		{if [.get __par_N = 0]
 			mult <-- $result
 		else
+			:set nbBranches 1
 			:set retValMul $result
-			{if [.multiplicity $retValMul = $mult]
+			{if [.multiplicity $nbBranches = $mult]
 				:breakReturn all $retValMul
 			}
 		}
@@ -57,11 +59,13 @@
 
 {deffunc foreach_race_mult (p_vari p_mult _expr)
 	.var all
+	.varmul nbBranches
 	.varmul retValMul
 	.var mult
 	{foreach @all $p_vari
+		:set nbBranches 1
 		:set retValMul $_expr
-		{if [.multiplicity $retValMul = $p_mult]
+		{if [.multiplicity $nbBranches = $p_mult]
 			:breakReturn all $retValMul
 		}
 	}
