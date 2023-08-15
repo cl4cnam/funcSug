@@ -1,7 +1,7 @@
 
 # **FuncSug**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![logo](https://github.com/cl4cnam/funcSug/assets/40176886/2d4c08b3-6f96-4acd-b993-b9bbe0df6b91)
 
-This is a new programming language. Its goal is to enable a specific better **structure of code** (that is, a more natural and more readable structure): **the concurrent way**. If you're curious, you can read the ['Make Gems' example code](https://github.com/cl4cnam/make_gems/blob/main/makegemPhaserPy.fg) (This example uses [phaser_ce](https://github.com/photonstorm/phaser-ce)).
+This is a new programming language. Its goal is to enable a specific better **structure of code** (that is, a more natural and more readable structure): **the concurrent way**. If you're curious, you can read the ['Make Gems' example code](https://github.com/cl4cnam/make_gems/blob/main/makegemPhaserPy.fg) (This example uses [phaser_ce](https://github.com/photonstorm/phaser-ce)) or read this [post](https://trio.discourse.group/t/structured-concurrency-for-gui-programming-without-concurrency/488).
 
 It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) of Jean-Ferdy Susini. It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles. It doesn't use OS threads.
 
