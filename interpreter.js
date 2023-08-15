@@ -1723,7 +1723,7 @@ function Instruction(ps_codeWord) {
 								}
 							}
 						}
-						cancellationSet.delete(cancelElt)
+						if(pType=='Cancel') cancellationSet.delete(cancelElt)
 					}
 				}
 			)
