@@ -56,21 +56,23 @@
 		lElt.classList.remove('selected')
 		lElt.disabled = false
 		const l_react = function(evt) {
-			if (evt.target instanceof HTMLOptionElement) {
+			if (evt.target instanceof HTMLSelectElement) {
 				evt.preventDefault()
-				lElt.removeEventListener('click', l_react)
+				lElt.removeEventListener('change', l_react)
 				lElt.classList.add('selected')
 				lElt.disabled = true
 				output(evt.target.value)
 			}
 		};
-		lElt.addEventListener('click', l_react)
+		lElt.addEventListener('change', l_react)
 		SAVES.push({elt:lElt, react:l_react})
+		if (! lElt.notFirstTime) lElt.dispatchEvent(new Event('change'))
+		lElt.notFirstTime = true
 	` $p_evtSug `
-		SAVE.elt.removeEventListener('click', SAVE.react)
+		SAVE.elt.removeEventListener('change', SAVE.react)
 		SAVE.elt.disabled = true
 	` `
-		SAVE.elt.addEventListener('click', SAVE.react)
+		SAVE.elt.addEventListener('change', SAVE.react)
 		SAVE.elt.disabled = false
 	`}
 }
@@ -190,9 +192,32 @@
 	:await elt beep
 }
 
+{deffunc displayNewHtmlIn (p_html p_idAnchor)
+#        -------------------
+	.var elt
+	{ext (p_html p_idAnchor) `
+		let ls_class
+		let lElt_anchor
+		if (p_idAnchor instanceof Element) {
+			lElt_anchor = p_idAnchor
+		} else {
+			lElt_anchor = document.querySelector(p_idAnchor)
+			if (lElt_anchor===null) console.log("ERROR !!! libDOM.fg/displayNewHtmlIn '" + p_idAnchor + "' selector references no element!")
+		}
+		lElt_anchor.innerHTML = p_html
+		output(lElt_anchor)
+	` elt}
+	:await elt beep
+}
+
 {deffunc displayNewMessage (p_message)
 #        -----------------
 	(&displayNewMessageIn $p_message 'body')
+}
+
+{deffunc displayNewHtml (p_html)
+#        -----------------
+	(&displayNewHtmlIn $p_html 'body')
 }
 
 {deffunc displayMessageIn (p_message p_idAnchor)
@@ -447,4 +472,26 @@
 	.var content
 	%getFileContent $p_filePath $p_type content
 	:await content beep
+}
+
+#====================================
+# Sound functions
+#====================================
+
+{deffunc playSoundFile (p_filePath)
+#        -------------
+	.var soundEnd
+	{ext (p_filePath) `
+		const audioElement = new Audio(p_filePath)
+		audioElement.addEventListener('ended', function(evt){
+			output(1)
+		})
+		audioElement.play()
+		//~ audioElement.load()
+		//~ audioElement.pause()
+		SAVES.push({elt:audioElement})
+	` soundEnd `
+		SAVE.elt.pause()
+	`}
+	:await soundEnd beep
 }
