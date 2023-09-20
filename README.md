@@ -27,7 +27,7 @@ It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) of
 
 For now, it's just a quick and dirty interpreter but it works enough to be appreciated.
 
-## Features
+## Some features
 
 ### Parallel construct
 > Beware that this is just a logical parallelism.
