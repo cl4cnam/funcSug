@@ -23,7 +23,7 @@ and with new modifiers (beyond `break`, `return`):
 
 If you're curious, you can read the ['Make Gems' example code](https://github.com/cl4cnam/make_gems/blob/main/makegemPhaserPy.fg) (This example uses [phaser_ce](https://github.com/photonstorm/phaser-ce)) or read this [post](https://trio.discourse.group/t/structured-concurrency-for-gui-programming-without-concurrency/488).
 
-It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) of Jean-Ferdy Susini. It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles. It doesn't use OS threads.
+It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) of Jean-Ferdy Susini. It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles. It doesn't use OS threads. It doesn't aim to improve speed of execution.
 
 For now, it's just a quick and dirty interpreter but it works enough to be appreciated.
 
