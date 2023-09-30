@@ -165,10 +165,10 @@
 	`}
 }
 
-{deffunc displayNewMessageIn (p_message p_idAnchor)
+{deffunc displayNewElementIn (p_message p_idAnchor p_type p_scroll)
 #        -------------------
 	.var elt
-	{ext (p_message p_idAnchor) `
+	{ext (p_message p_idAnchor p_type p_scroll) `
 		let ls_class
 		let lElt_anchor
 		if (p_idAnchor instanceof Element) {
@@ -181,15 +181,20 @@
 			lElt_anchor = document.querySelector(ls_idAnchor)
 			if (lElt_anchor===null) console.log("ERROR !!! libDOM.fg/displayNewMessageIn '" + ls_idAnchor + "' selector references no element!")
 		}
-		const lElt = document.createElement('p')
+		const lElt = document.createElement(p_type)
 		lElt.classList.add('display')
 		lElt.classList.add(ls_class)
 		lElt.innerHTML = p_message
 		lElt_anchor.appendChild(lElt)
-		lElt.scrollIntoView()
+		if (p_scroll) lElt.scrollIntoView()
 		output(lElt)
 	` elt}
 	:await elt beep
+}
+
+{deffunc displayNewMessageIn (p_message p_idAnchor)
+#        -------------------
+	(&displayNewElementIn $p_message $p_idAnchor 'p' true)
 }
 
 {deffunc displayNewHtmlIn (p_html p_idAnchor)
@@ -204,7 +209,11 @@
 			lElt_anchor = document.querySelector(p_idAnchor)
 			if (lElt_anchor===null) console.log("ERROR !!! libDOM.fg/displayNewHtmlIn '" + p_idAnchor + "' selector references no element!")
 		}
-		lElt_anchor.innerHTML = p_html
+		lElt_anchor.innerHTML += p_html
+		lElt_anchor.scrollIntoView()
+		//~ lElt_anchor.addEventListener('load', function(evt){
+			//~ output(lElt_anchor)
+		//~ })
 		output(lElt_anchor)
 	` elt}
 	:await elt beep
@@ -233,6 +242,33 @@
 	:await elt beep
 }
 
+{deffunc displayNewImageIn (p_imagePath p_idAnchor)
+#        ----------------
+	.var elt
+	{ext (p_imagePath p_idAnchor) `
+		let ls_class
+		let lElt_anchor
+		if (p_idAnchor instanceof Element) {
+			ls_class = 'other'
+			lElt_anchor = p_idAnchor
+		} else {
+			const lList_idAnchor = p_idAnchor.split('/')
+			const ls_idAnchor = lList_idAnchor[0]
+			ls_class = (lList_idAnchor.length>1) ? lList_idAnchor[1] : 'other'
+			lElt_anchor = document.querySelector(ls_idAnchor)
+			if (lElt_anchor===null) console.log("ERROR !!! libDOM.fg/displayNewMessageIn '" + ls_idAnchor + "' selector references no element!")
+		}
+		const lElt = document.createElement('img')
+		lElt.classList.add('display')
+		lElt.classList.add(ls_class)
+		lElt.src = p_imagePath
+		lElt_anchor.appendChild(lElt)
+		lElt.scrollIntoView()
+		output(lElt)
+	` elt}
+	:await elt beep
+}
+
 {deffunc displayImageIn (p_image p_idAnchor)
 #        ----------------
 	.var elt
@@ -245,6 +281,14 @@
 		output(lElt_anchor)
 	` elt}
 	:await elt beep
+}
+
+{deffunc removeElt (p_elt)
+#        ----------------
+	{short (p_elt) `
+		const lElt = (p_elt instanceof Element) ? p_elt : document.querySelector(p_elt)
+		if(lElt) lElt.parentNode.removeChild(lElt)
+	`}
 }
 
 #====================================
