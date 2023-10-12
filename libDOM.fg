@@ -192,6 +192,42 @@
 	:await elt beep
 }
 
+{deffunc showNewElementIn (p_message p_idAnchor p_type p_scroll p_duration)
+#        -------------------
+	.var elt
+	{ext (p_message p_idAnchor p_type p_scroll p_duration) `
+		const lElt_anchor = (p_idAnchor instanceof Element)
+						? p_idAnchor
+						: document.querySelector(p_idAnchor) || console.log("ERROR !!! libDOM.fg/showNewElementIn '" + ls_idAnchor + "' selector references no element!")
+		const lList_type = p_type.split('/')
+		const ls_type = lList_type[0]
+		const ls_class = (lList_type.length>1) ? lList_type[1] : 'other'
+		const lElt = document.createElement(ls_type)
+		lElt.classList.add('display')
+		lElt.classList.add(ls_class)
+		lElt.innerHTML = p_message
+		lElt_anchor.appendChild(lElt)
+		if (p_scroll) lElt.scrollIntoView()
+		SAVES.push({elt:lElt})
+		if (p_duration == 'untilClick') {
+			lElt.addEventListener('click', function(evt) {
+				lElt.parentNode.removeChild(lElt)
+				output(true)
+			})
+		} else if (p_duration == 'forever') {
+		} else {
+			console.error("ERROR !!! libDOM.fg/showNewElementIn: p_duration is untilClick or forever!")
+		}
+	` elt `
+		SAVE.elt.parentNode.removeChild(SAVE.elt)
+	`}
+	{if [$p_duration = 'untilClick']
+		:await elt beep
+	else
+		!awaitForever
+	}
+}
+
 {deffunc displayNewMessageIn (p_message p_idAnchor)
 #        -------------------
 	(&displayNewElementIn $p_message $p_idAnchor 'p' true)
@@ -527,6 +563,32 @@
 	.var soundEnd
 	{ext (p_filePath) `
 		const audioElement = new Audio(p_filePath)
+		audioElement.addEventListener('ended', function(evt){
+			output(1)
+		})
+		audioElement.play()
+		//~ audioElement.load()
+		//~ audioElement.pause()
+		SAVES.push({elt:audioElement})
+	` soundEnd `
+		SAVE.elt.pause()
+	`}
+	:await soundEnd beep
+}
+
+{deffunc playSoundFilePlus (p_filePath p_effect)
+#        -------------
+	.var soundEnd
+	{ext (p_filePath p_effect) `
+		const audioElement = new Audio(p_filePath)
+		
+		const audioContext = new AudioContext()
+		const gainNode = audioContext.createGain()
+		if (p_effect == 'fadeout') gainNode.gain.exponentialRampToValueAtTime(0.1, audioContext.currentTime + 2)
+		const source = audioContext.createMediaElementSource(audioElement)
+		source.connect(gainNode)
+		gainNode.connect(audioContext.destination)
+		
 		audioElement.addEventListener('ended', function(evt){
 			output(1)
 		})
