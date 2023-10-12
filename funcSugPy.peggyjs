@@ -212,6 +212,7 @@ parExpr
 	= op:('parallel'/'par'/'mix')
 		inside:(flatSpaces ('inside'/'forEachValueOf') flatSpaces @simpleName)?
 		exit:(flatSpaces 'exitAfter' flatSpaces @number flatSpaces 'finished')?
+		exitWith:(flatSpaces 'exitWith' flatSpaces 'branch' flatSpaces @number)?
 		suppl:(flatSpaces 'supplBranchBy' flatSpaces @simpleName)?
 		':'
 		exprLabel:(flatSpaces '@' @simpleName)?
@@ -240,6 +241,14 @@ parExpr
 				//[
 				//	toExpression('par', [exit].concat(bl))
 				//],
+				exprLabel || undefined,
+				blCanceled ? toExpression('seq', blCanceled) : undefined,
+				suppl || undefined
+			)
+		} else if (exitWith) {
+			return toExpression(
+				'par_race_num',
+				[toIdentifier(exitWith)].concat(bl),
 				exprLabel || undefined,
 				blCanceled ? toExpression('seq', blCanceled) : undefined,
 				suppl || undefined
