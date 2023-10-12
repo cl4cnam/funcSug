@@ -48,6 +48,24 @@
 	}
 }
 
+{deffunc par_race_num __par
+	.var all
+	.varmul retValMul
+	.var num
+	{foreach @all __par
+		.var result
+		:set result $__par
+		{if [.get __par_N = 0]
+			num <-- $result
+		else
+			:set retValMul $result
+			{if [.get __par_N = $num]
+				:breakReturn all $retValMul
+			}
+		}
+	}
+}
+
 {deffunc foreach_race (p_vari _expr)
 	.var all
 	{foreach @all $p_vari
