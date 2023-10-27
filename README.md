@@ -1,31 +1,98 @@
 
 # **FuncSug**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![logo](https://github.com/cl4cnam/funcSug/assets/40176886/2d4c08b3-6f96-4acd-b993-b9bbe0df6b91)
 
-This is a new programming language. Its goal is to enable a specific better **structure of code** (that is, a more natural and more readable structure) "**the concurrent way**" by supplying **new control flow instructions** (beyond `if`, `while`, `for`,...):
-- `parallel`,
-- `parallel exitAfter ... finished`,
-- `parallel(select ...)`,
+The goal of this programming language is to enable a specific better **structure of code** (that is, a more natural and more readable structure) "**the concurrent way**" by supplying **new control flow instructions** (beyond `if`, `while`, `for`,...):
+- `parallel` / `parallel exitAfter ... finished` / `parallel(select ...)` / `parallel(for ... in ...)`,
 - `select`,
-- `parallel(for ... in ...)`
 - `spawn`,
-- `whileTrue_dependsOn`,
-- `whileTrueAwaitFrame_js`,
-- `whileTrueAwaitDom_js`,
+- `whileTrue_dependsOn` / `whileTrueAwaitFrame_js` / `whileTrueAwaitDom_js`,
 - ...
 - `repeat`,
 - `sequence`
 
-and with new modifiers (beyond `break`, `return`):
-
-- `restart`,
-- `pause`,
-- `resume`
+and with new modifiers (beyond `break`, `return`): `restart`, `pause`, `resume`.
 
 If you're curious, you can read the ['Make Gems' example code](https://github.com/cl4cnam/make_gems/blob/main/makegemPhaserPy.fg) (This example uses [phaser_ce](https://github.com/photonstorm/phaser-ce)) or read this [post](https://trio.discourse.group/t/structured-concurrency-for-gui-programming-without-concurrency/488).
 
 It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) of Jean-Ferdy Susini. It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles. It doesn't use OS threads. It doesn't aim to improve speed of execution.
 
 For now, it's just a quick and dirty interpreter but it works enough to be appreciated.
+
+## Comparison with JavaScript
+<table>
+<tr>
+<th align="center">JavaScript</th>
+<th align="center">FuncSug</th>
+</tr>
+<tr>
+<td>
+
+```javascript
+let numberOfClick
+function $(id) {
+    return document.getElementById(id)
+}
+function launch() {
+    $('launch').removeEventListener('click', launch)
+    setTimeout(
+        ()=>{
+            $('clickZone')
+            .removeEventListener('click', clickZone)
+            console.log("Good job! See you soon!")
+        },
+        30000
+    )
+    numberOfClick = 0
+    $('clickZone')
+    .addEventListener('click', clickZone)
+}
+let timeoutID
+function clickZone() {
+    if (numberOfClick == 0) {
+        timeoutID = setTimeout(
+            O=>{
+                if (numberOfClick < 3) {
+                    numberOfClick = 0
+                    console.log("Non-triple click")
+                }
+            },
+            2000
+        )
+    }
+    numberOfClick += 1
+    if (numberOfClick == 3) {
+        numberOfClick = 0
+        console.log("Triple click")
+        clearTimeout(timeoutID)
+    }
+}
+$('launch').addEventListener('click', launch)
+```
+
+</td>
+<td>
+
+```python
+awaitClickBeep('#launch')
+parallel exitAfter 1 finished:
+    waitSeconds(30)
+    while true:
+        awaitClickBeep('#clickZone')
+        parallel exitAfter 1 finished:
+            sequence:
+                awaitClickBeep('#clickZone')
+                awaitClickBeep('#clickZone')
+                print("Triple click")
+            sequence:
+                waitSeconds(2)
+                print("Non-triple click")
+print("Good job! See you soon!")
+```
+
+</td>
+</tr>
+</table>
+
 
 ## Some features
 
