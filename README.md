@@ -107,9 +107,11 @@ parallel:
 ```
 to execute ```parallelBranch1``` and ```parallelBranch2``` concurrently.
 
-You can also add a branch dynamically.
+You can also:
+- add a branch dynamically,
+- select parallel branch(es) according to event(s).
 
-### Interruptible sequence
+### Interruptible block
 You can interrupt (`break`), pause (`pause`), resume (`resume`) or restart (`restart`) a block. For example:
 ```
 parallel:
