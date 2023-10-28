@@ -323,7 +323,7 @@
 #        ----------------
 	{short (p_elt) `
 		const lElt = (p_elt instanceof Element) ? p_elt : document.querySelector(p_elt)
-		if(lElt) lElt.parentNode.removeChild(lElt)
+		if(lElt) lElt?.parentNode?.removeChild?.(lElt)
 	`}
 }
 
