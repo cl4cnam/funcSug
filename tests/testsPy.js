@@ -1070,6 +1070,49 @@ w
 
 {line: new Error().lineNumber, code:`
 	seq:
+		var a := parallel||
+			5
+		||
+			6
+		print(a)
+`, result: `
+5
+6
+`,},
+
+{line: new Error().lineNumber, code:`
+	seq:
+		var seqLabel
+		var a := parallel ||
+			@seqLabel
+			5
+		||
+			6
+		print(a)
+`, result: `
+6
+5
+`,},
+
+{line: new Error().lineNumber, code:`
+	seq:
+		var seqLabel
+		var seqLabel2
+		var parLabel
+		var a := parallel || @parLabel
+			@seqLabel
+			5
+		||
+			@seqLabel2
+			6
+		print(a)
+`, result: `
+5
+6
+`,},
+
+{line: new Error().lineNumber, code:`
+	seq:
 		def par_race(:__par):
 			var all
 			par inside __par: @all
