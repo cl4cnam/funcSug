@@ -33,8 +33,7 @@ program
 	= optSpaces expr:expression optSpaces { return new Expression('program', expr, expr.text) }
 
 expression
-	// = seqExpr / parExpr / ifExpr / loopExpr / defAllparamExpr / defExpr / blockCallExpr / matchExpr / spawnExpr / jsExpr / selectExpr
-	= seqExpr / parSelectExpr / parExpr / ifExpr / loopExpr / defAllparamExpr / defExpr
+	= seqExpr / parSelectBarExpr / parSelectExpr / parparExpr / parExpr / ifExpr / loopExpr / defAllparamExpr / defExpr
 	/ blockCallExpr / matchExpr / spawnExpr / jsExpr / prepareFrameExpr
 	/ whileTrue_dependsOn_Expr / whileTrueAwaitFrame_Expr / whileTrueAwaitDom_Expr
 	/ echoExpr / awaitInnamespaceBxpExpr / awaitBxpExpr / directExpr
@@ -171,6 +170,52 @@ selectExpr
 		]
 	}
 
+selectBarExpr
+	= '||' '='+ blSelect:BLOCK blDo:(newline SAMEDENT '...' '-'+ @BLOCK) {
+		return [
+			...blSelect,
+			toExpression('disableCancelFor', [toIdentifier('SUG_branch')]),
+			toExpression(  'set'  ,  [ toIdentifier('SUG_multReturn'), toIdentifier('false') ]  ),
+			...blDo,
+		]
+	}
+
+parSelectBarExpr
+	= 'parallel('
+		inside:(__ ('inside'/'forEachValueOf') flatSpaces @simpleName __ ',')?
+		inside2:(__ ('for') flatSpaces @simpleName flatSpaces 'in' flatSpaces @flatExpression __ ',')?
+		selectNumber:(__ 'select' flatSpaces @flatExpression __ ')')
+		__ '||'
+		exprLabel:(flatSpaces '@' @simpleName)?
+		newWhiteLine*
+		newline SAMEDENT selectExpr:(comment/selectBarExpr)
+		selectExprs:(newWhiteLine* newline SAMEDENT @(comment/selectBarExpr))*
+	{
+		const listSelectExpr = [selectExpr].concat(selectExprs).filter(elt=>(elt!==null))
+		if (inside2) {
+			return toExpression(
+				'foreachIn_select_mult',
+				[toIdentifier(inside2[0]), inside2[1], selectNumber, listSelectExpr[0]].flat(),
+				exprLabel || undefined,
+			)
+		} else if (inside) {
+			return toExpression(
+				'foreach_select_mult',
+				[toIdentifier(inside), selectNumber, listSelectExpr[0]].flat(),
+				exprLabel || undefined,
+			)
+		} else {
+			return toExpression(
+				'par_select_mult',
+				[
+					selectNumber,
+					listSelectExpr.map(selExpr=>   toExpression('seq', selExpr)  )
+				],
+				exprLabel || undefined,
+			)
+		}
+	}
+
 parSelectExpr
 	= 'parallel('
 		inside:(__ ('inside'/'forEachValueOf') flatSpaces @simpleName __ ',')?
@@ -258,6 +303,50 @@ parExpr
 			op.slice(0,3), bl, exprLabel || undefined,
 			blCanceled ? toExpression('seq', blCanceled) : undefined,
 			suppl || undefined
+		)
+	}
+
+parparExpr
+	= op:('parallel'/'par')
+		exit:(flatSpaces 'exitAfter' flatSpaces @number flatSpaces 'finished')?
+		exitWith:(flatSpaces 'exitWith' flatSpaces 'branch' flatSpaces @number)?
+		__ '||'
+		exprLabel:(flatSpaces '@' @simpleName)?
+		blFirst:BLOCK_STARTING_WITH_LABEL blRest:(newline SAMEDENT '||' @BLOCK_STARTING_WITH_LABEL)*
+	{
+		if (exit) {
+			return toExpression(
+				'par_race_mult',
+				[toIdentifier(exit)].concat(
+					[blFirst].concat(blRest).map(
+						bl => (bl[0][0] == '@') ? toExpression('seq', bl.slice(1), bl[0][1]) : toExpression('seq', bl)
+					)
+				),
+				exprLabel || undefined,
+				undefined,
+				undefined
+			)
+		} else if (exitWith) {
+			return toExpression(
+				'par_race_num',
+				[toIdentifier(exitWith)].concat(
+					[blFirst].concat(blRest).map(
+						bl => (bl[0][0] == '@') ? toExpression('seq', bl.slice(1), bl[0][1]) : toExpression('seq', bl)
+					)
+				),
+				exprLabel || undefined,
+				undefined,
+				undefined
+			)
+		}
+		return toExpression(
+			'par',
+			[blFirst].concat(blRest).map(
+				bl => (bl[0][0] == '@') ? toExpression('seq', bl.slice(1), bl[0][1]) : toExpression('seq', bl)
+			),
+			exprLabel || undefined,
+			undefined,
+			undefined
 		)
 	}
 
@@ -429,6 +518,13 @@ BLOCK
 	 & (newline DEDENT)
 	{ return [startExpr].concat(restExpr.flat()).filter(elt=>(elt!==null)) }
 
+BLOCK_STARTING_WITH_LABEL
+	= newWhiteLine*
+	newline INDENT startExpr:(comment/expression/'@' simpleName)
+	restExpr:(newWhiteLine* newline SAMEDENT @(comment/expression))*
+	 & (newline DEDENT)
+	{ return [startExpr].concat(restExpr.flat()).filter(elt=>(elt!==null)) }
+
 SAMEDENT
 	= tabs:tabs &{return tabs.length == indentationCount} {}
 
@@ -440,6 +536,7 @@ INDENT
 
 DEDENT
 	= tabs:tabs {indentationCount = indentationStack.pop()}
+// end of part inspired by https://github.com/Kantouzin/python-pegjs
 
 name
 	= n:(simpleName / simpleOper) { return toIdentifier(n) }
