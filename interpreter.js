@@ -27,7 +27,7 @@ const removeEventListener_orig = EventTarget.prototype.removeEventListener
 EventTarget.prototype.removeEventListener = function (ps_evtType, pFunction_listener, options) {
 	removeEventListener_orig.call(this, ps_evtType, pFunction_listener.wrapped || pFunction_listener, options)
 }
-
+// end of part inspired by https://gist.github.com/eyecatchup/d0e1fb062343d45fbb5800dd0dc3d4d9
 
 
 const namespaceSet = new Set()
@@ -1539,7 +1539,7 @@ const gDict_instructions = {
 			const lPARAM_body = pFrame.code.content[2]
 			
 			const l_namespace = getNamespace(pFrame, lPARAM_variable.content)
-			;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'undefined cancellor variable')
+			;;     $__ErrorChecking(pFrame, l_namespace===undefined, 'undefined cancellor variable "' + lPARAM_variable.content + '"', pFrame)
 			const l_livebox = l_namespace.get(lPARAM_variable.content)
 			if (l_livebox.precBeep) {
 				const l_multival = l_livebox.getMultival()
@@ -2475,6 +2475,7 @@ async function runBurst() {
 
 function exec(code) {
 	mainFrame = new Frame(code)
+	//~ console.warn('mainFrame code', code)
 	globalFrameTree = new Tree(mainFrame)
 	runBurst()
 }
