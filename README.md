@@ -1,7 +1,11 @@
 
 # **FuncSug**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![logo](https://github.com/cl4cnam/funcSug/assets/40176886/2d4c08b3-6f96-4acd-b993-b9bbe0df6b91)
 
-The goal of this programming language is to enable a specific better **structure of code** (that is, a more natural and more readable structure) "**the concurrent way**" by supplying **new control flow instructions** (beyond `if`, `while`, `for`,...):
+The goal of this programming language is to facilitate programming interactivity (in client-side web GUI programming).
+
+For this aim, it uses the "**concurrent way**" or more exactly the "**logically parallel way**". That is, it introduces concurrency where no concurrency seems mandatory. The concurrency is reputed to be very difficult. However, amazingly, many cases are simpler with concurrency!
+
+This "**concurrent way**" is expressed thanks to additional control flow instructions (beyond `if`, `while`, `for`,...):
 - `parallel` / `parallel exitAfter ... finished` / `parallel(select ...)` / `parallel(for ... in ...)`,
 - `select`,
 - `spawn`,
@@ -11,6 +15,8 @@ The goal of this programming language is to enable a specific better **structure
 - `sequence`
 
 and with new modifiers (beyond `break`, `return`): `restart`, `pause`, `resume`.
+
+That enables a better **structure of code** (that is, a more natural and more readable structure).
 
 If you're curious, you can read the [the 'Memory' code](https://github.com/cl4cnam/Memory2/blob/main/memory.fg)
 (and [test it](https://cl4cnam.github.io/Memory2/memory.html)) or read this [post](https://trio.discourse.group/t/structured-concurrency-for-gui-programming-without-concurrency/488).
