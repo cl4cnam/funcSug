@@ -140,17 +140,17 @@ See [the 'Make Gems' code](https://github.com/cl4cnam/make_gems/blob/main/makege
 and [test it](https://cl4cnam.github.io/make_gems/makegemPhaserPy.html).
 
 You may also want to have a look at:
-- [the 'Guess the Number' code](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumberPy.fg)
+- ['Guess the Number' code](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumberPy.fg)
 and [test it](https://cl4cnam.github.io/Guess_the_number/guessTheNumberPy.html).
-- [the 'Mini Sweet' code](https://github.com/cl4cnam/miniSweet/blob/main/miniSweetPy.fg)
+- ['Mini Sweet' code](https://github.com/cl4cnam/miniSweet/blob/main/miniSweetPy.fg)
 and [test it](https://cl4cnam.github.io/miniSweet/miniSweetPy.html).
-- [the 'Aquarium' code](https://github.com/cl4cnam/aquarium/blob/main/aquariumPy.fg)
+- ['Aquarium' code](https://github.com/cl4cnam/aquarium/blob/main/aquariumPy.fg)
 and [test it](https://cl4cnam.github.io/aquarium/aquariumPy.html).
-- [the 'Memory' code](https://github.com/cl4cnam/Memory/blob/main/memory.fg)
+- ['Memory' code](https://github.com/cl4cnam/Memory/blob/main/memory.fg)
 and [test it](https://cl4cnam.github.io/Memory/memory.html).
-- [the 'Memory2' code](https://github.com/cl4cnam/Memory2/blob/main/memory.fg)
+- ['Memory2' code](https://github.com/cl4cnam/Memory2/blob/main/memory.fg)
 and [test it](https://cl4cnam.github.io/Memory2/memory.html).
-- [Hypertext fiction Example](https://github.com/cl4cnam/hypertextFictionExample/blob/main/hypertextFictionExample.fg)
+- ['Hypertext fiction' code](https://github.com/cl4cnam/hypertextFictionExample/blob/main/hypertextFictionExample.fg)
 and [test it](https://cl4cnam.github.io/hypertextFictionExample/hypertextFictionExample.html).
 
 Look at the **global structure of the code**: One cannot follow this structure in usual programming language.
