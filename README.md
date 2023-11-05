@@ -150,7 +150,7 @@ and [test it](https://cl4cnam.github.io/aquarium/aquariumPy.html).
 and [test it](https://cl4cnam.github.io/Memory/memory.html).
 - [the 'Memory2' code](https://github.com/cl4cnam/Memory2/blob/main/memory.fg)
 and [test it](https://cl4cnam.github.io/Memory2/memory.html).
-- [the 'Novel' code](https://github.com/cl4cnam/hypertextFictionExample/blob/main/hypertextFictionExample.fg)
+- [Hypertext fiction Example](https://github.com/cl4cnam/hypertextFictionExample/blob/main/hypertextFictionExample.fg)
 and [test it](https://cl4cnam.github.io/hypertextFictionExample/hypertextFictionExample.html).
 
 Look at the **global structure of the code**: One cannot follow this structure in usual programming language.
