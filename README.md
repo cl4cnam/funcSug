@@ -4,6 +4,10 @@
 The goal of this programming language is *merely* facilitating **programming of interactivity** (in client-side web GUI programming).<br>
 It **eliminates** the need to manage **all the combinations** of component states.
 
+> [!NOTE]
+> **Goal**: facilitating **programming of interactivity**<br>
+> **Non-goals**: improving speed of execution, facilitating data structuration, object management, mutability, types
+
 For this aim, it uses the "**concurrent way**" or more exactly the "**logically parallel way**". That is, it introduces concurrency where no concurrency seems mandatory. The concurrency is reputed to be very difficult. However, amazingly, many cases are simpler with concurrency!
 
 This "**concurrent way**" is expressed thanks to additional control flow instructions (beyond `if`, `while`, `for`,...):
@@ -23,8 +27,6 @@ If you're curious, you can read the [the 'Memory' code](https://github.com/cl4cn
 (and [test it](https://cl4cnam.github.io/Memory2/memory.html)) or read this [post](https://trio.discourse.group/t/structured-concurrency-for-gui-programming-without-concurrency/488).
 
 It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) of Jean-Ferdy Susini. It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles. It doesn't use OS threads. It doesn't aim to improve speed of execution.
-
-For now, it's just a quick and dirty interpreter but it works enough to be appreciated.
 
 ## Compare
 <table>
@@ -82,18 +84,18 @@ $('launch').addEventListener('click', launch)
 
 ```python
 awaitClickBeep('#launch')
-parallel exitAfter 1 finished:
+parallel exitAfter 1 finished ||
    waitSeconds(30)
+||
    while true:
       awaitClickBeep('#clickZone')
-      parallel exitAfter 1 finished:
-         sequence:
-            awaitClickBeep('#clickZone')
-            awaitClickBeep('#clickZone')
-            print("Triple click")
-         sequence:
-            waitSeconds(2)
-            print("Non-triple click")
+      parallel exitAfter 1 finished ||
+         awaitClickBeep('#clickZone')
+         awaitClickBeep('#clickZone')
+         print("Triple click")
+      ||
+         waitSeconds(2)
+         print("Non-triple click")
 print("Good job! See you soon!")
 ```
 
@@ -173,6 +175,8 @@ You can also test snippets [here](https://cl4cnam.github.io/FuncSugREPL/replPy.h
 This language has [syntax highlighting for Geany](https://github.com/cl4cnam/funcSug/tree/main/tools/forGeany); otherwise, with Geany, if you choose that of zephir (or nsis, powershell, ruby), it can be pleasant.
 
 The file ```parserPy.js``` has been generated online from the file ```funcSugPy.peggyjs``` on the site https://peggyjs.org/online.html with "parser variable" set to "pegPy".
+
+For now, this implementation consists just in a quick and dirty interpreter but it works enough to be appreciated.
 
 ## Use without phaser_ce
 
