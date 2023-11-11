@@ -1,7 +1,8 @@
 
 # **FuncSug**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![logo](https://github.com/cl4cnam/funcSug/assets/40176886/2d4c08b3-6f96-4acd-b993-b9bbe0df6b91)
 
-The goal of this programming language is to facilitate programming **interactivity** (in client-side web GUI programming).
+The goal of this programming language is *only* to facilitate programming **interactivity** (in client-side web GUI programming).<br>
+It **eliminates** the need to manage **all the combinations** of component states.
 
 For this aim, it uses the "**concurrent way**" or more exactly the "**logically parallel way**". That is, it introduces concurrency where no concurrency seems mandatory. The concurrency is reputed to be very difficult. However, amazingly, many cases are simpler with concurrency!
 
