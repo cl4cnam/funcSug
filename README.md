@@ -8,7 +8,7 @@ It **eliminates** the need to manage **all the combinations** of component state
 > **Goal**: facilitating **programming of interactivity**<br>
 > **Non-goals**: improving speed of execution, facilitating data structuration, object management, mutability, types
 
-For this aim, it uses the "**concurrent way**" or more exactly the "**logically parallel way**". That is, it introduces concurrency where no concurrency seems mandatory. The concurrency is reputed to be very difficult. However, amazingly, many cases are simpler with concurrency!
+For this aim, it uses the "**concurrent way**" or more exactly the "**logically parallel way**". That is, it introduces explicit concurrency where no concurrency seems present or mandatory. The concurrency is reputed to be very difficult. However, amazingly, many cases are simpler with explicit concurrency!
 
 This "**concurrent way**" is expressed thanks to additional control flow instructions (beyond `if`, `while`, `for`,...):
 - `parallel` / `parallel exitAfter ... finished` / `parallel(select ...)` / `parallel(for ... in ...)`,
