@@ -1,7 +1,7 @@
 # Hello ! I'm a comment
 
 # first error
-(doerror)
+doerror()
 
 # this program generates this error in the console :
-# Error (prog): undefined instruction --IN-- "... (doerror ) ..." --AT--> source errorManagement.fg, line 4 column 1 to source errorManagement.fg, line 4 column 10
+# Error (funcSug): get undefined variable "doerror" --IN--  "... get doerror ..." --AT--> source errorManagement.fg, line 5 column 2 to source errorManagement.fg, line 5 column 11
