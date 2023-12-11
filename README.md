@@ -5,6 +5,8 @@ The goal of this programming language is *merely* facilitating **programming of 
 It avoids "callback hell" and enables you to program like in a console without losing the multiple possibilities of interaction.<br>
 It **eliminates** the need to manage **all the combinations** of component states.
 
+> [**Tutorial**](https://github.com/cl4cnam/funcSug/wiki) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)
+
 > [!NOTE]
 > **Goal**: facilitating **programming of interactivity**<br>
 > **Non-goals**: improving speed of execution, facilitating data structuration, object management, mutability, types
