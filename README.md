@@ -1,7 +1,7 @@
 
 # **FuncSug**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![logo](https://github.com/cl4cnam/funcSug/assets/40176886/2d4c08b3-6f96-4acd-b993-b9bbe0df6b91)
 
-The goal of this programming language is *merely* facilitating **programming of interactivity** (in client-side web GUI programming).
+The goal of this programming language is *merely* facilitating **GUI programming** (in client-side web programming).
 
 **Advantages:**
 - It avoids "callback hell"
@@ -12,7 +12,7 @@ The goal of this programming language is *merely* facilitating **programming of 
 [**Tutorial**](https://github.com/cl4cnam/funcSug/wiki) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)
 
 > [!NOTE]
-> **Goal**: facilitating **programming of interactivity**<br>
+> **Goal**: facilitating **GUI programming** (in fact, the interactivity aspect)<br>
 > **Non-goals**: improving speed of execution, facilitating data structuration, object management, mutability, types
 
 For this aim, it uses the "**concurrent way**" or more exactly the "**logically parallel way**". That is, it introduces explicit concurrency where no concurrency seems present or mandatory. The concurrency is reputed to be very difficult. However, amazingly, many cases are simpler with explicit concurrency!
