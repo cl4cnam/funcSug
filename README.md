@@ -1,11 +1,15 @@
 
 # **FuncSug**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![logo](https://github.com/cl4cnam/funcSug/assets/40176886/2d4c08b3-6f96-4acd-b993-b9bbe0df6b91)
 
-The goal of this programming language is *merely* facilitating **programming of interactivity** (in client-side web GUI programming).<br>
-It avoids "callback hell" and enables you to program like in a console without losing the multiple possibilities of interaction.<br>
-It **eliminates** the need to manage **all the combinations** of component states.
+The goal of this programming language is *merely* facilitating **programming of interactivity** (in client-side web GUI programming).
 
-> [**Tutorial**](https://github.com/cl4cnam/funcSug/wiki) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)
+**Advantages:**
+- It avoids "callback hell"
+- and enables you to program as if you make a console application
+- without losing the multiple possibilities of interaction.
+- It **eliminates** the need to manage **all the combinations** of component states.
+
+[**Tutorial**](https://github.com/cl4cnam/funcSug/wiki) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)
 
 > [!NOTE]
 > **Goal**: facilitating **programming of interactivity**<br>
