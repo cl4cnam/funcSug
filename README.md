@@ -113,6 +113,8 @@ print("Good job! See you soon!")
 </tr>
 </table>
 
+If you copy and paste, replace each three initial spaces by one tabulation (Github markdown doesn't allow to change tabulation size in this context).
+
 ## Some features
 
 ### Parallel construct
@@ -120,9 +122,10 @@ print("Good job! See you soon!")
 
 You can write
 ```
-parallel:
-    <parallelBranch1>
-    <parallelBranch2>
+parallel ||
+	<parallelBranch1>
+||
+	<parallelBranch2>
 ```
 to execute ```parallelBranch1``` and ```parallelBranch2``` concurrently.
 
@@ -133,19 +136,19 @@ You can also:
 ### Interruptible block
 You can interrupt (`break`), pause (`pause`), resume (`resume`) or restart (`restart`) a block. For example:
 ```
-parallel:
-    sequence: @myBlock
-        <instruction1>
-        <instruction2>
-    sequence:
-        break myBlock
+parallel ||
+	@myBlock
+	<instruction1>
+	<instruction2>
+||
+	break myBlock
 ```
 ### Reaction to a change of a variable
 You can react to a change of a variable, for example, like this:
 ```
 while true:
-    awaitBeep myVariable
-    <whatToDoInThisCase>
+	awaitBeep myVariable
+	<whatToDoInThisCase>
 ```
 
 ## Get a taste of the language
