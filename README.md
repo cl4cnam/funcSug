@@ -5,9 +5,11 @@ The goal of this programming language is *merely* facilitating **GUI programming
 
 **Advantages:**
 - It avoids "callback hell"
-- and enables you to program as if you make a console application
-- without losing the multiple possibilities of interaction
-- and without freezing the user interface.
+  - and enables you to program as if you make a console application
+  - without losing the multiple possibilities of interaction
+  - and without freezing the user interface.
+- It easily manages task cancellations (including task timeouts).
+- It can react to a change of a variable.
 - It **eliminates** the need to manage **all the combinations** of component states.
 
 [**Tutorial**](https://github.com/cl4cnam/funcSug/wiki) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)
