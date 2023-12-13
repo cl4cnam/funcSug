@@ -12,7 +12,7 @@ The goal of this programming language is *merely* facilitating **GUI programming
 - It can react to a change of a variable.
 - It **eliminates** the need to manage **all the combinations** of component states.
 
-[**Tutorial**](https://github.com/cl4cnam/funcSug/wiki) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)
+[**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)
 
 > [!NOTE]
 > **Goal**: facilitating **GUI programming** (in fact, the interactivity aspect)<br>
