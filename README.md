@@ -1,5 +1,6 @@
+![solve2c](https://github.com/cl4cnam/funcSug/assets/40176886/8d349dfe-7d22-4ca4-aeb0-fe521d2c36aa)
 
-# **FuncSug**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![logo](https://github.com/cl4cnam/funcSug/assets/40176886/2d4c08b3-6f96-4acd-b993-b9bbe0df6b91)
+# **FuncSug**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
 The goal of this programming language is *merely* facilitating **GUI programming** (in client-side web programming).
 
@@ -8,15 +9,17 @@ The goal of this programming language is *merely* facilitating **GUI programming
   - and enables you to program as if you make a console application
   - without losing the multiple possibilities of interaction
   - and without freezing the user interface.
+- It solves the [state management](https://en.wikipedia.org/wiki/State_management) problem (It **eliminates** the need to manage **all the combinations** of component states).
 - It easily manages task cancellations (including task timeouts).
 - It can react to a change of a variable.
-- It **eliminates** the need to manage **all the combinations** of component states.
 
 [**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)
 
 > [!NOTE]
 > **Goal**: facilitating **GUI programming** (in fact, the interactivity aspect)<br>
 > **Non-goals**: improving speed of execution, facilitating data structuration, object management, mutability, types
+
+![logo](https://github.com/cl4cnam/funcSug/assets/40176886/2d4c08b3-6f96-4acd-b993-b9bbe0df6b91)
 
 For this aim, it uses the "**concurrent way**" or more exactly the "**logically parallel way**". That is, it introduces explicit concurrency where no concurrency seems present or mandatory. The concurrency is reputed to be very difficult. However, amazingly, many cases are simpler with explicit concurrency!
 
