@@ -2,18 +2,16 @@
 
 # **FuncSug**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
-The goal of this programming language is *merely* facilitating **GUI programming** (in client-side web programming).
+The goal of this programming language is facilitating **GUI programming** (in client-side web programming).
 
 **Advantages:**
-- It avoids "callback hell"
-  - and enables you to program as if you make a console application
-  - without losing the multiple possibilities of interaction
-  - and without freezing the user interface.
+- It avoids *callback hell* (You don't need callback any more)
+- Your program follows your **scenario** so you avoid spaghetti code and debug more easily
 - It solves the [state management](https://en.wikipedia.org/wiki/State_management) problem (It **eliminates** the need to manage **all the combinations** of component states).
 - It easily manages task cancellations (including task timeouts).
 - It can react to a change of a variable.
 
-[**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)
+[**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html) - [**Ask your questions**](https://github.com/cl4cnam/funcSug/discussions)
 
 > [!NOTE]
 > **Goal**: facilitating **GUI programming** (in fact, the interactivity aspect)<br>
