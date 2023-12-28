@@ -42,6 +42,7 @@ If you're curious, you can read the [the 'Memory' code](https://github.com/cl4cn
 It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) of Jean-Ferdy Susini. It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles. It doesn't use OS threads. It doesn't aim to improve speed of execution.
 
 ## Compare
+These two codes do the same thing:
 <table>
 <tr>
 <th align="center">JavaScript</th>
