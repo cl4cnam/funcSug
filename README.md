@@ -28,9 +28,9 @@ This "**concurrent way**" is expressed thanks to additional control flow instruc
 - `select`,
 - `spawn`,
 - `whileTrue_dependsOn` / `whileTrueAwaitFrame_js` / `whileTrueAwaitDom_js`,
-- ...
 - `repeat`,
-- `sequence`
+- `sequence`,
+- ...
 
 and with new modifiers (beyond `break`, `return`): `restart`, `pause`, `resume`.
 
