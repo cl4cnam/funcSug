@@ -114,7 +114,7 @@ That enables a better **structure of code** (that is, a more natural and more re
 If you're curious, you can read the [the 'Memory' code](https://github.com/cl4cnam/Memory2/blob/main/memory.fg)
 (and [test it](https://cl4cnam.github.io/Memory2/memory.html)) or read this [post](https://trio.discourse.group/t/structured-concurrency-for-gui-programming-without-concurrency/488).
 
-It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) of Jean-Ferdy Susini. It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles. It doesn't use OS threads. It doesn't aim to improve speed of execution.
+It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) by Jean-Ferdy Susini which is a derivative of [Esterel](https://en.wikipedia.org/wiki/Esterel) by Gérard Berry. It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles. It doesn't use OS threads. It doesn't aim to improve speed of execution.
 
 > [!NOTE]
 > **Goal**: facilitating **GUI programming** (in fact, the interactivity aspect)<br>
