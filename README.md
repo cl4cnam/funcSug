@@ -112,7 +112,7 @@ and with new modifiers (beyond `break`, `return`): `restart`, `pause`, `resume`.
 That enables a better **structure of code** (that is, a more natural and more readable structure).
 
 If you're curious, you can read the [the 'Memory' code](https://github.com/cl4cnam/Memory2/blob/main/memory.fg)
-(and [test it](https://cl4cnam.github.io/Memory2/memory.html)) or read this [post](https://trio.discourse.group/t/structured-concurrency-for-gui-programming-without-concurrency/488).
+or [try it](https://cl4cnam.github.io/Memory2/memory.html) or read this [post](https://trio.discourse.group/t/structured-concurrency-for-gui-programming-without-concurrency/488).
 
 It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) by Jean-Ferdy Susini which is a derivative of [Esterel](https://en.wikipedia.org/wiki/Esterel) by Gérard Berry. It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles. It doesn't use OS threads. It doesn't aim to improve speed of execution.
 
@@ -122,21 +122,21 @@ It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) by
 
 ## Get a taste of the language
 See [the 'Make Gems' code](https://github.com/cl4cnam/make_gems/blob/main/makegemPhaserPy.fg)
-and [test it](https://cl4cnam.github.io/make_gems/makegemPhaserPy.html).
+or [try it](https://cl4cnam.github.io/make_gems/makegemPhaserPy.html).
 
 You may also want to have a look at:
 - ['Guess the Number' code](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumberPy.fg)
-and [test it](https://cl4cnam.github.io/Guess_the_number/guessTheNumberPy.html).
+or [try it](https://cl4cnam.github.io/Guess_the_number/guessTheNumberPy.html).
 - ['Mini Sweet' code](https://github.com/cl4cnam/miniSweet/blob/main/miniSweetPy.fg)
-and [test it](https://cl4cnam.github.io/miniSweet/miniSweetPy.html).
+or [try it](https://cl4cnam.github.io/miniSweet/miniSweetPy.html).
 - ['Aquarium' code](https://github.com/cl4cnam/aquarium/blob/main/aquariumPy.fg)
-and [test it](https://cl4cnam.github.io/aquarium/aquariumPy.html).
+or [try it](https://cl4cnam.github.io/aquarium/aquariumPy.html).
 - ['Memory' code](https://github.com/cl4cnam/Memory/blob/main/memory.fg)
-and [test it](https://cl4cnam.github.io/Memory/memory.html).
+or [try it](https://cl4cnam.github.io/Memory/memory.html).
 - ['Memory2' code](https://github.com/cl4cnam/Memory2/blob/main/memory.fg)
-and [test it](https://cl4cnam.github.io/Memory2/memory.html).
+or [try it](https://cl4cnam.github.io/Memory2/memory.html).
 - ['Hypertext fiction' code](https://github.com/cl4cnam/hypertextFictionExample/blob/main/hypertextFictionExample.fg)
-and [test it](https://cl4cnam.github.io/hypertextFictionExample/hypertextFictionExample.html).
+or [try it](https://cl4cnam.github.io/hypertextFictionExample/hypertextFictionExample.html).
 
 Look at the **global structure of the code**: One cannot follow this structure in usual programming language.
 
