@@ -121,10 +121,9 @@ It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) by
 > **Non-goals**: improving speed of execution, facilitating data structuration, object management, mutability, types
 
 ## Get a taste of the language
-See [the 'Make Gems' code](https://github.com/cl4cnam/make_gems/blob/main/makegemPhaserPy.fg)
+Have a look at:
+- [the 'Make Gems' code](https://github.com/cl4cnam/make_gems/blob/main/makegemPhaserPy.fg)
 or [try it](https://cl4cnam.github.io/make_gems/makegemPhaserPy.html).
-
-You may also want to have a look at:
 - ['Guess the Number' code](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumberPy.fg)
 or [try it](https://cl4cnam.github.io/Guess_the_number/guessTheNumberPy.html).
 - ['Mini Sweet' code](https://github.com/cl4cnam/miniSweet/blob/main/miniSweetPy.fg)
