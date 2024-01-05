@@ -10,8 +10,9 @@ The goal of this programming language is facilitating **GUI programming** (in cl
 - It solves the [state management](https://en.wikipedia.org/wiki/State_management) problem (It **eliminates** the need to manage **all the combinations** of component states).
 - It easily manages task cancellations (including task timeouts).
 - It can react to a change of a variable.
+- It's deterministic.
 
-[**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html) - **Ask your questions** ([Github discussions](https://github.com/cl4cnam/funcSug/discussions), [Mastodon](https://piaille.fr/@cli345))
+[**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Getting started**](https://github.com/cl4cnam/funcSug#instructions-for-use) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html) - **Ask your questions** ([Github discussions](https://github.com/cl4cnam/funcSug/discussions), [Mastodon](https://piaille.fr/@cli345))
 
 ## Compare
 These two codes do the same thing:
