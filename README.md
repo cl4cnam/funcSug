@@ -1,4 +1,4 @@
-![solve2c](https://github.com/cl4cnam/funcSug/assets/40176886/8d349dfe-7d22-4ca4-aeb0-fe521d2c36aa)
+![solve2_b](https://github.com/cl4cnam/funcSug/assets/40176886/5c8c0edf-c32e-4551-ad6d-6231159cd503)
 
 # **FuncSug**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
