@@ -284,6 +284,16 @@ executes the code in ```jsString``` (in which ```variable1 ... variableN``` can 
 
 ```awaitClickBeep(cssSelector)``` awaits a click from user in the DOM element identified by ```cssSelector```.
 
+## Contributing
+
+Pull requests are welcome.
+
+If you want to make big change, please open an [issue](https://github.com/cl4cnam/funcSug/issues) first to discuss it.
+
+You can just post your thoughts into [discussions](https://github.com/cl4cnam/funcSug/discussions) tab too.
+
+Examples of contributions: Tutorials, optimization, translations, fixing bugs, ...
+
 ## Various
 
 This language has [syntax highlighting for Geany](https://github.com/cl4cnam/funcSug/tree/main/tools/forGeany); otherwise, with Geany, if you choose that of zephir (or nsis, powershell, ruby), it can be pleasant.
