@@ -1,16 +1,20 @@
-![solve2_b](https://github.com/cl4cnam/funcSug/assets/40176886/5c8c0edf-c32e-4551-ad6d-6231159cd503)
+![solve2_c2](https://github.com/cl4cnam/funcSug/assets/40176886/78b1eea5-cb49-4666-b9a7-bec64973c2e0)
 
 # **FuncSug**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
 The goal of this programming language is facilitating **GUI programming** (in client-side web programming).
 
 **Advantages:**
-- It avoids *callback hell* (You don't need callback any more)
-- Your program follows your **scenario** so you avoid spaghetti code and debug more easily
+- It avoids *callback hell* (You don't need callback any more).
+- Your program follows the same order as your **scenario** so you avoid spaghetti code and debug more easily.
 - It solves the [state management](https://en.wikipedia.org/wiki/State_management) problem (It **eliminates** the need to manage **all the combinations** of component states).
 - It easily manages task cancellations (including task timeouts).
 - It can react to a change of a variable.
 - It's deterministic.
+
+**by means of**:
+- explicit **logical parallelism**,
+- and "`await` event" instructions.
 
 [**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Getting started**](https://github.com/cl4cnam/funcSug#instructions-for-use) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html) - **Ask your questions** ([Github discussions](https://github.com/cl4cnam/funcSug/discussions), [Mastodon](https://piaille.fr/@cli345))
 
