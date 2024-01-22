@@ -11,6 +11,7 @@ The goal of this programming language is facilitating **GUI programming** (in cl
 - It easily manages task cancellations (including task timeouts).
 - It can react to a change of a variable.
 - It's deterministic.
+- (You can also include JavaScript snippets, pass FuncSug variable to it and get back JavaScript return).
 
 **by means of**:
 - explicit **logical parallelism**,
