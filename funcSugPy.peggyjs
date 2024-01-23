@@ -149,6 +149,17 @@ callExpr
 		return l_callExpr
 	}
 
+calljsExpr
+	= 'calljs' flatSpaces n:simpleName __ '(' __ exprs:flatExpression|.., __ "," __| __ ')' {
+		const ls_jsExpr = 'return ' + n
+		return toExpression(
+			'short', [
+				new Expression( 'expression', exprs.map(elt=>toIdentifier(elt)), text() ),
+				new Expression('string', ls_jsExpr, ls_jsExpr)
+			]
+		)
+	}
+
 listExpr
 	= '[' __ exprs:flatExpression|.., __ "," __| __ ']' { return  new Expression('expression', exprs.flat(), text()) }
 
@@ -221,7 +232,7 @@ parSelectExpr
 		inside:(__ ('inside'/'forEachValueOf') flatSpaces @simpleName __ ',')?
 		inside2:(__ ('for') flatSpaces @simpleName flatSpaces 'in' flatSpaces @flatExpression __ ',')?
 		selectNumber:(__ 'select' flatSpaces @flatExpression __ ')')
-		':'
+		__ ':'
 		exprLabel:(flatSpaces '@' @simpleName)?
 		newWhiteLine*
 		newline INDENT selectExpr:(comment/selectExpr)
@@ -259,7 +270,7 @@ parExpr
 		exit:(flatSpaces 'exitAfter' flatSpaces @number flatSpaces 'finished')?
 		exitWith:(flatSpaces 'exitWith' flatSpaces 'branch' flatSpaces @number)?
 		suppl:(flatSpaces 'supplBranchBy' flatSpaces @simpleName)?
-		':'
+		__ ':'
 		exprLabel:(flatSpaces '@' @simpleName)?
 		bl:BLOCK blCanceled:(newline SAMEDENT 'onBreak:' @BLOCK)?
 	{
