@@ -2352,9 +2352,9 @@ function Tree(p_root) {
 		return this.leafList.some(elt=>elt[ps_property])
 	}
 
-	this.someLeafHasConditionTrue = function(ps_condition) {
+	this.someLeafHasConditionTrue = function(pFunc_condition) {
 		//~ console.log('someLeafHasPropertyTrue', this.leafList, ps_property)
-		return this.leafList.some(elt=>eval(ps_condition))
+		return this.leafList.some(pFunc_condition)
 	}
 
 	
@@ -2383,7 +2383,7 @@ async function runBurst() {
 	let cpt2 = 0
 	let precedent_stillAwake = true
 	//~ let stillAwake = globalFrameTree.someLeafHasPropertyTrue('awake' )
-	let stillAwake = globalFrameTree.someLeafHasConditionTrue('! elt.suspended && elt.awake' )
+	let stillAwake = globalFrameTree.someLeafHasConditionTrue(elt=>! elt.suspended && elt.awake)
 	while ( precedent_stillAwake || stillAwake ) {
 		cpt2 += 1
 		if (cpt2==500 && g_debug > 0) console.warn('!!! soon INFINITE LOOP ?? !!!')
@@ -2467,7 +2467,7 @@ async function runBurst() {
 		
 		precedent_stillAwake = stillAwake
 		//~ stillAwake = globalFrameTree.someLeafHasPropertyTrue('awake' )
-		stillAwake = globalFrameTree.someLeafHasConditionTrue('! elt.suspended && elt.awake' )
+		stillAwake = globalFrameTree.someLeafHasConditionTrue(elt=>! elt.suspended && elt.awake)
 		;;        condLogGroupEnd(3, '------> MicroInstant', 'END')
 	}
 	;;        condLogGroupEnd(1, '====> SuperInstant:', 'END')
