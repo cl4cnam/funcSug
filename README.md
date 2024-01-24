@@ -1,8 +1,10 @@
 ![solve2_c2](https://github.com/cl4cnam/funcSug/assets/40176886/78b1eea5-cb49-4666-b9a7-bec64973c2e0)
 
-# **FuncSug**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+# **FuncSug: An alternative to event-driven programming**
 
-The goal of this programming language is facilitating **GUI programming** (in client-side web programming).
+FuncSug is a programming language that solves **event-driven programming** problems: **callback hell** and **state management**.
+
+Its goal is mainly facilitating **GUI programming** (in client-side web programming).
 
 **Advantages:**
 - It avoids *callback hell* (You don't need callback any more).
