@@ -13,7 +13,7 @@ Its goal is mainly facilitating **GUI programming** (in client-side web programm
 - It easily manages task cancellations (including task timeouts).
 - It can react to a change of a variable.
 - It's deterministic.
-- (You can also include JavaScript snippets, pass FuncSug variable to it and get back JavaScript return).
+- (You can also include JavaScript snippets, pass FuncSug variables to it and get back JavaScript return).
 
 **by means of**:
 - explicit **logical parallelism**,
