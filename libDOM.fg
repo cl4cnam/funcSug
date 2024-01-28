@@ -305,13 +305,13 @@
 	:await elt beep
 }
 
-{deffunc displayImageIn (p_image p_idAnchor)
+{deffunc displayImageIn (p_imagePath p_idAnchor)
 #        ----------------
 	.var elt
-	{ext (p_image p_idAnchor) `
+	{ext (p_imagePath p_idAnchor) `
 		const lElt_anchor = (p_idAnchor instanceof Element) ? p_idAnchor : document.querySelector(p_idAnchor)
 		if (lElt_anchor===null) console.log("ERROR !!! libDOM.fs/displayImageIn '" + p_idAnchor + "' selector references no element!")
-		lElt_anchor.src = URL.createObjectURL(p_image)
+		lElt_anchor.src = p_imagePath
 		//~ lElt_anchor.innerHTML = p_message
 		lElt_anchor.scrollIntoView()
 		output(lElt_anchor)
