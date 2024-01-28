@@ -56,6 +56,7 @@ par: @theParB
 			print('c (=6): ' + c)
 			break theParB
 print('.....> STEP8')
-var imBlob := awaitFileContent('giraffe.jpg', 'blob')
-displayImageIn(imBlob, '#theImage')
+#~ var imBlob := awaitFileContent('giraffe.jpg', 'blob')
+#~ displayImageIn(imBlob, '#theImage')
+displayImageIn('giraffe.jpg', '#theImage')
 print('.....> END')
