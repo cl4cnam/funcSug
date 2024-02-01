@@ -102,35 +102,6 @@ print("Good job! See you soon!")
 
 If you copy and paste, replace each three initial spaces by one tabulation (Github markdown doesn't allow to change tabulation size in this context).
 
-## Concurrent way
-![logo](https://github.com/cl4cnam/funcSug/assets/40176886/2d4c08b3-6f96-4acd-b993-b9bbe0df6b91)
-
-For this aim, it uses the "**concurrent way**" or more exactly the "**logically parallel way**". That is, it introduces explicit concurrency where no concurrency seems present or mandatory. The concurrency is reputed to be very difficult. However, amazingly, many cases are simpler with explicit concurrency!
-
-With this style, you can program (as you program for the console) without users losing the multiple possibilities of interaction (Indeed, this style suppresses the *inversion of control* of the callback style of event-driven programming).
-
-This "**concurrent way**" is expressed thanks to additional control flow instructions (beyond `if`, `while`, `for`,...):
-- `parallel` / `parallel exitAfter ... finished` / `parallel(select ...)` / `parallel(for ... in ...)`,
-- `select`,
-- `spawn`,
-- `whileTrue_dependsOn` / `whileTrueAwaitFrame_js` / `whileTrueAwaitDom_js`,
-- `repeat`,
-- `sequence`,
-- ...
-
-and with new modifiers (beyond `break`, `return`): `restart`, `pause`, `resume`.
-
-That enables a better **structure of code** (that is, a more natural and more readable structure).
-
-If you're curious, you can read the [the 'Memory' code](https://github.com/cl4cnam/Memory2/blob/main/memory.fg)
-or [try it](https://cl4cnam.github.io/Memory2/memory.html) or read this [post](https://trio.discourse.group/t/structured-concurrency-for-gui-programming-without-concurrency/488).
-
-It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) by Jean-Ferdy Susini which is a derivative of [Esterel](https://en.wikipedia.org/wiki/Esterel) by Gérard Berry. It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles. It doesn't use OS threads. It doesn't aim to improve speed of execution.
-
-> [!NOTE]
-> **Goal**: facilitating **GUI programming** (in fact, the interactivity aspect)<br>
-> **Non-goals**: improving speed of execution, facilitating data structuration, object management, mutability, types
-
 ## Get a taste of the language
 Have a look at:
 - [the 'Make Gems' code](https://github.com/cl4cnam/make_gems/blob/main/makegemPhaserPy.fg)
@@ -161,6 +132,35 @@ In the body of ```lifeOfPaddle```, just code the various behaviors of the ball i
 In ['Guess the Number'](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg), ```gameCourse``` is just a function. The line just after the call of ```gameCourse``` is executed only when the player has found the number, that is only when ```gameCourse``` has returned, just like any classical function call.
 
 You can also test snippets [here](https://cl4cnam.github.io/FuncSugREPL/replPy.html).
+
+## Concurrent way
+![logo](https://github.com/cl4cnam/funcSug/assets/40176886/2d4c08b3-6f96-4acd-b993-b9bbe0df6b91)
+
+FuncSug uses the "**concurrent way**" or more exactly the "**logically parallel way**". That is, it introduces explicit concurrency where no concurrency seems present or mandatory. The concurrency is reputed to be very difficult. However, amazingly, many cases (in particular concurrency of waits) are simpler with explicit concurrency!
+
+With this style, you can program (as you program for the console) without users losing the multiple possibilities of interaction (Indeed, this style suppresses the *inversion of control* of the callback style of event-driven programming).
+
+This "**concurrent way**" is expressed thanks to additional control flow instructions (beyond `if`, `while`, `for`,...):
+- `parallel` / `parallel exitAfter ... finished` / `parallel(select ...)` / `parallel(for ... in ...)`,
+- `select`,
+- `spawn`,
+- `whileTrue_dependsOn` / `whileTrueAwaitFrame_js` / `whileTrueAwaitDom_js`,
+- `repeat`,
+- `sequence`,
+- ...
+
+and with new modifiers (beyond `break`, `return`): `restart`, `pause`, `resume`.
+
+That enables a better **structure of code** (that is, a more natural and more readable structure).
+
+If you're curious, you can read the [the 'Memory' code](https://github.com/cl4cnam/Memory2/blob/main/memory.fg)
+or [try it](https://cl4cnam.github.io/Memory2/memory.html) or read this [post](https://trio.discourse.group/t/structured-concurrency-for-gui-programming-without-concurrency/488).
+
+It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) by Jean-Ferdy Susini which is a derivative of [Esterel](https://en.wikipedia.org/wiki/Esterel) by Gérard Berry. It adheres to "[structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency)" principles. It doesn't use OS threads. It doesn't aim to improve speed of execution.
+
+> [!NOTE]
+> **Goal**: facilitating **GUI programming** (in fact, the interactivity aspect)<br>
+> **Non-goals**: improving speed of execution, facilitating data structuration, object management, mutability, types
 
 ## Instructions for use
 
