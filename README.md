@@ -11,7 +11,7 @@ Its goal is mainly facilitating **GUI programming** (in client-side web programm
 - Your program follows the same order as your **scenario** so you avoid spaghetti code and debug more easily.
 - It solves the [state management](https://en.wikipedia.org/wiki/State_management) problem (It **eliminates** the need to manage **all the combinations** of component states).
 - It easily manages task cancellations (including task timeouts).
-- It can react to a change of a variable.
+- It can detect a change in the value of a variable and react accordingly.
 - It's deterministic.
 - (You can also include JavaScript snippets, pass FuncSug variables to it and get back JavaScript return).
 
