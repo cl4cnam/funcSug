@@ -47,8 +47,8 @@
 			#~ .print 'down'
 			{js (toDrop evtPointerdown svgElement) `
 				toDrop.setPointerCapture(evtPointerdown.pointerId)
-				toDrop.data_origX = evtPointerdown.clientX
-				toDrop.data_origY = evtPointerdown.clientY
+				toDrop.data_origX = evtPointerdown.pageX
+				toDrop.data_origY = evtPointerdown.pageY
 				
 				const svgCtm = svgElement.getScreenCTM()
 				const parentCtm = toDrop.parentNode.getScreenCTM()
@@ -61,8 +61,8 @@
 			`}
 			{par @movement
 				{whileTrueAwaitDom_js $svgElement 'pointermove' `
-					p_target.toDrop.deltaX = evt.clientX - p_target.toDrop.data_origX
-					p_target.toDrop.deltaY = evt.clientY - p_target.toDrop.data_origY
+					p_target.toDrop.deltaX = evt.pageX - p_target.toDrop.data_origX
+					p_target.toDrop.deltaY = evt.pageY - p_target.toDrop.data_origY
 					const translateMatrix = p_target.createSVGMatrix().translate(p_target.toDrop.deltaX,p_target.toDrop.deltaY)
 					const matrix_trans = translateMatrix.multiply(p_target.toDrop.matrix_orig)
 					p_target.toDrop.transform.baseVal.getItem(0).setMatrix(matrix_trans)
