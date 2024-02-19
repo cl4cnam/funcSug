@@ -8,7 +8,7 @@ Its goal is mainly facilitating **GUI programming** (in client-side web programm
 
 **Advantages:**
 - It avoids *callback hell* (You don't need callback any more).
-- Your program follows the same order as your **scenario** so you avoid spaghetti code and debug more easily.
+- Your code follows the order of execution so you avoid spaghetti code and debug more easily.
 - It solves the [state management](https://en.wikipedia.org/wiki/State_management) problem (It **eliminates** the need to manage **all the combinations** of component states).
 - It easily manages task cancellations (including task timeouts).
 - It can detect a change in the value of a variable and react accordingly.
