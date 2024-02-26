@@ -42,7 +42,7 @@ expression
 	/ flatExpression
 
 flatExpression
-	= logicSumExpr
+	= calljsExpr / logicSumExpr
 
 directExpr
 	= op:('break'/'restart'/'pause'/'resume') flatSpaces n:simpleName { return toExpression(op, [toIdentifier(n)]) }
@@ -150,8 +150,8 @@ callExpr
 	}
 
 calljsExpr
-	= 'calljs' flatSpaces n:simpleName __ '(' __ exprs:flatExpression|.., __ "," __| __ ')' {
-		const ls_jsExpr = 'return ' + n
+	= 'calljs' flatSpaces n:simpleName __ '(' __ exprs:simpleName|.., __ "," __| __ ')' {
+		const ls_jsExpr = 'return ' + n + '(' + exprs.join(',') + ')'
 		return toExpression(
 			'short', [
 				new Expression( 'expression', exprs.map(elt=>toIdentifier(elt)), text() ),
