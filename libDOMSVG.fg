@@ -36,7 +36,7 @@
 	.var sugPointerup
 
 	.var svgElement <-- {js (p_selectorSVG) `return document.querySelector(p_selectorSVG)`}
-	.var toDrop <-- {js (svgElement p_selectorToDrop) `svgElement.toDrop = document.querySelector(p_selectorToDrop); return svgElement.toDrop`}
+	.var toDrop <-- {js (p_selectorToDrop) `return document.querySelector(p_selectorToDrop)`}
 	
 	{par @wholeTreatment
 		{whileTrueAwaitDom_translate $svgElement 'pointermove' sugPointermove}
@@ -60,12 +60,12 @@
 				toDrop.setAttributeNS(null, 'pointer-events', 'none')
 			`}
 			{par @movement
-				{whileTrueAwaitDom_js $svgElement 'pointermove' `
-					p_target.toDrop.deltaX = evt.pageX - p_target.toDrop.data_origX
-					p_target.toDrop.deltaY = evt.pageY - p_target.toDrop.data_origY
-					const translateMatrix = p_target.createSVGMatrix().translate(p_target.toDrop.deltaX,p_target.toDrop.deltaY)
-					const matrix_trans = translateMatrix.multiply(p_target.toDrop.matrix_orig)
-					p_target.toDrop.transform.baseVal.getItem(0).setMatrix(matrix_trans)
+				{whileTrueAwaitDom2_js $svgElement $toDrop 'pointermove' `
+					p_obj.deltaX = evt.pageX - p_obj.data_origX
+					p_obj.deltaY = evt.pageY - p_obj.data_origY
+					const translateMatrix = p_target.createSVGMatrix().translate(p_obj.deltaX,p_obj.deltaY)
+					const matrix_trans = translateMatrix.multiply(p_obj.matrix_orig)
+					p_obj.transform.baseVal.getItem(0).setMatrix(matrix_trans)
 				`}
 				{seq
 					:await sugPointermove bip
