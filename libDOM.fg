@@ -413,6 +413,20 @@
 	!awaitForever
 }
 
+# p_obj is any object that you want to use in p_sToExecute
+{deffunc whileTrueAwaitDom2_js (p_target p_obj p_evtDOM p_sToExecute)
+	{ext (p_target p_obj p_evtDOM) (+ `
+		const l_react = function(evt) {
+			` $p_sToExecute `
+		}
+		p_target.addEventListener(p_evtDOM, l_react)
+		SAVES.push({elt:p_target, react:l_react, evtDOM:p_evtDOM})
+	`) dummy `
+		SAVE.elt.removeEventListener(SAVE.evtDOM, SAVE.react)
+	`}
+	!awaitForever
+}
+
 {deffunc listenOnce (p_elt p_evtDOM p_evtSug)
 	{ext (p_elt p_evtDOM) `
 		const l_react = function(evt) {
