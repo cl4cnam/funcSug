@@ -3,15 +3,15 @@
 
 Here is just a very naive execution model for concurrency. It describes the execution of a program written in a simplified language:
 
-- It assumes there is an external memory composed of units named `m1`, `m2`, ...
-- A program is assumed given as an AST where each subtree is an expression (but can have side effects)
+- It assumes there are external memory places named `m1`, `m2`, ...
+- A program is an AST where each subtree is considered as an expression (it may return a value but can have side effects) that will be noted here in polish notation
 - Instructions are (where p1, ..., pN are subtree):
 	- &lt;literal&gt;: this covers various type of literals (They won't be determinated further here)
 	- `get m`: return the value of the external memory `m`
 	- `set m p`: set the external memory `m` to the value of `p`
 	- &lt;op&gt; p1 p2: return *value of p1 &lt;op&gt; value of p2* (where &lt;op&gt; is `+`,`-`,`*`,`=`,`!=`,`<`,`>`,`<=`,`>=`,`or`,`and`,`not`,`car`,`cdr`,`cons`
 	- `print p`: print the value of p to the console
-	- `noop`: do nothing and let the rest be executed
+	- `noop`: do nothing
 	- `seq p1 ... pN`: executes p1, ..., pN in sequence and return the value of the last
 	- `par p1 ... pN`: executes p1, ..., pN concurrently and, when all are terminated, returns the list [value of p1, ..., value of pN]
 	- `if cond p1 p2`: like classical `if`
@@ -37,7 +37,8 @@ Each frame contains:
 
 - a copy of a part of the AST, its code (**FrameCode**)
 - the value to be returned to the parent frame (**ToReturn**)
-- the list of values returned by the child frames (**ReturnedByChildren**)
+- the associative array of values returned by the child frames (**ReturnedByChildren**)
+- a string that indicates the reason why this frame has been added to the **Frame Tree** (**Reason**)
 - a step counter (Step Counter: **SCNT**) (initial value: 1)
 
 The execution is done by executing leaf nodes.
@@ -64,7 +65,7 @@ Each node (let it be *Nd*) is executed as follows:
 
 - execution specific to the root of the **FrameCode** of the node
 - if *Nd* is terminated
-	- **ToReturn** is appended to **ReturnByChildren** of parent node
+	- **ToReturn** is appended to **ReturnByChildren** of parent node (with key **Reason**)
 	- *Nd* is remove from **FT**
 - else
 	- increment **SCNT** of *Nd*
@@ -73,33 +74,33 @@ Each node (let it be *Nd*) is executed as follows:
 ---------------------------
 
 - if **SCNT** = 1,
-	- stack new frames (with **FrameCode** `p1`,...,`pN`) each directly on top of this node
+	- stack new frames (with **FrameCode** `p1`,...,`pN`) each directly on top of this node (with **Reason** being 'arg1', ..., 'argN', resp.)
 - else
-	- **ToReturn** := **ReturnByChildren**
+	- **ToReturn** := the list [the value associated to 'arg1' in **ReturnByChildren**, ..., the value associated to 'argN' in **ReturnByChildren**]
 	- set this node as terminated
 	
 `seq p1 ... pN` **FrameCode** (N>0)
 ---------------------------
 
 - if **SCNT** is not `N+1`,
-	- stack a new frame (with **FrameCode** `'p'`+SCNT) on top of this node
+	- stack a new frame (with **FrameCode** `'p'`+SCNT) on top of this node (with **Reason** being 'oneOfSequence')
 - else
-	- **ToReturn** := last of **ReturnByChildren**
+	- **ToReturn** := the value associated to 'oneOfSequence' in **ReturnByChildren**
 	- set this node as terminated
 
 `if cond p1 p2` **FrameCode**
 ---------------------------
 
 - if **SCNT** = 1,
-	- stack a new frame (with **FrameCode** `cond`) on top of this node
+	- stack a new frame (with **FrameCode** `cond`) on top of this node (with **Reason** being 'ifCondition')
 - else if **SCNT** = 2,
 	- cond := last of **ReturnByChildren**
 	- if cond is true
-		stack a new frame (with **FrameCode** `p1`) on top of this node
+		stack a new frame (with **FrameCode** `p1`) on top of this node (with **Reason** being 'ifBody')
 	- else
-		stack a new frame (with **FrameCode** `p2`) on top of this node
+		stack a new frame (with **FrameCode** `p2`) on top of this node (with **Reason** being 'ifBody')
 - else
-	- **ToReturn** := last of **ReturnByChildren**
+	- **ToReturn** := the value associated to 'ifBody' in **ReturnByChildren**
 	- set this node as terminated
 
 `while cond p` **FrameCode**
@@ -107,23 +108,23 @@ Each node (let it be *Nd*) is executed as follows:
 
 - if **SCNT** is odd,
 	- if **SCNT** > 1
-		- lastResult := last of **ReturnByChildren**
-	- stack a new frame (with **FrameCode** `cond`) on top of this node
+		- lastResult := the value associated to 'whileBody' in **ReturnByChildren**
+	- stack a new frame (with **FrameCode** `cond`) on top of this node (with **Reason** being 'whileCondition')
 - else
-	- cond := last of **ReturnByChildren**
+	- cond := the value associated to 'whileCondition' in **ReturnByChildren**
 	- if true is in cond
-		stack a new frame (with **FrameCode** `p`) on top of this node
+		stack a new frame (with **FrameCode** `p`) on top of this node (with **Reason** being 'whileBody')
 	- else
-		- **ToReturn** := last of **ReturnByChildren**
+		- **ToReturn** := lastResult
 		- set this node as terminated
 
 `+ p1 p2` **FrameCode**
 ---------------------------
 
 - if **SCNT** = 1,
-	- stack new frames (with **FrameCode** `p1`,`p2`) each directly on top of this node
+	- stack new frames (with **FrameCode** `p1`,`p2`) each directly on top of this node (with **Reason** being 'arg1','arg2', resp.)
 - else
-	- **ToReturn** := first of **ReturnByChildren** + second of **ReturnByChildren**
+	- **ToReturn** := (the value associated to 'arg1' in **ReturnByChildren**) + (the value associated to 'arg2' in **ReturnByChildren**)
 	- set this node as terminated
 
 Ditto for `-`,`*`,`=`,`!=`,`<`,`>`,`<=`,`>=`,`or`,`and`,`not`,`car`,`cdr`,`cons`
@@ -144,18 +145,18 @@ Ditto for `-`,`*`,`=`,`!=`,`<`,`>`,`<=`,`>=`,`or`,`and`,`not`,`car`,`cdr`,`cons`
 -------------------
 
 - if **SCNT** = 1,
-	- stack a new frame (with **FrameCode** `p`) on top of this node
+	- stack a new frame (with **FrameCode** `p`) on top of this node (with **Reason** being 'value')
 - else
-	- set the external memory *m* to first of **ReturnByChildren**
+	- set the external memory *m* to the value associated to 'value' in **ReturnByChildren**
 	- set this node as terminated
 
 `print p` **FrameCode**
 -------------------
 
 - if **SCNT** = 1,
-	- stack a new frame (with **FrameCode** `p`) on top of this node
+	- stack a new frame (with **FrameCode** `p`) on top of this node (with **Reason** being 'arg1')
 - else
-	- print first of **ReturnByChildren**
+	- print the value associated to 'arg1' in **ReturnByChildren**
 	- set this node as terminated
 
 `noop` **FrameCode**
