@@ -52,7 +52,13 @@
 				
 				const svgCtm = svgElement.getScreenCTM()
 				const parentCtm = toDrop.parentNode.getScreenCTM()
-				const eltMatrix = toDrop.transform.baseVal.consolidate().matrix
+				let eltMatrix
+				try {
+					eltMatrix = toDrop.transform.baseVal.consolidate().matrix
+				} catch (err) {
+					eltMatrix = svgElement.createSVGMatrix()
+					toDrop.setAttribute('transform', 'translate(0,0)')
+				}
 				svgElement.appendChild(toDrop)
 				toDrop.matrix_orig = svgCtm.inverse().multiply(  parentCtm.multiply(eltMatrix)  )
 				toDrop.transform.baseVal.getItem(0).setMatrix(toDrop.matrix_orig)
