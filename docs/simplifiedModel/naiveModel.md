@@ -90,6 +90,8 @@ Each node (let it be *Nd*) is executed as follows:
 	- **ToReturn** := the value associated to 'oneOfSequence' in **ReturnByChildren**
 	- set this node as terminated
 
+![seq](https://github.com/cl4cnam/funcSug/assets/40176886/da014b24-51d1-4893-83e6-8b2c75077bcc)
+
 `if cond p1 p2` **FrameCode**
 ---------------------------
 
