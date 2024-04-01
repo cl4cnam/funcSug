@@ -78,7 +78,9 @@ Each node (let it be *Nd*) is executed as follows:
 - else
 	- **ToReturn** := the list [the value associated to 'arg1' in **ReturnByChildren**, ..., the value associated to 'argN' in **ReturnByChildren**]
 	- set this node as terminated
-	
+
+![par](https://github.com/cl4cnam/funcSug/assets/40176886/184d12bb-ce09-4b1d-b4ac-ee12b0eaca75)
+
 `seq p1 ... pN` **FrameCode** (N>0)
 ---------------------------
 
