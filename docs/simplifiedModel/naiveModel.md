@@ -184,3 +184,24 @@ Note: The arguments are executed concurrently.
 
 - set this node as terminated
 
+Example
+====================
+
+Here are the first rounds of the execution of the program (in lisp-like syntax):
+```
+(par
+	(set m1 (+ 2 1))
+	(seq
+		(print (get m1))
+		(print (get m1))
+		(print (get m1))
+		(print (get m1))
+		(print (get m1))
+	)
+)
+```
+I assume that, at the beginning, the value of m1 is 40.
+
+The image is too shrinked because it's too large: (Right-)click the image and open it in a new tab.
+
+![example](https://github.com/cl4cnam/funcSug/assets/40176886/aebbc619-31c2-40f7-af3d-cce91d34af13)
