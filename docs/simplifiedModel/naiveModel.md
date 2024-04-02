@@ -20,7 +20,8 @@ Here is just a very naive execution model for concurrency. It describes the exec
 It's a very naive model:
 
 - no coherence mechanism
-- neither preemption nor cancellation
+- no preemption/cancellation
+- no subroutines/functions
 - only way of waiting: busy waiting
 
 Note: It's a deterministic model.
@@ -60,9 +61,12 @@ Execution of a program
 The program is executed as follows:
 
 - At the beginning of the execution, **FT** contains only one node: a Frame containing a copy of the root of the AST.
-- let **LEAFS** be a copy of the list of all **FT** leaves
-- While **LEAFS** is not empty:
-	- execute all elements of **LEAFS**
+	- **ToReturn** and **Reason** is undefined
+	- **ReturnedByChildren** is empty
+- let **LEAVES** be a copy of the list of all **FT** leaves (for now, there is just one leaf)
+- While **LEAVES** is not empty:
+	- execute all elements of **LEAVES** in order
+	- set **LEAVES** as a new copy of the list of all **FT** leaves
 
 A leaf is executed differently depending on the root of the **FrameCode** of the node.
 
@@ -71,9 +75,9 @@ Execution of a node
 
 Each node (let it be *Nd*) is executed as follows:
 
-- execution specific to the root of the **FrameCode** of the node
+- execution specific to the root of the **FrameCode** of *Nd*
 - if *Nd* is terminated
-	- **ToReturn** is appended to **ReturnByChildren** of parent node (with key **Reason**)
+	- **ToReturn** is appended to **ReturnByChildren** of the parent of *Nd* (with key: **Reason** of *Nd*)
 	- *Nd* is remove from **FT**
 - else
 	- increment **SCNT** of *Nd*
