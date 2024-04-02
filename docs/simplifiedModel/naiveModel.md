@@ -14,8 +14,16 @@ Here is just a very naive execution model for concurrency. It describes the exec
 	- `noop`: do nothing
 	- `seq p1 ... pN`: executes p1, ..., pN in sequence and return the value of the last
 	- `par p1 ... pN`: executes p1, ..., pN concurrently and, when all are terminated, returns the list [value of p1, ..., value of pN]
-	- `if cond p1 p2`: like classical `if`
-	- `while cond p` : like classical `while`
+	- `if cond p1 p2`: like classical `if` and returns the value of *p1* or *p2* (according to *cond*)
+	- `while cond p` : like classical `while` and returns the value of the last execution of *p* (or else undefined)
+
+It's a very naive model:
+
+- no coherence mechanism
+- neither preemption nor cancellation
+- only way of waiting: busy waiting
+
+Note: It's a deterministic model.
 
 Concepts
 ==========
@@ -98,11 +106,11 @@ Each node (let it be *Nd*) is executed as follows:
 - if **SCNT** = 1,
 	- stack a new frame (with **FrameCode** `cond`) on top of this node (with **Reason** being 'ifCondition')
 - else if **SCNT** = 2,
-	- cond := last of **ReturnByChildren**
+	- cond := the value associated to 'ifCondition' in **ReturnByChildren**
 	- if cond is true
-		stack a new frame (with **FrameCode** `p1`) on top of this node (with **Reason** being 'ifBody')
+		- stack a new frame (with **FrameCode** `p1`) on top of this node (with **Reason** being 'ifBody')
 	- else
-		stack a new frame (with **FrameCode** `p2`) on top of this node (with **Reason** being 'ifBody')
+		- stack a new frame (with **FrameCode** `p2`) on top of this node (with **Reason** being 'ifBody')
 - else
 	- **ToReturn** := the value associated to 'ifBody' in **ReturnByChildren**
 	- set this node as terminated
@@ -111,13 +119,15 @@ Each node (let it be *Nd*) is executed as follows:
 ---------------------------
 
 - if **SCNT** is odd,
-	- if **SCNT** > 1
+	- if **SCNT** = 1
+		- lastResult := undefined
+	- else
 		- lastResult := the value associated to 'whileBody' in **ReturnByChildren**
 	- stack a new frame (with **FrameCode** `cond`) on top of this node (with **Reason** being 'whileCondition')
 - else
 	- cond := the value associated to 'whileCondition' in **ReturnByChildren**
 	- if true is in cond
-		stack a new frame (with **FrameCode** `p`) on top of this node (with **Reason** being 'whileBody')
+		- stack a new frame (with **FrameCode** `p`) on top of this node (with **Reason** being 'whileBody')
 	- else
 		- **ToReturn** := lastResult
 		- set this node as terminated
@@ -132,6 +142,8 @@ Each node (let it be *Nd*) is executed as follows:
 	- set this node as terminated
 
 Ditto for `-`,`*`,`=`,`!=`,`<`,`>`,`<=`,`>=`,`or`,`and`,`not`,`car`,`cdr`,`cons`
+
+Note: The arguments are executed concurrently.
 
 &lt;literal&gt; **FrameCode**
 -------------------
