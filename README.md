@@ -1,4 +1,4 @@
-![solve2_c2](https://github.com/cl4cnam/funcSug/assets/40176886/78b1eea5-cb49-4666-b9a7-bec64973c2e0)
+![header](https://github.com/cl4cnam/funcSug/assets/40176886/9ec8154a-49ae-47ae-82d3-f89b1e947605)
 
 # **FuncSug: An alternative to event-driven programming**
 
@@ -23,6 +23,8 @@ Its goal is mainly facilitating **GUI programming** (in client-side web programm
 
 Please, let me know what you think ([Github discussions](https://github.com/cl4cnam/funcSug/discussions), [Mastodon](https://piaille.fr/@cli345)).<br>
 I'd be happy to read your opinion and answer your questions.
+
+![solve2_c2](https://github.com/cl4cnam/funcSug/assets/40176886/78b1eea5-cb49-4666-b9a7-bec64973c2e0)
 
 ## Compare
 These two codes do the same thing:
