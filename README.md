@@ -17,6 +17,7 @@ Its goal is mainly facilitating **GUI programming** (in client-side web programm
 
 **by means of**:
 - explicit **logical parallelism**,
+- block cancellations,
 - and "`await` event" instructions.
 
 [**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Getting started**](https://github.com/cl4cnam/funcSug#instructions-for-use) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html) - [**Try it online**](https://cl4cnam.github.io/try_FuncSug)
