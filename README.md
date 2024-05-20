@@ -2,7 +2,7 @@
 
 # **FuncSug: GUI programming made easy**
 
-FuncSug is an experimental scripting language that aims to simplify **GUI programming**.
+FuncSug is an experimental scripting language that aims to simplify **GUI programming** in browser.
 
 [**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Getting started**](https://github.com/cl4cnam/funcSug#instructions-for-use) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html) - [**Try it online**](https://cl4cnam.github.io/try_FuncSug)
 
