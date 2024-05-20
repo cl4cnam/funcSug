@@ -4,7 +4,11 @@
 
 FuncSug is an experimental scripting language that aims to simplify **GUI programming**.
 
-### Play multiple sounds in the same time
+[**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Getting started**](https://github.com/cl4cnam/funcSug#instructions-for-use) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html) - [**Try it online**](https://cl4cnam.github.io/try_FuncSug)
+
+## A few samples
+
+### Play multiple sounds at the same time
 
 ```gdscript
 parallel ||
@@ -13,6 +17,14 @@ parallel ||
 	playSoundFile('sound2.mp3')
 ||
 	playSoundFile('sound3.mp3')
+```
+
+### Play multiple sounds one at a time
+
+```gdscript
+playSoundFile('sound1.mp3')
+playSoundFile('sound2.mp3')
+playSoundFile('sound3.mp3')
 ```
 
 ### Timeouts
@@ -24,10 +36,9 @@ parallel exitAfter 1 finished ||
 ||
 	waitSeconds(15)
 ```
+## How
 
-It suppresses **event-driven programming** problems: **callback hell** and **state management**.
-
-Its goal is mainly facilitating **GUI programming** (in client-side web programming).
+FuncSug suppresses **event-driven programming** problems: **callback hell** and **state management**.
 
 **Advantages:**
 - It avoids *callback hell* (You don't need callback any more).
@@ -42,8 +53,6 @@ Its goal is mainly facilitating **GUI programming** (in client-side web programm
 - explicit **logical parallelism**,
 - block cancellations,
 - and "`await` event" instructions.
-
-[**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Getting started**](https://github.com/cl4cnam/funcSug#instructions-for-use) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html) - [**Try it online**](https://cl4cnam.github.io/try_FuncSug)
 
 Please, let me know what you think ([Github discussions](https://github.com/cl4cnam/funcSug/discussions), [Mastodon](https://piaille.fr/@cli345)).<br>
 I'd be happy to read your opinion and answer your questions.
