@@ -1,8 +1,31 @@
 ![header](https://github.com/cl4cnam/funcSug/assets/40176886/9ec8154a-49ae-47ae-82d3-f89b1e947605)
 
-# **FuncSug: An alternative to event-driven programming**
+# **FuncSug: GUI programming made easy**
 
-FuncSug is a programming language that solves **event-driven programming** problems: **callback hell** and **state management**.
+FuncSug is an experimental scripting language that aims to simplify **GUI programming**.
+
+### Play multiple sounds in the same time
+
+```gdscript
+parallel ||
+	playSoundFile('sound1.mp3')
+||
+	playSoundFile('sound2.mp3')
+||
+	playSoundFile('sound3.mp3')
+```
+
+### Timeouts
+
+```gdscript
+displayNewMessage('What is ...?')
+parallel exitAfter 1 finished ||
+	var theAnswer := awaitHumanText()
+||
+	waitSeconds(15)
+```
+
+It suppresses **event-driven programming** problems: **callback hell** and **state management**.
 
 Its goal is mainly facilitating **GUI programming** (in client-side web programming).
 
