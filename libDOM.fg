@@ -3,6 +3,22 @@
 .var dummy
 .var document <-- .import document
 
+{deffunc getElement (p_selectorOrElement)
+	{short (p_selectorOrElement) `
+		const lElt = (p_selectorOrElement instanceof Element) ? p_selectorOrElement : document.querySelector(p_selectorOrElement)
+		if (lElt===null) console.log("ERROR !!! libDOM.fg/generateUserEvent '" + p_selectorOrElement + "' selector references no element!")
+		return lElt
+	`}
+}
+
+{deffunc getText (p_selectorOrElement)
+	{short (p_selectorOrElement) `
+		const lElt = (p_selectorOrElement instanceof Element) ? p_selectorOrElement : document.querySelector(p_selectorOrElement)
+		if (lElt===null) console.log("ERROR !!! libDOM.fg/generateUserEvent '" + p_selectorOrElement + "' selector references no element!")
+		return lElt.innerText
+	`}
+}
+
 #====================================
 # Click functions
 #====================================
@@ -614,4 +630,40 @@
 		SAVE.elt.pause()
 	`}
 	:await soundEnd beep
+}
+
+#====================================
+# Test functions
+#====================================
+
+{deffunc generateUserEvent (p_selectorOrElement p_eventName)
+	{short (p_selectorOrElement p_eventName) `
+		const lElt = (p_selectorOrElement instanceof Element) ? p_selectorOrElement : document.querySelector(p_selectorOrElement)
+		if (lElt===null) console.log("ERROR !!! libDOM.fg/generateUserEvent '" + p_selectorOrElement + "' selector references no element!")
+		lElt.dispatchEvent(new Event(p_eventName))
+	`}
+}
+
+{deffunc generateUserEventWithType (p_selectorOrElement p_eventName p_type)
+	{short (p_selectorOrElement p_eventName p_type) `
+		const lElt = (p_selectorOrElement instanceof Element) ? p_selectorOrElement : document.querySelector(p_selectorOrElement)
+		if (lElt===null) console.log("ERROR !!! libDOM.fg/generateUserEvent '" + p_selectorOrElement + "' selector references no element!")
+		const lEvt = new Event(p_eventName)
+		lEvt.inputType = p_type
+		lElt.dispatchEvent(lEvt)
+	`}
+}
+
+{deffunc setEntry (p_selectorOrElement p_value)
+	{short (p_selectorOrElement p_value) `
+		const lElt = (p_selectorOrElement instanceof Element) ? p_selectorOrElement : document.querySelector(p_selectorOrElement)
+		if (lElt===null) console.log("ERROR !!! libDOM.fg/generateUserEvent '" + p_selectorOrElement + "' selector references no element!")
+		//~ lElt.setAttribute('value', p_value)
+		lElt.innerHTML = p_value
+	`}
+}
+
+{deffunc enterEntry (p_selectorOrElement p_value)
+	:setEntry $p_selectorOrElement $p_value
+	%generateUserEventWithType $p_selectorOrElement beforeinput insertParagraph
 }
