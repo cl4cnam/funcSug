@@ -1,0 +1,69 @@
+def getSelected(p_container, p_HTMLselect, p_x, p_y):
+	var msg := displayNewMessageIn(p_HTMLselect, p_container)
+	js (msg, p_x, p_y):
+		msg.style.left = '' + p_x + 'px'
+		msg.style.top = '' + p_y + 'px'
+	
+	var value
+	var theSelect := getElement('select')
+	awaitSelectedOptionBeep(theSelect)
+	awaitClickBip(theSelect)
+	value := awaitSelectedOptionBeep(theSelect)
+	
+	removeElt(theSelect)
+	
+	value
+
+def awaitNewHumanTextInEntry(p_entry):
+	var lEvt_enter
+	ext(['p_entry'], `
+		const l_entry = (p_entry instanceof Element) ? p_entry : document.querySelector(p_entry)
+		const l_react = function(evt) {
+			if (evt.inputType==="insertParagraph") {
+				l_entry.removeEventListener('beforeinput', l_react)
+				evt.preventDefault()
+				//console.log('OK', evt.target.textContent)
+				output(evt.target.textContent)
+			}
+		}
+		l_entry.addEventListener('beforeinput', l_react)
+	`, 'lEvt_enter', ``)
+	awaitBeep lEvt_enter
+
+def getEntry(p_container, p_x, p_y, p_timeLimit):
+	var entry := displayNewMessageIn('', p_container)
+	js (entry, p_x, p_y):
+		entry.className = "self entry"
+		entry.contentEditable = "true"
+		entry.style.left = '' + p_x + 'px'
+		entry.style.top = '' + p_y + 'px'
+		setTimeout(O=>entry.focus(), 0)
+
+	var theLoop
+	awaitDomeventBip('input', entry)
+	
+	var name
+	
+	parallel exitAfter 1 finished ||
+		name := awaitNewHumanTextInEntry(entry)
+	||
+		while true: @theLoop
+			parallel exitAfter 1 finished ||
+				awaitDomeventBip('input', entry)
+			||
+				waitSeconds(p_timeLimit)
+				break theLoop
+		name := getText(entry)
+	
+	js (entry):
+		entry.className = "self display"
+		entry.contentEditable = "false"
+		entry.style.outline = "none"
+	name
+
+def drawText(p_container, p_text, p_x, p_y):
+	var text := displayNewMessageIn(p_text, p_container)
+	js (text, p_x, p_y):
+		text.className = "other display"
+		text.style.left = '' + p_x + 'px'
+		text.style.top = '' + p_y + 'px'
