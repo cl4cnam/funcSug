@@ -67,3 +67,6 @@ def drawText(p_container, p_text, p_x, p_y):
 		text.className = "other display"
 		text.style.left = '' + p_x + 'px'
 		text.style.top = '' + p_y + 'px'
+
+def displayNewComicBox(p_image):
+	displayNewMessage('<img src="' + p_image + '">')
