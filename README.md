@@ -166,7 +166,7 @@ In the body of ```lifeOfPaddle```, just code the various behaviors of the ball i
 
 In ['Guess the Number'](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumber.fg), ```gameCourse``` is just a function. The line just after the call of ```gameCourse``` is executed only when the player has found the number, that is only when ```gameCourse``` has returned, just like any classical function call.
 
-You can also test snippets [here](https://cl4cnam.github.io/FuncSugREPL/replPy.html).
+You can also [try FuncSug online](https://cl4cnam.github.io/try_FuncSug) or [test snippets of it](https://cl4cnam.github.io/FuncSugREPL/replPy.html).
 
 ## Concurrent way
 ![logo](https://github.com/cl4cnam/funcSug/assets/40176886/2d4c08b3-6f96-4acd-b993-b9bbe0df6b91)
