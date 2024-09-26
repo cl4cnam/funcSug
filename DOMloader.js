@@ -24,9 +24,9 @@ function getOneAST(ps_text, p_textInfo) {
 		//~ progr = (  (ps_type === 'funcsug') ? peg : pegPy  ).parse(ps_text)
 		const completeText =
 			lb_lispish
-			? '{seq \n' + ps_text + '\n }'
+			? '{seq \n' + ps_text.replaceAll('\r','') + '\n }'
 			//~ : 'seq:\n' + l_texts.map(l=>'\t'+l).join('\n') + '\n'
-			: 'seq:\n\t' + ps_text.replaceAll('\n', '\n\t') + '\n'
+			: 'seq:\n\t' + ps_text.replaceAll('\r','').replaceAll('\n', '\n\t') + '\n'
 		//~ console.warn(p_textInfo.source)
 		//~ console.warn(completeText)
 		const progr = parser.parse(completeText, {grammarSource: p_textInfo.source})
