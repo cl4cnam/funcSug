@@ -1,0 +1,12 @@
+while true:
+	parallel(select 1) ||
+	||=======
+		awaitClickBeep('#button1')
+	...------
+		displayMessageIn('Des chaussettes', '#reponse')
+	||=======
+		awaitClickBeep('#button2')
+	...------
+		displayMessageIn('Des gants', '#reponse')
+	awaitClickBeep('#restart')
+	displayMessageIn('Choisis ta question !', '#reponse')
