@@ -40,7 +40,7 @@ parallel exitAfter 1 finished ||
 ## Why
 
 Many people ask why GUI programming is so difficult. Some of common difficulties come from event-driven programming problems.
-That's why FuncSug does NOT follow the event-driven programming paradigm.
+That's why, with FuncSug, programmers do NOT have to follow the event-driven programming paradigm.
 
 ## How
 
