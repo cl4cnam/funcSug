@@ -201,7 +201,7 @@ It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) by
 
 > [!NOTE]
 > **Goal**: facilitating **GUI programming** (in fact, the interactivity aspect)<br>
-> **Non-goals**: improving speed of execution, facilitating data structuration, object management, mutability, types
+> **Non-goals**: improving speed of execution, safety, facilitating data structuration, object management, mutability, types
 
 ## Instructions for use
 
