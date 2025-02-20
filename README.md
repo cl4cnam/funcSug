@@ -1,4 +1,4 @@
-![header](https://github.com/cl4cnam/funcSug/assets/40176886/9ec8154a-49ae-47ae-82d3-f89b1e947605)
+![header](https://github.com/user-attachments/assets/3f47fea1-3131-4dab-827c-06b2505997d4)
 
 # **FuncSug: GUI programming made easy**
 
