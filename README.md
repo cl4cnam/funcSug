@@ -2,7 +2,7 @@
 
 # **FuncSug: GUI programming made easy**
 
-FuncSug is an experimental scripting language that aims to simplify GUI programming in browser as a complement to JavaScript.
+FuncSug is an experimental scripting language that aims to simplify GUI programming in browser, as a complement to JavaScript.
 It enables a more linear code in line with [async/await](https://en.wikipedia.org/wiki/Async/await) and [structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency). It hides event-driven programming in a concurrent programming syntax.
 
 [**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Online Playground**](https://cl4cnam.github.io/try_FuncSug) - [**Getting started**](https://github.com/cl4cnam/funcSug#instructions-for-use) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)
@@ -145,20 +145,20 @@ If you copy and paste, replace each three initial spaces by one tabulation (Gith
 
 ## Get a taste of the language
 Have a look at:
-- [the 'Make Gems' code](https://github.com/cl4cnam/make_gems/blob/main/makegemPhaserPy.fg)
-or [try it](https://cl4cnam.github.io/make_gems/makegemPhaserPy.html).
-- ['Guess the Number' code](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumberPy.fg)
-or [try it](https://cl4cnam.github.io/Guess_the_number/guessTheNumberPy.html).
-- ['Mini Sweet' code](https://github.com/cl4cnam/miniSweet/blob/main/miniSweetPy.fg)
-or [try it](https://cl4cnam.github.io/miniSweet/miniSweetPy.html).
-- ['Aquarium' code](https://github.com/cl4cnam/aquarium/blob/main/aquariumPy.fg)
-or [try it](https://cl4cnam.github.io/aquarium/aquariumPy.html).
 - ['Memory' code](https://github.com/cl4cnam/Memory/blob/main/memory.fg)
-or [try it](https://cl4cnam.github.io/Memory/memory.html).
+or [play now](https://cl4cnam.github.io/Memory/memory.html).
 - ['Memory2' code](https://github.com/cl4cnam/Memory2/blob/main/memory.fg)
-or [try it](https://cl4cnam.github.io/Memory2/memory.html).
+or [play now](https://cl4cnam.github.io/Memory2/memory.html).
 - ['Hypertext fiction' code](https://github.com/cl4cnam/hypertextFictionExample/blob/main/hypertextFictionExample.fg)
-or [try it](https://cl4cnam.github.io/hypertextFictionExample/hypertextFictionExample.html).
+or [play now](https://cl4cnam.github.io/hypertextFictionExample/hypertextFictionExample.html).
+- [the 'Make Gems' code](https://github.com/cl4cnam/make_gems/blob/main/makegemPhaserPy.fg)
+or [play now](https://cl4cnam.github.io/make_gems/makegemPhaserPy.html).
+- ['Guess the Number' code](https://github.com/cl4cnam/Guess_the_number/blob/main/guessTheNumberPy.fg)
+or [play now](https://cl4cnam.github.io/Guess_the_number/guessTheNumberPy.html).
+- ['Mini Sweet' code](https://github.com/cl4cnam/miniSweet/blob/main/miniSweetPy.fg)
+or [play now](https://cl4cnam.github.io/miniSweet/miniSweetPy.html).
+- ['Aquarium' code](https://github.com/cl4cnam/aquarium/blob/main/aquariumPy.fg)
+or [play now](https://cl4cnam.github.io/aquarium/aquariumPy.html).
 
 Look at the **global structure of the code**: One cannot follow this structure in usual programming language.
 
