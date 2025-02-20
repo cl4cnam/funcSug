@@ -37,6 +37,22 @@ parallel exitAfter 1 finished ||
 ||
 	waitSeconds(15)
 ```
+
+### Choices
+
+```gdscript
+displayNewMessage('<button id="A">Button A</button><button id="B">Button B</button>')
+
+parallel(select 1) ||
+||=================
+	awaitClickBeep('#A')
+...---
+	displayNewMessage("You've chosen A")
+||================
+	awaitClickBeep('#B')
+...---
+	displayNewMessage("You've chosen B")
+```
 ## Why
 
 Many people ask why GUI programming is so difficult. Some of common difficulties come from event-driven programming problems.
