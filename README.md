@@ -2,8 +2,8 @@
 
 # **FuncSug: GUI programming made easy**
 
-FuncSug is an experimental scripting language that aims to simplify GUI programming in browser.
-It enables a more linear code in line with async/await and structured concurrency. It hides event-driven programming in a concurrent programming syntax.
+FuncSug is an experimental scripting language that aims to simplify GUI programming in browser as a complement to JavaScript.
+It enables a more linear code in line with [async/await](https://en.wikipedia.org/wiki/Async/await) and [structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency). It hides event-driven programming in a concurrent programming syntax.
 
 [**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Online Playground**](https://cl4cnam.github.io/try_FuncSug) - [**Getting started**](https://github.com/cl4cnam/funcSug#instructions-for-use) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)
 
@@ -40,7 +40,7 @@ parallel exitAfter 1 finished ||
 ## Why
 
 Many people ask why GUI programming is so difficult. Some of common difficulties come from event-driven programming problems.
-That's why, with FuncSug, programmers do NOT have to follow the event-driven programming paradigm.
+That's why, with FuncSug, programmers do NOT have to follow the event-driven programming paradigm. For example, you no longer use "addEventListener" and so no longer have the corresponding problems.
 
 ## How
 
