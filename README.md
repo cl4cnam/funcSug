@@ -344,35 +344,63 @@ This 'label' must be a declared variable.
 ```if```, ```while```, ```def``` acts as usual in Python.
 
 ```break label``` interrupts the execution of the expression labelled by ```label```.
-
+### Sequence
 ```
 seq:
 	expression1
 	...
 	expressionN
 ```
+or
+```
+sequence:
+	expression1
+	...
+	expressionN
+```
+executes the expressions in sequence and returns the value of the last (in a context of a `parallel:` block).
+In all other contexts,
+```
+expression1
+...
+expressionN
+```
 executes the expressions in sequence and returns the value of the last.
-
+### Parallel
 ```
 par:
 	expression1
 	...
 	expressionN
 ```
+```
+parallel:
+	expression1
+	...
+	expressionN
+```
+```
+parallel ||
+	expression1
+||
+	...
+||
+	expressionN
+```
 executes the expressions in parallel.
-
+### Last Will
 ```
 onBreak:
 	expression
 ```
 executes ```expression``` if the preceding expression is interrupted.
-
+### Embedded JavaScript
 ```
 js (variable1, ..., variableN):
-	jsString
+	javascriptSnippet
 ```
-executes the code in ```jsString``` (in which ```variable1 ... variableN``` can be used).
-
+executes the JavaScript code ```javascriptSnippet``` (in which ```variable1 ... variableN``` can be used).
+### Other
 ```displayNewMessageIn(text cssSelector)``` displays a new message ```text``` into the DOM element identified by ```cssSelector```.
 
 ```displayNewMessageIn(text cssSelector/cssClass)``` displays a new message ```text``` into the DOM element identified by ```cssSelector``` and assigns ```cssClass``` to it.
