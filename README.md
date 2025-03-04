@@ -1,5 +1,7 @@
 ![header](https://github.com/user-attachments/assets/3f47fea1-3131-4dab-827c-06b2505997d4)
 
+[Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=drinkingCow)
+
 # **FuncSug: GUI programming made easy**
 
 FuncSug is an experimental scripting language that aims to simplify GUI programming in browser, as a complement to JavaScript.
@@ -55,6 +57,7 @@ parallel(select 1) ||
 ...---
 	displayNewMessage("You've chosen B")
 ```
+[Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=simpleChoice)
 ### A less simple choice
 
 ```gdscript
@@ -79,6 +82,7 @@ parallel(select 1) ||
 ...---
 	displayNewMessage("You've hesitated")
 ```
+[Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=lessSimpleChoice)
 ## Why
 
 Many people ask why GUI programming is so difficult. Some of common difficulties come from event-driven programming problems.
