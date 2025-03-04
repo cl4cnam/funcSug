@@ -19,6 +19,7 @@ parallel ||
 ||
 	playSoundFile('sound3.mp3')
 ```
+[Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=soundParallel)
 
 ### Play multiple sounds one at a time
 
@@ -27,6 +28,7 @@ playSoundFile('sound1.mp3')
 playSoundFile('sound2.mp3')
 playSoundFile('sound3.mp3')
 ```
+[Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=soundSequence)
 
 ### Timeouts
 
@@ -38,7 +40,7 @@ parallel exitAfter 1 finished ||
 	waitSeconds(15)
 ```
 
-### Choices
+### A simple choice
 
 ```gdscript
 displayNewMessage('<button id="A">Button A</button><button id="B">Button B</button>')
@@ -52,6 +54,30 @@ parallel(select 1) ||
 	awaitClickBeep('#B')
 ...---
 	displayNewMessage("You've chosen B")
+```
+### A less simple choice
+
+```gdscript
+displayNewMessage(`
+	<button id="A">I choose A</button>
+	<button id="B">I choose B</button>
+`)
+
+parallel(select 1) ||
+||=================
+	awaitClickBeep('#A')
+	displayNewMessage('<button id="Aconfirmed">Yes, I choose A</button>')
+	awaitClickBeep('#Aconfirmed')
+...---
+	displayNewMessage("You've chosen A")
+||================
+	awaitClickBeep('#B')
+...---
+	displayNewMessage("You've chosen B")
+||================
+	waitSeconds(5)
+...---
+	displayNewMessage("You've hesitated")
 ```
 ## Why
 
