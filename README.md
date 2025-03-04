@@ -43,7 +43,7 @@ parallel exitAfter 1 finished ||
 ### A simple choice
 
 ```gdscript
-displayNewMessage('<button id="A">Button A</button><button id="B">Button B</button>')
+displayNewMessage('<button id="A">I choose A</button> <button id="B">I choose B</button>')
 
 parallel(select 1) ||
 ||=================
