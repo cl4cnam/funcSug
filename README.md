@@ -113,7 +113,7 @@ I'd be happy to read your opinion and answer your questions.
 ![solve2_c2](https://github.com/cl4cnam/funcSug/assets/40176886/78b1eea5-cb49-4666-b9a7-bec64973c2e0)
 
 ## Compare
-These two codes do the same thing:
+These two codes do the same thing (on mobile, please scroll right to see the FuncSug code):
 <table>
 <tr>
 <th align="center">JavaScript</th>
@@ -426,6 +426,6 @@ This language has [syntax highlighting for Geany](https://github.com/cl4cnam/fun
 
 The file ```parserPy.js``` has been generated online from the file ```funcSugPy.peggyjs``` on the site https://peggyjs.org/online.html with "parser variable" set to "pegPy".
 
-For now, this implementation consists just in a quick and dirty interpreter but it works enough to be appreciated.
+For now, this implementation consists just in a quick and dirty (and very slow) interpreter but it works enough to be appreciated.
 
 Work in progress.
