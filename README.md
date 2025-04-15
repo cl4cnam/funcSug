@@ -2,7 +2,7 @@
 
 [Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=drinkingCow)
 
-# **FuncSug: GUI programming made easy**
+# **FuncSug: User-interaction programming made easy**
 
 FuncSug is an experimental scripting language that aims to simplify GUI programming in browser, as a complement to JavaScript.
 The convenience is that FuncSug allows you to write code in an order that is more consistent with the execution order.
