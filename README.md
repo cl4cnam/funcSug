@@ -122,7 +122,7 @@ I'd be happy to read your opinion and answer your questions.
 These two codes do the same thing (on mobile, please scroll right to see the FuncSug code):
 <table>
 <tr>
-<th align="center">JavaScript</th>
+<th align="center">JavaScript/DOM</th>
 <th align="center">FuncSug</th>
 </tr>
 <tr>
