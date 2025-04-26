@@ -6,7 +6,7 @@
 
 FuncSug is an experimental scripting language that aims to simplify GUI programming in browser, as a complement to JavaScript.
 The convenience is that FuncSug allows you to write code in an order that is more consistent with the execution order.
-It enables a more linear code in line with [async/await](https://en.wikipedia.org/wiki/Async/await) and [structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency). It replaces event-driven code structures with easy-to-use seemingly parallel syntaxes (without using OS threads).
+It enables a more linear code in line with [async/await](https://en.wikipedia.org/wiki/Async/await) and [structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency). It replaces event-driven code structures with easy-to-use seemingly parallel syntaxes (without using OS threads). It allows you to program like the event loop doesn't exist.
 - No more asynchronous calls
 - Reactions to events can be expressed in ways other than event-action links
 - Reactions to events are allowed to be long
