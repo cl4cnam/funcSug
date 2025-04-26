@@ -1,4 +1,4 @@
-![header](https://github.com/user-attachments/assets/3f47fea1-3131-4dab-827c-06b2505997d4)
+![header](https://github.com/user-attachments/assets/72744a48-d5d6-4058-88ca-19d39ac5059a)
 
 [Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=drinkingCow)
 
@@ -12,6 +12,8 @@ It enables a more linear code in line with [async/await](https://en.wikipedia.or
 - Reactions to events are allowed to be long
 
 [**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Online Playground**](https://cl4cnam.github.io/try_FuncSug) - [**Getting started**](https://github.com/cl4cnam/funcSug#instructions-for-use) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)
+
+The main goal of FuncSug might be painted as follows:
 
 ![presenta2_b](https://github.com/user-attachments/assets/26d6d28d-30ae-4ab1-948d-f0e9365cbb93)
 ## A few samples
