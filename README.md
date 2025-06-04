@@ -432,6 +432,6 @@ This language has [syntax highlighting for Geany](https://github.com/cl4cnam/fun
 
 The file ```parserPy.js``` has been generated online from the file ```funcSugPy.peggyjs``` on the site https://peggyjs.org/online.html with "parser variable" set to "pegPy".
 
-For now, this implementation consists just in a quick and dirty (and very slow) interpreter but it works enough to be appreciated.
+For now, this implementation consists just in a quick and dirty (and very slow) interpreter but it works enough to be assessed.
 
 Work in progress.
