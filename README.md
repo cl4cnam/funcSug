@@ -9,7 +9,7 @@ The convenience is that FuncSug allows you to write code in an order that is mor
 It enables a more linear code in line with [async/await](https://en.wikipedia.org/wiki/Async/await) and [structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency). It replaces event-driven code structures with easy-to-use seemingly parallel syntaxes (without using OS threads). It allows you to program like the event loop doesn't exist.
 - No more asynchronous calls
 - Reactions to events can be expressed in ways other than event-action links
-- Reactions to events are allowed to be long
+- Reactions to events are allowed to contain other waits
 
 [**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Online Playground**](https://cl4cnam.github.io/try_FuncSug) - [**Getting started**](https://github.com/cl4cnam/funcSug#instructions-for-use) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)
 
