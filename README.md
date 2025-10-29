@@ -2,11 +2,12 @@
 
 [Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=drinkingCow)
 
-# **FuncSug: User-interaction programming made easy**
+# **FuncSug: Another way to structure your program**
+
+### No mandatory main loop any more
 
 FuncSug is an experimental scripting language that aims to simplify GUI programming in browser, as a complement to JavaScript.
-The convenience is that FuncSug allows you to write code in an order that is more consistent with the execution order.
-It enables a more linear code in line with [async/await](https://en.wikipedia.org/wiki/Async/await) and [structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency). It replaces event-driven code structures with easy-to-use seemingly parallel syntaxes (without using OS threads). It allows you to program like the event loop doesn't exist (Not replaced by a game loop either).
+The convenience is that FuncSug doesn't force you to structure your code according to an event loop or a game loop.
 
 👉 To grasp the specificity of FuncSug, the easiest way is to visit the [playground](https://cl4cnam.github.io/try_FuncSug).
 
@@ -14,10 +15,10 @@ It enables a more linear code in line with [async/await](https://en.wikipedia.or
 
 The main goal of FuncSug might be painted as follows:
 
-![presenta2_b](https://github.com/user-attachments/assets/26d6d28d-30ae-4ab1-948d-f0e9365cbb93)
-- No more asynchronous calls
-- Reactions to events can be expressed in ways other than event-action links
-- Reactions to events are allowed to contain other waits
+<img width="843" height="547" alt="noSlice" src="https://github.com/user-attachments/assets/64ef968a-6bbb-432d-92cb-67f69696dd58" />
+
+FuncSug enables a more linear code in line with [async/await](https://en.wikipedia.org/wiki/Async/await) and [structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency). It replaces event-driven code structures with easy-to-use seemingly parallel syntaxes (without using OS threads). It allows you to program like the event loop doesn't exist (Not replaced by a game loop either).
+
 ## A few samples
 
 ### Play multiple sounds at the same time
@@ -95,7 +96,7 @@ parallel(select 1) ||
 ## Why
 
 Many people ask why GUI programming is so difficult. Some of common difficulties come from event-driven programming problems.
-That's why, with FuncSug, programmers do NOT have to follow the event-driven programming paradigm. For example, you no longer use "addEventListener" and so no longer have the corresponding problems.
+That's why, with FuncSug, programmers do NOT have to follow the event-driven programming paradigm. For example, you no longer link an event to an action (like "addEventListener" does) and so no longer have the corresponding problems.
 
 ## How
 
