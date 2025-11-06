@@ -6,7 +6,7 @@
 
 ### No mandatory main loop any more
 
-FuncSug is an experimental scripting language that aims to simplify GUI programming in browser, as a complement to JavaScript.
+FuncSug is an experimental dynamic language that aims to simplify GUI programming in browser, as a complement to JavaScript.
 The convenience is that FuncSug doesn't force you to structure your code according to an event loop or a game loop.
 
 👉 To grasp the specificity of FuncSug, the easiest way is to visit the [playground](https://cl4cnam.github.io/try_FuncSug).
