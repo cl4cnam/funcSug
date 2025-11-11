@@ -1,0 +1,32 @@
+def coord(p_x, p_y):
+	js (p_x,p_y):
+		return [p_x,p_y]
+
+def goToAtSpeed(p_object, p_target, p_speed):
+	var end
+	p_object.fg_target := p_target
+	p_object.fg_speed := p_speed
+	parallel exitWith branch 1:
+		awaitBeep end
+		whileTrueAwaitFrame_js adapt p_object:
+			p_object.fg_time ||= 0
+			p_object.fg_time += delta || 0
+			p_object.fg_startXy ||= p_object.getXy()
+			const [xs,ys] = p_object.fg_startXy
+			const [xt,yt] = p_object.fg_target
+			if (p_object.fg_dist===undefined) {
+				p_object.fg_dist = Math.sqrt( (xt-xs)*(xt-xs)+(yt-ys)*(yt-ys) )
+			}
+			const dist = p_object.fg_time*p_object.fg_speed/1000
+			if (dist < p_object.fg_dist) {
+				const fraction = dist / p_object.fg_dist
+				const x = xs + fraction * (xt-xs)
+				const y = ys + fraction * (yt-ys)
+				p_object.setXy(x,y)
+			} else {
+				goAssign('end', '')
+				p_object.fg_time = undefined
+				p_object.fg_startXy = undefined
+				p_object.fg_dist = undefined
+			}
+	waitSeconds(0)
