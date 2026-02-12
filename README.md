@@ -9,9 +9,9 @@
 FuncSug is an experimental dynamic language that aims to simplify GUI programming in browser, as a complement to JavaScript.
 The convenience is that FuncSug doesn't force you to structure your code according to an event loop or a game loop.
 
-👉 To grasp the specificity of FuncSug, the easiest way is to visit the [playground](https://cl4cnam.github.io/try_FuncSug).
+To grasp the specificity of FuncSug, the easiest way is to visit the [playground](https://cl4cnam.github.io/try_FuncSug).
 
-[**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Online Playground**](https://cl4cnam.github.io/try_FuncSug) - [**Getting started**](https://github.com/cl4cnam/funcSug#instructions-for-use) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)
+[**👉 Online Playground with complete examples (including mini-games) 👈**](https://cl4cnam.github.io/try_FuncSug) - [**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Getting started**](https://github.com/cl4cnam/funcSug#instructions-for-use) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)
 
 The main goal of FuncSug might be painted as follows:
 
