@@ -1,4 +1,4 @@
-# FuncSug: Another way to structure your program
+# FuncSug: A language to express concurrent and sequential behaviors structuredly
 
 ![header](https://github.com/user-attachments/assets/72744a48-d5d6-4058-88ca-19d39ac5059a)
 
