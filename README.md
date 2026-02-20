@@ -1,8 +1,8 @@
+# FuncSug: Another way to structure your program
+
 ![header](https://github.com/user-attachments/assets/72744a48-d5d6-4058-88ca-19d39ac5059a)
 
 [Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=drinkingCow)
-
-# **FuncSug: Another way to structure your program**
 
 ### No mandatory main loop any more
 
