@@ -19,19 +19,21 @@ The convenience is that FuncSug doesn't force you to structure your code accordi
 
 To grasp the specificity of FuncSug, the easiest way is to visit the 🕹️[playground](https://cl4cnam.github.io/try_FuncSug).
 
-[**👉 Online Playground with complete examples (including mini-games) 👈**](https://cl4cnam.github.io/try_FuncSug) - [**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [**Getting started**](https://github.com/cl4cnam/funcSug#instructions-for-use) - [**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)  
+[**👉 🧪Online Playground with complete examples (including 🕹️mini-games) 👈**](https://cl4cnam.github.io/try_FuncSug)
+
+[🎓**Tutorials**](https://github.com/cl4cnam/funcSug/wiki/Tutorials) - [🌱**Getting started**](https://github.com/cl4cnam/funcSug#instructions-for-use) - [🧩**Examples**](https://github.com/cl4cnam/funcSug#get-a-taste-of-the-language) - [🧵**REPL**](https://cl4cnam.github.io/FuncSugREPL/replPy.html)  
 <br>
 <br>
 
-**The main goal of FuncSug might be painted as follows:**
+🎯**The main goal of FuncSug might be painted as follows:**
 
 <img width="843" height="547" alt="noSlice" src="https://github.com/user-attachments/assets/64ef968a-6bbb-432d-92cb-67f69696dd58" />
 
 FuncSug enables a more linear code in line with [async/await](https://en.wikipedia.org/wiki/Async/await) and [structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency). It replaces event-driven code structures with easy-to-use seemingly parallel syntaxes (without using OS threads). It allows you to program like the event loop doesn't exist (Not replaced by a game loop either).
 
-## A few samples
+## 🧩 A few samples
 
-### Play multiple sounds at the same time
+### 🎶 🎶 Play multiple sounds at the same time
 
 ```gdscript
 parallel ||
@@ -43,7 +45,7 @@ parallel ||
 ```
 [Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=soundParallel)
 
-### Play multiple sounds one at a time
+### 🎶 🔁 Play multiple sounds one at a time
 
 ```gdscript
 playSoundFile('sound1.mp3')
@@ -52,7 +54,7 @@ playSoundFile('sound3.mp3')
 ```
 [Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=soundSequence)
 
-### Timeouts
+### ⏱️Timeouts
 
 ```gdscript
 displayNewMessage('What is ...?')
@@ -62,7 +64,7 @@ parallel exitAfter 1 finished ||
 	waitSeconds(15)
 ```
 
-### A simple choice
+### 🔘A simple choice
 
 ```gdscript
 displayNewMessage('<button id="A">I choose A</button> <button id="B">I choose B</button>')
@@ -78,7 +80,8 @@ parallel(select 1) ||
 	displayNewMessage("You've chosen B")
 ```
 [Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=simpleChoice)
-### A less simple choice
+
+### 🔀A less simple choice
 
 ```gdscript
 displayNewMessage(`
@@ -103,16 +106,17 @@ parallel(select 1) ||
 	displayNewMessage("You've hesitated")
 ```
 [Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=lessSimpleChoice)
-## Why
+
+##🤔 Why
 
 Many people ask why GUI programming is so difficult. Some of common difficulties come from event-driven programming problems.
 That's why, with FuncSug, programmers do NOT have to follow the event-driven programming paradigm. For example, you no longer link an event to an action (like "addEventListener" does) and so no longer have the corresponding problems.
 
-## How
+## ⚙️How
 
 FuncSug suppresses **event-driven programming** problems: **callback hell** and **state management**.
 
-**Advantages:**
+**⭐Advantages:**
 - It avoids *callback hell* (You don't need callback any more).
 - Your code follows the order of execution so you avoid spaghetti code and debug more easily.
 - It solves the [state management](https://en.wikipedia.org/wiki/State_management) problem (It **eliminates** the need to manage **all the combinations** of component states).
@@ -131,7 +135,7 @@ I'd be happy to read your opinion and answer your questions.
 
 ![solve2_c2](https://github.com/cl4cnam/funcSug/assets/40176886/78b1eea5-cb49-4666-b9a7-bec64973c2e0)
 
-## Compare
+## ↔️Compare
 These two codes do the same thing (on mobile, please scroll right to see the FuncSug code):
 <table>
 <tr>
