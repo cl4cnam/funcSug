@@ -3,7 +3,7 @@
 <p align="center"> 
 	<img src="https://github.com/user-attachments/assets/1b64ac3e-6701-4427-9670-5b34659819c0" alt="When a branch is finished the other branch is definitively interrupted" width="450"> <br> 
 	<em>When a branch is finished the other branch is definitively interrupted</em> <br> <br> 
-	<img src="https://github.com/user-attachments/assets/c263cc03-24de-4ae4-a50f-dd4833500d3f" alt="code" width="450">
+	<img src="https://github.com/user-attachments/assets/c5ab6dd8-143b-4aaf-a5ef-1bf0514f30be" alt="code" width="450">
 </p>
 
 🕹️[Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=drinkingCow)
