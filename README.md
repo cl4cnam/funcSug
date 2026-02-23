@@ -1,4 +1,4 @@
-# FuncSug: A language to express concurrent and sequential behaviors structuredly
+# <img height="50" alt="Funcy_logo" src="https://github.com/user-attachments/assets/b9ad10d5-65f3-460f-b660-a8e265a13db8" /> FuncSug – A language to express concurrent and sequential behaviors structuredly
 
 <p align="center"> 
 	<img src="https://github.com/user-attachments/assets/1b64ac3e-6701-4427-9670-5b34659819c0" alt="When a branch is finished the other branch is definitively interrupted" width="450"> <br> 
@@ -6,13 +6,17 @@
 	<img src="https://github.com/user-attachments/assets/c5ab6dd8-143b-4aaf-a5ef-1bf0514f30be" alt="code" width="450">
 </p>
 
-🕹️[Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=drinkingCow)
-
 ![header](https://github.com/user-attachments/assets/72744a48-d5d6-4058-88ca-19d39ac5059a)
 
-▶️🚀[Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=drinkingCow)
+<br> <br> 
 
-### No mandatory main loop any more
+▶️🚀[Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=drinkingCow)
+<p align="center"> 
+	<a href="https://cl4cnam.github.io/try_FuncSug/?example=drinkingCow"> <img width="380" height="201" alt="logoCawPG" src="https://github.com/user-attachments/assets/474f001b-35e8-4e16-84d4-e0b29e2d9aa2" /></a>
+</p>
+
+<br> <br> 
+### 🔄No mandatory main loop any more
 
 FuncSug is an experimental dynamic language that aims to simplify GUI programming in browser, as a complement to JavaScript.
 The convenience is that FuncSug doesn't force you to structure your code according to an event loop or a game loop.
@@ -81,7 +85,7 @@ parallel(select 1) ||
 ```
 [Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=simpleChoice)
 
-### 🔀A less simple choice
+### 🔧A less simple choice
 
 ```gdscript
 displayNewMessage(`
@@ -107,7 +111,7 @@ parallel(select 1) ||
 ```
 [Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=lessSimpleChoice)
 
-##🤔 Why
+## 🤔 Why
 
 Many people ask why GUI programming is so difficult. Some of common difficulties come from event-driven programming problems.
 That's why, with FuncSug, programmers do NOT have to follow the event-driven programming paradigm. For example, you no longer link an event to an action (like "addEventListener" does) and so no longer have the corresponding problems.
@@ -116,7 +120,7 @@ That's why, with FuncSug, programmers do NOT have to follow the event-driven pro
 
 FuncSug suppresses **event-driven programming** problems: **callback hell** and **state management**.
 
-**⭐Advantages:**
+⭐**Advantages:**
 - It avoids *callback hell* (You don't need callback any more).
 - Your code follows the order of execution so you avoid spaghetti code and debug more easily.
 - It solves the [state management](https://en.wikipedia.org/wiki/State_management) problem (It **eliminates** the need to manage **all the combinations** of component states).
@@ -125,7 +129,7 @@ FuncSug suppresses **event-driven programming** problems: **callback hell** and 
 - It's deterministic.
 - (You can also include JavaScript snippets, pass FuncSug variables to it and get back JavaScript return).
 
-**by means of**:
+⚙️**by means of**:
 - explicit **logical parallelism**,
 - block cancellations,
 - and "`await` event" instructions.
@@ -213,9 +217,29 @@ print("Good job! See you soon!")
 
 If you copy and paste, replace each three initial spaces by one tabulation (Github markdown doesn't allow to change tabulation size in this context).
 
-## Get a taste of the language
+## 👀Get a taste of the language
 Have a look at:
-- ['Memory' code](https://github.com/cl4cnam/Memory/blob/main/memory.fg)
+
+<!--
+C'est un commentaire à ne pas retirer de suite au cas où
+<p align="center">
+<a href="https://github.com/cl4cnam/Memory/blob/main/memory.fg">
+  <img <img src="https://github.com/user-attachments/assets/90df278a-527b-4d49-b283-bb0e7957ca7f" width="60" alt="Memory"><br>
+  <sub>trio Memory game</sub>
+</a>
+<a href="URL_2">
+  <img src="IMG_2" width="60" alt="Hypertext fiction"><br>
+  <sub>Hypertext fiction</sub>
+</a>
+<a href="URL_3">
+  <img src="IMG_3" width="60" alt="Guess the number"><br>
+  <sub>Guess the number</sub>
+</a>
+</p>
+-->
+
+
+- ['Memory' code ](https://github.com/cl4cnam/Memory/blob/main/memory.fg)
 or [play now](https://cl4cnam.github.io/Memory/memory.html).
 - ['Memory2' code](https://github.com/cl4cnam/Memory2/blob/main/memory.fg)
 or [play now](https://cl4cnam.github.io/Memory2/memory.html).
@@ -244,7 +268,7 @@ In ['Guess the Number'](https://github.com/cl4cnam/Guess_the_number/blob/main/gu
 
 You can also [use FuncSug online playground](https://cl4cnam.github.io/try_FuncSug) or [test snippets of it](https://cl4cnam.github.io/FuncSugREPL/replPy.html).
 
-## Concurrent way
+## ⚡Concurrent way
 ![logo](https://github.com/cl4cnam/funcSug/assets/40176886/2d4c08b3-6f96-4acd-b993-b9bbe0df6b91)
 
 FuncSug uses the "**concurrent way**" or more exactly the "**logically parallel way**". That is, it introduces explicit concurrency where no concurrency seems present or mandatory. The concurrency is reputed to be very difficult. However, amazingly, many cases (in particular concurrency of waits) are simpler with explicit concurrency!
@@ -273,7 +297,7 @@ It's loosely based on [SugarCubes](https://github.com/LordManta/SugarCubesJS) by
 > **Goal**: facilitating **GUI programming** (in fact, the interactivity aspect)<br>
 > **Non-goals**: improving speed of execution, safety, facilitating data structuration, object management, mutability, types
 
-## Instructions for use
+## 🧭 Instructions for use
 
 In your ```myProgram.html```, in the end of the body element, include the lines:
 ```
@@ -288,7 +312,7 @@ In your ```myProgram.html```, in the end of the body element, include the lines:
 ```
 Write your code in the file ```myProgram.fg```.
 
-### Specific case: With phaser_ce
+### 🔍Specific case: With phaser_ce
 
 In your ```myProgram.html```, in the end of the body element, include the lines:
 ```
@@ -304,9 +328,9 @@ In your ```myProgram.html```, in the end of the body element, include the lines:
 ```
 Write your code in the file ```myProgram.fg```.
 
-## Some features
+## 🧰Some features
 
-### Parallel construct
+### 🔀Parallel construct
 > Beware that this is just a logical parallelism.
 
 You can write
@@ -322,7 +346,7 @@ You can also:
 - add a branch dynamically,
 - select parallel branch(es) according to event(s).
 
-### Interruptible block
+### 🔌Interruptible block
 You can interrupt (`break`), pause (`pause`), resume (`resume`) or restart (`restart`) a block. For example:
 ```
 parallel ||
@@ -332,7 +356,7 @@ parallel ||
 ||
 	break myBlock
 ```
-### Reaction to a change of a variable
+### 🔄Reaction to a change of a variable
 You can react to a change of a variable, for example, like this:
 ```
 while true:
@@ -340,14 +364,14 @@ while true:
 	<whatToDoInThisCase>
 ```
 
-## Syntax elements
+## 🔣Syntax elements
 
 The syntax is very similar to that of Python.
 
 After the colon ```:``` of some blocks, you can add ``` @label ``` just after the function name to label the expression (This is useful for the ```break``` instruction).
 This 'label' must be a declared variable.
 
-## A few instructions/expressions (loose description)
+## 📝A few instructions/expressions (loose description)
 
 ```print(value)``` writes ```value``` onto the console.
 
@@ -368,7 +392,8 @@ This 'label' must be a declared variable.
 ```if```, ```while```, ```def``` acts as usual in Python.
 
 ```break label``` interrupts the execution of the expression labelled by ```label```.
-### Sequence
+
+### 🔢Sequence
 ```
 seq:
 	expression1
@@ -390,7 +415,8 @@ expression1
 expressionN
 ```
 executes the expressions in sequence and returns the value of the last.
-### Parallel
+
+### 🔀Parallel
 ```
 par:
 	expression1
@@ -412,19 +438,22 @@ parallel ||
 	expressionN
 ```
 executes the expressions in parallel.
-### Last Will
+
+### 🧾Last Will
 ```
 onBreak:
 	expression
 ```
 executes ```expression``` if the preceding expression is interrupted.
-### Embedded JavaScript
+
+### 🧩Embedded JavaScript
 ```
 js (variable1, ..., variableN):
 	javascriptSnippet
 ```
 executes the JavaScript code ```javascriptSnippet``` (in which ```variable1 ... variableN``` can be used).
-### Other
+
+### 🧩Other
 ```displayNewMessageIn(text cssSelector)``` displays a new message ```text``` into the DOM element identified by ```cssSelector```.
 
 ```displayNewMessageIn(text cssSelector/cssClass)``` displays a new message ```text``` into the DOM element identified by ```cssSelector``` and assigns ```cssClass``` to it.
@@ -433,7 +462,7 @@ executes the JavaScript code ```javascriptSnippet``` (in which ```variable1 ... 
 
 ```awaitClickBeep(cssSelector)``` awaits a click from user in the DOM element identified by ```cssSelector```.
 
-## Contributing
+## 🤝Contributing
 
 Pull requests are welcome.
 
@@ -443,7 +472,7 @@ You can just post your thoughts into [discussions](https://github.com/cl4cnam/fu
 
 Examples of contributions: Tutorials, optimization, translations, fixing bugs, ...
 
-## Various
+## 🧰Various
 
 This language has [syntax highlighting for Geany](https://github.com/cl4cnam/funcSug/tree/main/tools/forGeany); otherwise, with Geany, if you choose that of zephir (or nsis, powershell, ruby), it can be pleasant.
 
