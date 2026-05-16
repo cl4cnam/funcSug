@@ -1,0 +1,74 @@
+% rendered with https://latexeditor.lagrida.com/
+\begin{align*}
+&\text{Let } (A, \cdot, \varepsilon) \text{ be a monoid.}\\
+&\text{Let } \tilde{A} \text{ such that } \varnothing \subsetneq \tilde{A} \subsetneq A \text{.}\\
+&\text{Let } \textit{Op} \text{ be a set of operations whose domain is } A \text{ with diverse arities.}\\
+&\text{Let } \textit{Var} \text{ be a denumerable set.}\\
+% &\text{Let be } \textit{evt} \in \textit{Var.}\\\\
+&\textbf{Syntax}\\
+&\text{Let } \textit{Prog} \text{ (the set of all the programs) be defined inductively by:}\\
+&\textit{prog} ::= \textbf{await } \textit{var}
+\;\;|\;\; \textit{var} \boldsymbol\Leftarrow \textit{op}(var_1,\dots,var_n)\\
+&\qquad\;\;\;|\;\; \textbf{if } \textit{var } \textit{prog}
+\;\;|\;\; \textbf{loop } \textit{prog} \\
+&\qquad\;\;\;|\;\; \textit{prog}_1\,\boldsymbol;\textit{prog}_2
+\;\;|\;\; \textit{prog}_1\,\boldsymbol{\check{,}}\,\textit{prog}_2
+\;\;|\;\; \textit{prog}_1\,\boldsymbol{\dot{|}}\,\textit{prog}_2
+\;\;|\;\; \textit{prog}_1\,\boldsymbol{\check{|}}\,\textit{prog}_2\\
+&\text{where} \textit{ var, }var_1,\dots,var_n \in \textit{Var}\\
+&\qquad\;\;\textit{ prog, }prog_1, prog_2 \in \textit{Prog}\\
+&\qquad\;\;\,\textit{op} \in \textit{Op}\\
+&\text{Let be } \widehat{Prog} := \textit{Prog} \cup \{\textbf{ended}\}\\
+&\text{The symbols } \textbf{await}, \boldsymbol\Leftarrow, \textbf{if}, \textbf{loop}, \boldsymbol;, \boldsymbol{\check{,}}, \boldsymbol{\dot{|}}, \boldsymbol{\check{|}} \text{ define functions whose codomain is }\textit{Prog.}\\
+&\text{Let's extend them to }\widehat{Prog} \text{ by:}\\
+&\qquad\textbf{if } \textit{var }\textbf{ended} := \textbf{ended}\\
+&\qquad\textbf{loop } \textbf{ended} := \textbf{ended}\\
+&\qquad\widehat{\textit{prog}}\,\boldsymbol{\dot{\boldsymbol-}}\textbf{ ended} := \textit{prog}\\
+&\qquad\textbf{ended}\,\boldsymbol{\dot{\boldsymbol-}}\;\widehat{\textit{prog}} := \textit{prog}\\
+&\qquad\widehat{\textit{prog}}\,\boldsymbol{\check{\boldsymbol-}}\textbf{ ended} := \textbf{ended}\\
+&\qquad\textbf{ended}\,\boldsymbol{\check{\boldsymbol-}}\;\widehat{\textit{prog}} := \textbf{ended}\text{ (where }\widehat{prog} \in \widehat{Prog} \text{ and }\boldsymbol- \text{ is , or |)}\\
+\\
+&\textbf{Semantics}\\
+&\text{First, let's define two functions: } \textit{doStep} \text{ and } \textit{genState.}\\
+&doStep : \widehat{Prog} \times \textit{Var} \times A^{\textit{Var}} \longrightarrow \widehat{Prog} \text{ is defined inductively by:}\\
+&\qquad doStep(\textbf{ended}, var, state) \;:=\; \textbf{ended}\\
+&\qquad doStep(\textbf{await } var, var, state) := \textbf{ended}
+\qquad\qquad doStep(\textbf{await } var_1, var_2, state) \;:=\; \textbf{await } var_1 \text{ (where } var_1 \neq var_2 )\\
+&\qquad doStep(\textit{var}_0 \boldsymbol\Leftarrow \textit{op}(var_1,\dots,var_n), var, state) \;:=\; \textit{var}_0 \boldsymbol\Leftarrow \textit{op}(var_1,\dots,var_n)\\
+&\qquad doStep(\textbf{if } \textit{var}_1 \textit{ prog}, var_2, state) \;:=\; \left\{
+	\begin{array}{ll}
+		doStep(prog, var_2, state) &\text{ if } state(var_1) \in \tilde{A} \\
+		\textbf{ended} &\text{ otherwise}
+	\end{array}
+\right.\\
+&\qquad doStep(\textbf{loop } \textit{ prog}, var, state) \;:=\; doStep(prog, var, state)\;\boldsymbol;\,\textbf{loop}\,\textit{ prog}\\
+&\qquad doStep(\textit{prog}_1\,\boldsymbol{\bar{,}}\;\textit{prog}_2, var, state) \;:=\; doStep(prog_1, var, state)\;\boldsymbol{\bar{,}}\,\textit{ prog}_2\\
+&\qquad doStep(\textit{prog}_1\,\boldsymbol{\bar{|}}\;\textit{prog}_2, var, state) \;:=\; doStep(prog_1, var, state)\;\boldsymbol{\bar{|}}\;doStep(prog_2, var, state)\text{ (where } \bar{\phantom{e}} \,\text{ is } \dot{\phantom{e}} \text{ or } \check{\phantom{e}} )\\
+&genState : \widehat{Prog} \times A^{\textit{Var}} \longrightarrow A^{\textit{Var}} \text{ is defined inductively by:}\\
+&\qquad genState(\textbf{ended}, state)(var) \;:=\; \varepsilon\\
+&\qquad genState(\textbf{await } var_1, state)(var_2) \;:=\; \varepsilon\\
+&\qquad genState(\textit{var}_0 \boldsymbol\Leftarrow \textit{op}(var_1,\dots,var_n), state)(var) \;:=\; \left\{
+	\begin{array}{ll}
+		\textit{op}(state(var_1),\dots,state(var_n)) &\text{ if } var_0 = var \\
+		\varepsilon &\text{ otherwise}
+	\end{array}
+\right.\\
+&\qquad genState(\textbf{if } \textit{var}_1 \textit{ prog}, state)(var_2) \;:=\; \left\{
+	\begin{array}{ll}
+		genState(prog, state)(var_2) &\text{ if } state(var_1) \in \tilde{A} \\
+		\varepsilon &\text{ otherwise}
+	\end{array}
+\right.\\
+&\qquad genState(\textbf{loop } \textit{ prog}, state)(var) \;:=\; genState(prog, state)(var)\\
+&\qquad genState(\textit{prog}_1\,\boldsymbol{\bar{,}}\;\textit{prog}_2, state)(var) \;:=\; genState(prog_1, state)(var)\\
+&\qquad genState(\textit{prog}_1\,\boldsymbol{\bar{|}}\;\textit{prog}_2, state)(var) \;:=\; genState(prog_1, state)(var)\cdot genState(prog_2, state)(var)\;\;\text{ (where } \bar{\phantom{e}} \,\text{ is } \dot{\phantom{e}} \text{ or } \check{\phantom{e}} )\\
+&\text{Let be } prog \in Prog.\\
+&\text{Let be } I \in \omega+1 \text{ and let be } (evt_i,a_i)_{i \in I} \text{ a sequence (finite or infinite) of elements of } \textit{Var} \times A.\\
+&\text{Let's define two sequences by simultaneous induction: } (prog_i)_{i \in I} \text{ and } (state_i)_{i \in I}.\\
+&\qquad prog_0 := prog\\
+&\qquad state_0 := \textit{Var} \longrightarrow A : var \mapsto \varepsilon \\
+&\qquad prog_{i+1} := doStep(prog_i, evt_i, state_i[evt_i \mapsto a_i])\\
+&\qquad state_{i+1} := genState(prog_{i+1}, state_i[evt_i \mapsto a_i])\\
+&\text{Let be } Evt := \{evt_i \mid i \in I\}.\\
+&\text{The semantics of } prog \text{ is the map } Evt \longrightarrow A : evt_i \mapsto state_i.\\
+\end{align*}

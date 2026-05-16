@@ -1,0 +1,53 @@
+p {
+	margin: 30px;
+}
+
+p.self {
+	border-color: #e0b000;
+	background-color: #ffffc0;
+	margin-right: 10px;
+	margin-left: auto;
+}
+
+p.other {
+	border-color: #00c000;
+	background-color: #c0ffc0;
+	margin-left: 10px;
+	margin-right: auto;
+}
+
+p.error {
+	border-color: #ffc0c0;
+	background-color: #ffefef;
+	margin-right: auto;
+}
+
+p.display {
+	border-style: solid;
+	border-width: 1px;
+	border-radius: 10px;
+	padding: 15px;
+	width: 45%;
+}
+
+p.title {
+	border: none;
+	background-color: #e0e0e0;
+	border-radius: 0;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+	padding: 5px;
+}
+
+p.entry {
+	border-style: solid;
+	border-width: 2px;
+	background-color: #ffff80;
+	border-radius: 10px;
+	padding: 20px;
+	width: 45%;
+/*
+	outline: none;
+*/
+}
