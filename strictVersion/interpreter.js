@@ -26,18 +26,22 @@ function doStep(pAst, pEvt, pState) {
 		const l_genus = pAst.content[1].content[0].content
 		const l_species = pAst.content[1].content[1].content
 		if (pEvt.type?.genus === l_genus && pEvt.type?.species === l_species) {
-			pAst.content[0].alreadySeen = false
 			return 'bottom'
 		} else {
 			return pAst
 		}
 	} else if (pAst.type === 'expression' && pAst.content[0].content === 'seq') {
 		const lAst_first = doStep(pAst.content[1], pEvt, pState)
-		const lArray_content = (lAst_first === 'bottom') ? pAst.content.slice(2) : [doStep(pAst.content[1], pEvt, pState), ...pAst.content.slice(2)]
-		return new Expression('expression', [
+		const lArray_content = (lAst_first === 'bottom') ? pAst.content.slice(2) : [lAst_first, ...pAst.content.slice(2)]
+		const lAst_remaining = new Expression('expression', [
 			new Expression('identifier', 'seq'),
 			...lArray_content
 		])
+		if (lAst_first === 'bottom') {
+			return doStep(lAst_remaining, pEvt, pState)
+		} else {
+			return lAst_remaining
+		}
 	} else if (pAst.type === 'expression' && pAst.content[0].content === 'par') {
 		const lArray_content = pAst.content.slice(1).map(elt=>doStep(elt, pEvt, pState)).filter(elt=>(elt!=='bottom'))
 		if (lArray_content.length === 0) return 'bottom'
@@ -49,6 +53,7 @@ function doStep(pAst, pEvt, pState) {
 	} else if (pAst.type === 'expression' && pAst.content[0].content === 'par_race_mult') {
 		const lArray_content = pAst.content.slice(2).map(elt=>doStep(elt, pEvt, pState))
 		if (lArray_content.includes('bottom')) {
+			clearInputHook(pAst)
 			return 'bottom'
 		}
 		//~ console.log('par_race_mult: lArray_content', lArray_content)
@@ -65,7 +70,7 @@ function doStep(pAst, pEvt, pState) {
 		])
 	} else if (pAst.type === 'expression' && pAst.content[0].content === 'if') {
 		const ls_condition = pAst.content[1].content
-		const ls_codeToEvaluate = `function $(genus, species) {return p_state.get(genus+'$$$'+species)}; return ` + ls_condition
+		const ls_codeToEvaluate = `function $(genus, species) {console.log('====', p_state.get(genus+'$$$'+species)); return p_state.get(genus+'$$$'+species)}; return ` + ls_condition
 		const l_value = (Function('p_state', ls_codeToEvaluate))(pState)
 		if (l_value) {
 			return doStep(pAst.content[2], pEvt, pState)
@@ -115,8 +120,7 @@ function genState(pAst, pState) {
 	} else if (pAst.type === 'expression' && pAst.content[0].content === 'await') {
 		const l_genus = pAst.content[1].content[0].content
 		const l_species = pAst.content[1].content[1].content
-		if (!pAst.content[0].alreadySeen) inputHook(l_genus, l_species)
-		pAst.content[0].alreadySeen = true
+		inputHook(l_genus, l_species, pAst)
 		if (l_genus === 'tick') {
 			gb_tickAwaited = true
 		}
