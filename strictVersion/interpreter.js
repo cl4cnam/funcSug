@@ -17,11 +17,27 @@ function combineState(pState1, pState2) {
 }
 
 function doStep(pAst, pEvt, pState) {
+	//~ console.warn('========================== STEP', pEvt.type.genus)
 	pAst = simplify(pAst)
 	if (pAst === 'bottom') {
 		return 'bottom'
 	} else if (pAst.type === 'expression' && pAst.content[0].content === '<=' && pAst.content.length === 3) {
-		return pAst
+		let l_value = pAst.content[2].content
+		//~ if (l_value.pop && l_value[0].content === 'host') {
+		if (l_value.pop && ['exec', 'eval'].includes(l_value[0].content) ) {
+			let ls_codeToEvaluate = l_value[1].content
+			//~ ls_codeToEvaluate = ls_codeToEvaluate.replaceAll('$(', 'S.get(')
+			const ls_optReturnWord = (l_value[0].content === 'exec') ? '' : 'return '
+			ls_codeToEvaluate = getHostFunc() + `function $(genus, species) {return p_state.get(genus+'$$$'+species)}; ` + ls_optReturnWord + ls_codeToEvaluate
+			//~ console.log('=====', ls_codeToEvaluate)
+			l_value = (Function('p_state', ls_codeToEvaluate))(pState)
+		}
+		l_value = (l_value.pop) ? l_value : [l_value]
+		return new Expression('expression', [
+				new Expression('identifier', '<='),
+				pAst.content[1],
+				new Expression('string', l_value),
+		])
 	} else if (pAst.type === 'expression' && pAst.content[0].content === 'await') {
 		const l_genus = pAst.content[1].content[0].content
 		const l_species = pAst.content[1].content[1].content
@@ -62,6 +78,42 @@ function doStep(pAst, pEvt, pState) {
 			new Expression('number', 1),
 			...lArray_content
 		])
+	} else if (pAst.type === 'expression' && pAst.content[0].content === 'par_select_mult') {
+		const branch1a = doStep(pAst.content[2].content[1], pEvt, pState)
+		const branch2a = doStep(pAst.content[3].content[1], pEvt, pState)
+		const branch1b = pAst.content[2].content[4]
+		const branch2b = pAst.content[3].content[4]
+		if (branch1a === 'bottom' && branch2a === 'bottom') {
+			clearInputHook(pAst)
+			return 'bottom'
+		} else if (branch1a === 'bottom') {
+			clearInputHook(branch2a)
+			return doStep(branch1b, pEvt, pState)
+		} else if (branch2a === 'bottom') {
+			clearInputHook(branch1a)
+			return doStep(branch2b, pEvt, pState)
+		} else {
+			const returnExpression = new Expression('expression', [
+				new Expression('identifier', 'par_select_mult'),
+				new Expression('number', 1),
+				new Expression('expression', [
+					new Expression('identifier', 'seq'),
+					branch1a,
+					'dummy',
+					'dummy',
+					branch1b
+				]),
+				new Expression('expression', [
+					new Expression('identifier', 'seq'),
+					branch2a,
+					'dummy',
+					'dummy',
+					branch2b
+				]),
+			])
+			//~ console.warn('returnExpression', returnExpression)
+			return returnExpression
+		}
 	} else if (pAst.type === 'expression' && pAst.content[0].content === 'while' && pAst.content[1].content === 'true') {
 		return new Expression('expression', [
 			new Expression('identifier', 'seq'),
@@ -115,7 +167,8 @@ function genState(pAst, pState) {
 		}
 		//~ console.log(ls_genus, ls_species, l_value)
 		//~ returnState.set({genus: ls_genus, species: ls_species}, [l_value])
-		returnState.set(ls_genus+'$$$'+ls_species, [l_value])
+		l_value = (l_value.pop) ? l_value : [l_value]
+		returnState.set(ls_genus+'$$$'+ls_species, l_value)
 		return returnState
 	} else if (pAst.type === 'expression' && pAst.content[0].content === 'await') {
 		const l_genus = pAst.content[1].content[0].content
@@ -136,6 +189,10 @@ function genState(pAst, pState) {
 		//~ console.log('state par_race_mult content', lArray_content)
 		const lArray_newState = lArray_content.map(elt=>genState(elt, pState))
 		return lArray_newState.reduce(combineState)
+	} else if (pAst.type === 'expression' && pAst.content[0].content === 'par_select_mult') {
+		const branch1a = pAst.content[2].content[1]
+		const branch2a = pAst.content[3].content[1]
+		return combineState(genState(branch1a, pState), genState(branch2a, pState))
 	} else if (pAst.type === 'expression' && pAst.content[0].content === 'while' && pAst.content[1].content === 'true') {
 		return genState(pAst.content[2], pState)
 	} else if (pAst.type === 'expression' && pAst.content[0].content === 'if') {
