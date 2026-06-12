@@ -2,9 +2,13 @@
 
 const $ = document.querySelector.bind(document) 
 
-function adaptString(p_text) {
-	const ls_text = p_text.replaceAll()
+function adaptString(ps_text) {
+	const ls_text = ps_text.replaceAll('{', '<p class="display other">').replaceAll('}', '</p>').replaceAll('___', '<p class="display self"></p>')
 	return ls_text
+}
+
+function getHostFunc() {
+	return `function other(ps_text) {return '<p class="display other">' + ps_text + '</p>'};`
 }
 
 function outputHook(pState) {
@@ -16,9 +20,11 @@ function outputHook(pState) {
 			//~ const ls_anchorSelector = key.species
 			const ls_anchorSelector = key.split('$$$')[1]
 			const lElt_anchor = $(ls_anchorSelector)
-			//~ console.warn(value)
+			//~ console.warn('value', value)
+			//~ l_value = (value instanceof Array) ? value : [value]
 			for (const elt of value) {
-				lElt_anchor.insertAdjacentHTML('beforeend', elt)
+				//~ console.log('elt', elt)
+				lElt_anchor.insertAdjacentHTML('beforeend', adaptString(elt))
 			}
 		}
 	}
@@ -33,10 +39,9 @@ function clearInputHook(pAst) {
 			else if(pAst.reaction.type = 'listener') pAst.reaction.value[0].removeEventListener(...pAst.reaction.value.slice(1))
 		}
 		if (pAst.type === 'expression') {
-			clearInputHook(pAst.content?.[1])
-			clearInputHook(pAst.content?.[2])
-			clearInputHook(pAst.content?.[3])
-			clearInputHook(pAst.content?.[4])
+			for (const ast of pAst.content) {
+				clearInputHook(ast)
+			}
 		}
 	}
 }
@@ -59,7 +64,7 @@ function inputHook(ps_genus, ps_species, pAst) {
 					evt.target.removeEventListener('beforeinput', react)
 					evt.target.setAttribute('contentEditable', 'false')
 					evt.target.classList.replace('entry', 'display')
-					//~ console.log(evt.target.innerHTML)
+					//~ console.log('innerHTML', evt.target.innerHTML)
 					evt.preventDefault()
 					//~ console.warn('listener', pAst)
 					pAst.reaction = undefined
