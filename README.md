@@ -29,6 +29,29 @@ To grasp the specificity of FuncSug, the easiest way is to visit the 🕹️[pla
 <br>
 <br>
 
+<table>
+<tr><td>
+			
+|[Try "Cross the River"](https://cl4cnam.github.io/try_FuncSug/?example=crossRiverFish)|
+|---|
+|[<img width="442" height="233" alt="crossRiver2" src="https://github.com/user-attachments/assets/9ad79ca3-dd77-4f85-9474-62d30ee00cde" />](https://cl4cnam.github.io/try_FuncSug/?example=crossRiverFish)|
+
+</td><td>
+
+|[Try "15-puzzle"](https://cl4cnam.github.io/try_FuncSug/?example=puzzle15)|
+|---|
+|[<img width="234" height="233" alt="15puzzle2" src="https://github.com/user-attachments/assets/9fd7b79e-e021-4142-89e1-bf38b0c870ae" />](https://cl4cnam.github.io/try_FuncSug/?example=puzzle15)|
+
+</td></tr><tr><td colspan="2" align="center">
+
+|[Try "Trio Memory"](https://cl4cnam.github.io/try_FuncSug/?example=memory)|
+|---|
+|[<img width="360" height="233" alt="trioMemory3" src="https://github.com/user-attachments/assets/38847a1c-8361-4ddf-9344-db2caf4dc76d" />](https://cl4cnam.github.io/try_FuncSug/?example=memory)|
+
+</td></tr> </table>
+
+<br>
+
 🎯**The main goal of FuncSug might be painted as follows:**
 
 <img width="843" height="547" alt="noSlice" src="https://github.com/user-attachments/assets/64ef968a-6bbb-432d-92cb-67f69696dd58" />
