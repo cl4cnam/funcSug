@@ -64,6 +64,8 @@
 		:await evtSug beep
 }
 
+.var awaitClick <-- $awaitClickBeep
+
 {deffunc getSelectedOption (p_idElt p_evtSug)
 #        --------
 	{ext (p_idElt) `
@@ -261,7 +263,8 @@
 			lElt_anchor = document.querySelector(p_idAnchor)
 			if (lElt_anchor===null) console.log("ERROR !!! libDOM.fg/displayNewHtmlIn '" + p_idAnchor + "' selector references no element!")
 		}
-		lElt_anchor.innerHTML += p_html
+		//lElt_anchor.innerHTML += p_html
+		lElt_anchor.insertAdjacentHTML('beforeend', p_html)
 		lElt_anchor.scrollIntoView()
 		//~ lElt_anchor.addEventListener('load', function(evt){
 			//~ output(lElt_anchor)
