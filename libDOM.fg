@@ -19,6 +19,13 @@
 	`}
 }
 
+{deffunc randomChoice (p_array)
+	{short (p_array) `
+		const index = Math.floor(Math.random()*p_array.length)
+		return p_array[index]
+	`}
+}
+
 #====================================
 # Click functions
 #====================================
@@ -65,6 +72,17 @@
 }
 
 .var awaitClick <-- $awaitClickBeep
+
+{deffunc awaitHumanChoice (p_buttonList)
+#        ----------------
+		.var buttonParList <-- .listToPar $p_buttonList
+		(foreachIn_select_mult button $buttonParList 1 {seq
+			.awaitClick $button
+			.disableCancelFor SUG_branch
+			:set SUG_multReturn false
+			$button
+		})
+}
 
 {deffunc getSelectedOption (p_idElt p_evtSug)
 #        --------
