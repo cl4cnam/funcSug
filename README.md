@@ -1,4 +1,4 @@
-# <img height="50" alt="Funcy_logo" src="https://github.com/user-attachments/assets/b9ad10d5-65f3-460f-b660-a8e265a13db8" /> FuncSug – A language to express concurrent and sequential behaviors structuredly
+# <a href="https://cl4cnam.github.io/try_FuncSug/?example=parallel"><img height="50" alt="Funcy_logo" src="https://github.com/user-attachments/assets/b9ad10d5-65f3-460f-b660-a8e265a13db8" /></a> FuncSug – A language to express concurrent and sequential behaviors structuredly
 
 <p align="center"> 
 	<img src="https://github.com/user-attachments/assets/1b64ac3e-6701-4427-9670-5b34659819c0" alt="When a branch is finished the other branch is definitively interrupted" width="450"> <br> 
