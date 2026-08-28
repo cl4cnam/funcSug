@@ -1,14 +1,12 @@
-# <a href="https://cl4cnam.github.io/try_FuncSug/?example=parallel"><img height="50" alt="Funcy_logo" src="https://github.com/user-attachments/assets/b9ad10d5-65f3-460f-b660-a8e265a13db8" /></a> FuncSug – A language to express concurrent and sequential behaviors structuredly
+# <img height="50" alt="Funcy_logo" src="https://github.com/user-attachments/assets/b9ad10d5-65f3-460f-b660-a8e265a13db8" /> FuncSug – A language to express concurrent and sequential behaviors structuredly
 
 <p align="center"> 
-	<img src="https://github.com/user-attachments/assets/1b64ac3e-6701-4427-9670-5b34659819c0" alt="When a branch is finished the other branch is definitively interrupted" width="450"> <br> 
+	<a href="https://cl4cnam.github.io/try_FuncSug/?example=parallel"><img src="https://github.com/user-attachments/assets/1b64ac3e-6701-4427-9670-5b34659819c0" alt="When a branch is finished the other branch is definitively interrupted" width="450"></a> <br> 
 	<em>When a branch is finished the other branch is definitively interrupted</em> <br> <br> 
-	<img src="https://github.com/user-attachments/assets/c5ab6dd8-143b-4aaf-a5ef-1bf0514f30be" alt="code" width="450">
+	<a href="https://cl4cnam.github.io/try_FuncSug/?example=drinkingCow"><img src="https://github.com/user-attachments/assets/c5ab6dd8-143b-4aaf-a5ef-1bf0514f30be" alt="code" width="450"></a>
 </p>
 
-![header](https://github.com/user-attachments/assets/72744a48-d5d6-4058-88ca-19d39ac5059a)
-
-<br> <br> 
+<a href="https://cl4cnam.github.io/try_FuncSug/?example=drinkingCow">![header](https://github.com/user-attachments/assets/72744a48-d5d6-4058-88ca-19d39ac5059a)</a>
 
 ▶️🚀[Try it in the Playground](https://cl4cnam.github.io/try_FuncSug/?example=drinkingCow)
 <p align="center"> 
